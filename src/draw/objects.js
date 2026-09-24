@@ -499,6 +499,62 @@ const SMALL = {
     for (const y of [-26, -16]) { rr(ctx, -T / 2, y, T, 6, 3); fs(ctx, '#ff7a8a', 1.2, '#c95060'); ctx.fillStyle = '#fff'; for (let i = -18; i < 24; i += 12) ctx.fillRect(i, y + 0.5, 6, 5); }
   },
   bunting() {},
+  gazebo(ctx) {
+    // Rosenlaube mit Schaukel (Anker: unten links, 3 Kacheln breit)
+    const W = 144;
+    shadow(ctx, W / 2, -2, 78, 14, 0.16);
+    rr(ctx, 6, -14, W - 12, 16, 8); fs(ctx, '#e9d8c4');
+    ctx.strokeStyle = '#d6c2aa'; ctx.lineWidth = 1.5; for (let i = 16; i < W - 10; i += 14) { ctx.beginPath(); ctx.moveTo(i, -13); ctx.lineTo(i, 1); ctx.stroke(); }
+    // Schaukel
+    ctx.strokeStyle = '#a57a52'; ctx.lineWidth = 2;
+    for (const x of [48, 96]) { ctx.beginPath(); ctx.moveTo(x, -104); ctx.lineTo(x, -34); ctx.stroke(); }
+    rr(ctx, 40, -38, 64, 9, 4); fs(ctx, '#c98a5a');
+    rr(ctx, 42, -58, 60, 20, 6); fs(ctx, '#fff0f6', 1.5, '#e8a0b8');
+    heart(ctx, 60, -46, 9, '#ff7eb6'); heart(ctx, 84, -46, 9, '#ff9ecb');
+    // Pfosten
+    for (const x of [10, W - 10]) { rr(ctx, x - 5, -112, 10, 108, 4); fs(ctx, '#fffaf4', 1.6, '#c9b0a0'); }
+    for (const x of [10, W - 10]) for (let i = 0; i < 7; i++) flower(ctx, x + Math.sin(i * 1.7) * 5, -20 - i * 13, 4, ['#ff6f8f', '#ff9ecb', '#fff'][i % 3], '#ffd84a');
+    // Dach
+    ctx.beginPath(); ctx.moveTo(-8, -108); ctx.quadraticCurveTo(W / 2, -176, W + 8, -108); ctx.quadraticCurveTo(W / 2, -96, -8, -108); ctx.closePath();
+    fs(ctx, '#ff9eb8', 2, '#d9708f');
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2;
+    for (let i = 1; i < 6; i++) { ctx.beginPath(); ctx.moveTo(W / 2, -150); ctx.lineTo(-8 + (W + 16) * (i / 6), -104); ctx.stroke(); }
+    ctx.fillStyle = '#fff'; for (let i = 0; i <= 12; i++) { circ(ctx, -8 + (W + 16) * (i / 12), -106, 3.4); ctx.fill(); }
+    heart(ctx, W / 2, -150, 20, '#ff5f8f');
+    // Rosenranken am Dachrand
+    for (let i = 0; i < 9; i++) flower(ctx, 4 + i * 17, -104 + Math.sin(i) * 2, 3.6, i % 2 ? '#ff5f7f' : '#ffb3c8', '#ffe07a');
+  },
+  cathouse(ctx) {
+    shadow(ctx, 48, 0, 50, 9);
+    rr(ctx, 6, -56, 84, 56, 8); fs(ctx, '#ffe7c2');
+    ctx.beginPath(); ctx.moveTo(-2, -52); ctx.lineTo(48, -92); ctx.lineTo(98, -52); ctx.closePath(); fs(ctx, '#b79cf0', 2);
+    for (const x of [26, 70]) { ctx.beginPath(); ctx.moveTo(x - 10, -66); ctx.lineTo(x, -96 + (x > 48 ? 8 : 0)); ctx.lineTo(x + 10, -72); ctx.closePath(); fs(ctx, '#b79cf0', 2); ctx.fillStyle = '#ffc2d4'; ctx.beginPath(); ctx.moveTo(x - 4, -70); ctx.lineTo(x, -86 + (x > 48 ? 6 : 0)); ctx.lineTo(x + 4, -72); ctx.closePath(); ctx.fill(); }
+    ctx.beginPath(); ctx.arc(48, -18, 15, Math.PI, 0); ctx.lineTo(63, 0); ctx.lineTo(33, 0); ctx.closePath(); fs(ctx, '#6b4a5e');
+    for (const x of [20, 76]) { circ(ctx, x, -34, 7); fs(ctx, '#bfe6f7', 1.5, '#c9a080'); }
+    ctx.font = `700 9px ${FONT}`; ctx.textAlign = 'center'; ctx.fillStyle = '#8a4a6a'; ctx.fillText('Maumau & Manni', 48, -44);
+    // Pfötchen
+    ctx.fillStyle = '#ff9ecb'; for (const [x, y] of [[26, -12], [70, -12]]) { circ(ctx, x, y, 3); ctx.fill(); for (const [dx, dy] of [[-3, -4], [0, -5.5], [3, -4]]) { circ(ctx, x + dx, y + dy, 1.4); ctx.fill(); } }
+  },
+  doghouse(ctx) {
+    shadow(ctx, 48, 0, 46, 9);
+    rr(ctx, 12, -50, 72, 50, 6); fs(ctx, '#ffd9a8');
+    ctx.strokeStyle = '#e6b880'; ctx.lineWidth = 1.5; for (let y = -42; y < 0; y += 9) { ctx.beginPath(); ctx.moveTo(14, y); ctx.lineTo(82, y); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(2, -46); ctx.lineTo(48, -84); ctx.lineTo(94, -46); ctx.closePath(); fs(ctx, '#ef6f6f', 2);
+    ctx.beginPath(); ctx.arc(48, -18, 14, Math.PI, 0); ctx.lineTo(62, 0); ctx.lineTo(34, 0); ctx.closePath(); fs(ctx, '#4a3a44');
+    rr(ctx, 30, -66, 36, 14, 5); fs(ctx, '#fff', 1.5, '#c96a6a');
+    ctx.font = `800 10px ${FONT}`; ctx.textAlign = 'center'; ctx.fillStyle = '#e8587a'; ctx.fillText('MIRA', 48, -56);
+    // Knochen & Napf
+    ctx.fillStyle = '#fff8ee'; rr(ctx, 70, -6, 16, 4, 2); ctx.fill(); for (const x of [70, 86]) for (const y of [-7, -3]) { circ(ctx, x, y, 2.4); ctx.fill(); }
+    ell(ctx, 20, -3, 8, 3.5); fs(ctx, '#7ec8ff', 1.2);
+  },
+  scratchtree(ctx) {
+    shadow(ctx, 0, 0, 14, 4);
+    rr(ctx, -16, -8, 32, 8, 3); fs(ctx, '#c9a0e8');
+    rr(ctx, -4, -66, 8, 60, 3); fs(ctx, '#e6cfa8');
+    ctx.strokeStyle = '#c9a878'; ctx.lineWidth = 1; for (let y = -62; y < -8; y += 4) { ctx.beginPath(); ctx.moveTo(-4, y); ctx.lineTo(4, y + 2); ctx.stroke(); }
+    rr(ctx, -14, -40, 28, 7, 3); fs(ctx, '#c9a0e8'); rr(ctx, -12, -70, 24, 7, 3); fs(ctx, '#c9a0e8');
+    ctx.strokeStyle = '#ff7eb6'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(10, -40); ctx.lineTo(12, -28); ctx.stroke(); circ(ctx, 12, -26, 3); ctx.fillStyle = '#ff7eb6'; ctx.fill();
+  },
 };
 
 // Deko der Spielerin
@@ -520,7 +576,7 @@ const DECO_DRAW = {
 
 export function smallSprite(k, o = {}) {
   const key = 'o:' + k + (o.c || '');
-  const sizes = { fountain: [140, 110, 70, 90], stall: [70, 90, 10, 80], hut: [160, 120, 10, 108], log: [110, 50, 10, 40], shelter: [160, 90, 10, 80], festarch: [100, 130, 50, 118], arch: [80, 100, 40, 92], stage: [100, 30, 50, 20], gatepost: [30, 90, 15, 82], table: [60, 50, 30, 42] };
+  const sizes = { gazebo: [170, 200, 13, 188], cathouse: [110, 110, 8, 100], doghouse: [110, 100, 8, 90], scratchtree: [50, 90, 25, 80], fountain: [140, 110, 70, 90], stall: [70, 90, 10, 80], hut: [160, 120, 10, 108], log: [110, 50, 10, 40], shelter: [160, 90, 10, 80], festarch: [100, 130, 50, 118], arch: [80, 100, 40, 92], stage: [100, 30, 50, 20], gatepost: [30, 90, 15, 82], table: [60, 50, 30, 42] };
   const [w, h, ax, ay] = sizes[k] || [70, 80, 35, 70];
   const f = SMALL[k];
   return sprite(key, w, h, ax, ay, (ctx) => f && f(ctx, o));
@@ -601,6 +657,12 @@ export function pickupSprite(k, picked = false) {
       case 'shell':
         ctx.beginPath(); ctx.moveTo(0, -2); ctx.lineTo(-9, -10); ctx.quadraticCurveTo(0, -22, 9, -10); ctx.closePath(); fs(ctx, '#ffd0dc', 1.4, '#e89ab0');
         ctx.strokeStyle = '#e89ab0'; ctx.lineWidth = 1; for (const a of [-0.8, -0.3, 0.2, 0.7]) { ctx.beginPath(); ctx.moveTo(0, -2); ctx.lineTo(Math.sin(a) * 10, -2 - Math.cos(a) * 14); ctx.stroke(); }
+        break;
+      case 'heartstone':
+        shadow(ctx, 0, 0, 8, 3);
+        heart(ctx, 0, -8, 20, '#e8a0b8');
+        heart(ctx, 0, -9, 16, '#ffb3cf');
+        sparkle(ctx, 7, -18, 3.5, '#fff');
         break;
       case 'horseshoe':
         ctx.lineCap = 'round';

@@ -16,7 +16,12 @@ export const ITEMS = {
   cake: { name: 'Streuselkuchen', plural: 'Streuselkuchen', cat: 'bake', sell: 8, desc: 'Bertas berühmter Kuchen. Ein tolles Geschenk!' },
   juice: { name: 'Apfelsaft', plural: 'Apfelsaft', cat: 'bake', sell: 3, desc: 'Naturtrüb und spritzig.' },
   letter: { name: 'Eilbrief', plural: 'Eilbriefe', cat: 'quest', sell: 0, desc: 'Für Kuno, den Leuchtturmwärter. Schnell!' },
-  boards: { name: 'Bretter', plural: 'Bretter', cat: 'quest', sell: 0, desc: 'Stabile Bretter für den Stall.' },
+  boards: { name: 'Bretter', plural: 'Bretter', cat: 'quest', sell: 0, desc: 'Stabile Bretter zum Bauen. Gibt es bei Theo.' },
+  loveletter: { name: 'Liebesbrief', plural: 'Liebesbriefe', cat: 'quest', sell: 0, desc: 'Rosa Papier, ein Herz als Siegel – und Merts krakelige Schrift.' },
+  birthdaycake: { name: 'Geburtstagstorte', plural: 'Geburtstagstorten', cat: 'quest', sell: 0, desc: 'Bertas Apfeltorte mit Kerzen – für Merts Geburtstag.' },
+  giftbox: { name: 'Muschel-Anhänger', plural: 'Muschel-Anhänger', cat: 'quest', sell: 0, desc: 'Von Luise gefertigt: zwei Muschelhälften, die zusammen ein Herz ergeben.' },
+  flamingo: { name: 'Flamingo-Spielzeug', plural: 'Flamingo-Spielzeuge', cat: 'quest', sell: 0, desc: 'Mannis liebstes Spielzeug – rosa, mit Wackelaugen.' },
+  heartstone: { name: 'Herzstein', plural: 'Herzsteine', cat: 'quest', sell: 0, desc: 'Ein glatter Stein in Herzform. Mert hat ihn für dich versteckt.' },
   invite: { name: 'Einladung', plural: 'Einladungen', cat: 'quest', sell: 0, desc: 'Einladung zum Sommerfest auf dem Ponyhof.' },
 };
 
@@ -37,4 +42,23 @@ export function itemName(id, n = 1) {
 export const CROPS = {
   carrot: { seed: 'seed_carrot', item: 'carrot', hours: 5, yield: 1, name: 'Karotte' },
   sunflower: { seed: 'seed_sunflower', item: 'sunflower', hours: 7, yield: 1, name: 'Sonnenblume' },
+};
+
+// Woher bekommt man was? (für Tipps im Aufgabenbuch und bei fehlenden Sachen)
+export const ITEM_SOURCES = {
+  apple: 'Äpfel: unter einem Apfelbaum E drücken (schütteln) – oder bei Theo kaufen.',
+  carrot: 'Karotten: im Gemüsegarten säen, gießen und ernten – oder bei Theo kaufen.',
+  hay: 'Heu: bei Theo im Laden.',
+  lavender: 'Lavendel: im Lavendelfeld auf den Blumenwiesen (nördlich vom Hof). Wächst jeden Tag nach.',
+  poppy: 'Mohnblumen: rote Blumen überall auf den Blumenwiesen.',
+  sunflower: 'Sonnenblumen: im Sonnenblumenfeld auf den Blumenwiesen (Nordosten) – oder im Garten säen.',
+  daisy: 'Gänseblümchen: kleine weiße Blumen auf den Wiesen rund um Hof und Dorf.',
+  mushroom: 'Pilze: im Flüsterwald nahe der Wege.',
+  shell: 'Muscheln: am Sonnenstrand im Süden.',
+  bread: 'Brot: bei Berta in der Bäckerei (Dorf Kleeberg).',
+  cake: 'Streuselkuchen: bei Berta in der Bäckerei.',
+  juice: 'Apfelsaft: bei Berta oder Theo.',
+  boards: 'Bretter: bei Theo im Laden (Dorf Kleeberg).',
+  seed_carrot: 'Karottensamen: bei Theo – oder notfalls einmal am Tag gratis im Garten.',
+  seed_sunflower: 'Sonnenblumensamen: bei Theo.',
 };

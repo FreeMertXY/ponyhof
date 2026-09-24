@@ -337,6 +337,25 @@ D.mira = (ctx, t, m, st) => {
   if (st === 'happy') { ctx.fillStyle = '#ff8fa3'; ell(ctx, 11, hy + 5, 1, 1.4); ctx.fill(); }
 };
 
+// Kätzchen von Maumau (3 Varianten)
+const KITTEN_P = [
+  { body: '#fbf8f4', chest: '#fff', paws: '#fbf8f4', ear: '#2c2528', head: '#fbf8f4', muzzle: '#fff', eye: '#7ec8ff', tailTip: '#d9853e', patches: [[-5, -14, 6, 4, '#d9853e']], headPatches: [[5, -26, 6, 4, '#2c2528'], [10, -27, 3, 2.5, '#d9853e']] },
+  { body: '#8a8c98', chest: '#fff', paws: '#fff', ear: '#777985', head: '#8a8c98', muzzle: '#f4f2f0', eye: '#7ec8ff', tailTip: '#777985', patches: [], headPatches: [] },
+  { body: '#f2b066', chest: '#fff', paws: '#fff', ear: '#e0954a', head: '#f2b066', muzzle: '#fff', eye: '#9ccf6a', tailTip: '#fff', patches: [[-4, -14, 7, 3, '#e0954a']], headPatches: [[7, -27, 5, 2.5, '#e0954a']] },
+];
+D.kitten = (ctx, t, m, st, v = 0) => { ctx.scale(0.62, 0.62); fluffyCat(ctx, t * 1.3, m, st, KITTEN_P[v % 3]); };
+
+// Mannis Flamingo-Spielzeug
+export function drawFlamingoToy(ctx, t) {
+  ctx.save(); ctx.rotate(-0.5 + Math.sin(t * 6) * 0.3);
+  ctx.strokeStyle = '#ff8fb8'; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -18); ctx.stroke();
+  ctx.beginPath(); ctx.arc(2, -21, 3.5, Math.PI * 0.5, Math.PI * 1.8); ctx.stroke();
+  ell(ctx, 1, -14, 4, 2.6); ctx.fillStyle = '#ff9ecb'; ctx.fill();
+  ctx.fillStyle = '#fff'; circ(ctx, 4, -24, 1.8); ctx.fill(); ctx.fillStyle = '#2c2130'; circ(ctx, 4.4, -24, 0.9); ctx.fill();
+  ctx.restore();
+}
+
 const BUTTERFLY_COLS = ['#ff9ecb', '#b79cf0', '#7ec8ff', '#ffd166', '#8fe0c0'];
 
 // o: { face, t, moving, state, variant, hearts }
@@ -345,7 +364,7 @@ export function drawAnimal(ctx, species, o = {}) {
   if (!f) return;
   ctx.save();
   if ((o.face || 1) < 0) ctx.scale(-1, 1);
-  const extra = species === 'butterfly' ? BUTTERFLY_COLS[(o.variant || 0) % BUTTERFLY_COLS.length] : undefined;
+  const extra = species === 'butterfly' ? BUTTERFLY_COLS[(o.variant || 0) % BUTTERFLY_COLS.length] : o.variant;
   f(ctx, o.t || 0, !!o.moving, o.state || 'idle', extra);
   ctx.restore();
 }

@@ -99,6 +99,19 @@ export class Particles {
           ctx.save(); ctx.translate(x, y); ctx.rotate(p.rot);
           ctx.globalAlpha = a; flower(ctx, 0, 0, 2.5, p.color || '#ffb0cc', '#fff'); ctx.restore(); ctx.globalAlpha = 1;
           break;
+        case 'bigheart': {
+          const sc = Math.min(1, p.age * 3) * (1 + Math.sin(p.age * 8) * 0.06);
+          ctx.globalAlpha = Math.min(1, a * 1.6);
+          heart(ctx, x, y, 46 * sc, '#ff4f8f');
+          heart(ctx, x, y - 2, 30 * sc, '#ff8fb8');
+          ctx.globalAlpha = 1;
+          break;
+        }
+        case 'stick':
+          ctx.save(); ctx.translate(x, y); ctx.rotate(p.age * 14);
+          ctx.fillStyle = '#9a6a45'; ctx.fillRect(-9, -1.5, 18, 3);
+          ctx.restore();
+          break;
         case 'note':
           ctx.globalAlpha = a; ctx.fillStyle = '#b36ad9'; ctx.font = `700 18px ${FONT}`; ctx.textAlign = 'center';
           ctx.fillText('♪', x + Math.sin(p.age * 4) * 5, y); ctx.globalAlpha = 1;

@@ -454,6 +454,33 @@ export class Screens {
         this.caption(c, w, 'Eine kleine Familie');
       },
     });
+    const has = (t) => S.memories.some((m) => m.type === t);
+    const extra = [];
+    if (has('date') || has('laube')) extra.push({
+      text: `Es gab Sonnenuntergänge am Steg, Sternschnuppen auf dem Hügel und eine Rosenlaube mit Schaukel. Und ganz viele Küsschen. ♥`,
+      draw: (c, w, h, t) => {
+        frame(c, w, h, '#ffb3a8', '#ffe0ec');
+        c.fillStyle = '#7fc9ea'; c.fillRect(30, h * 0.62, w - 60, h * 0.34);
+        c.fillStyle = '#d6a776'; c.fillRect(w * 0.25, h * 0.7, w * 0.5, 40);
+        c.fillStyle = 'rgba(255,220,150,0.8)'; circ(c, w * 0.5, h * 0.55, 60); c.fill();
+        c.save(); c.translate(w * 0.44, h * 0.78); c.scale(5, 5); drawCharacter(c, P, { dir: 'right', t }); c.restore();
+        c.save(); c.translate(w * 0.555, h * 0.78); c.scale(5.2, 5.2); drawCharacter(c, npcLook(NPCS.mert.look), { dir: 'left', t: t + 1 }); c.restore();
+        for (let i = 0; i < 5; i++) heart(c, w * 0.5 + Math.sin(t * 2 + i) * 30, h * 0.35 - ((t * 40 + i * 30) % 120), 20 + i * 4, '#ff6f9f');
+        this.caption(c, w, 'Herzklopfen');
+      },
+    });
+    if (has('kittens') || has('dogshow')) extra.push({
+      text: `Maumau bekam drei Kätzchen${Array.isArray(S.flags.kittens) ? ' – ' + S.flags.kittens.join(', ') : ''}, Manni bekam seinen Flamingo zurück, und Mira wurde der süßeste Hund von Kleeberg.`,
+      draw: (c, w, h, t) => {
+        frame(c, w, h, '#f4ffe9', '#fff3d6'); ground(c, w, h, '#a8dd84');
+        c.save(); c.translate(w * 0.3, h * 0.86); c.scale(4.2, 4.2); drawAnimal(c, 'maumau', { t, face: 1, state: 'happy' }); c.restore();
+        for (let i = 0; i < 3; i++) { c.save(); c.translate(w * (0.38 + i * 0.06), h * 0.9); c.scale(4, 4); drawAnimal(c, 'kitten', { t: t + i, face: 1, variant: i }); c.restore(); }
+        c.save(); c.translate(w * 0.62, h * 0.88); c.scale(4, 4); drawAnimal(c, 'mira', { t, face: -1, state: 'happy' }); c.restore();
+        c.save(); c.translate(w * 0.78, h * 0.86); c.scale(4.2, 4.2); drawAnimal(c, 'manni', { t: t + 2, face: -1 }); c.restore();
+        this.caption(c, w, 'Pfotenglück');
+      },
+    });
+    pages.splice(2, 0, ...extra);
     for (let i = 0; i < pages.length; i++) await this.storyCard(pages[i], i, pages.length + 1, 'Umblättern ➜', false);
     // Statistik
     await new Promise((resolve) => {

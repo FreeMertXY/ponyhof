@@ -1,8 +1,8 @@
 // Tiere in der Welt: Idle-Animationen, Reaktionen auf die Spielerin, Tieralbum.
 import { SPECIES, PETS } from './data/animals.js';
 import { TILE, G } from './world.js';
-import { drawAnimal } from './draw/animals.js';
-import { outlinedText, FONT } from './draw/paint.js';
+import { drawAnimal, drawFlamingoToy } from './draw/animals.js';
+import { outlinedText, FONT, flower, circ, heart } from './draw/paint.js';
 import { dist } from './util.js';
 
 const SCALE = 1.35;
@@ -25,7 +25,15 @@ export class Animal {
     this.followT = 0;
     this.name = null;
     this.ang = Math.random() * 6;
+    this.hopT = 0;
+    this.z = 0;
+    this.leader = null;
+    this.fetch = null;
+    this.toy = false;
+    this.rosette = false;
   }
+
+  hop(n = 1) { this.hopT = 0.45 * n; }
 
   setTarget(x, y, spd) { this.target = { x, y, spd }; }
 
@@ -46,6 +54,7 @@ export class Animal {
 
   update(dt, game) {
     this.t += dt;
+    if (this.hopT > 0) { this.hopT = Math.max(0, this.hopT - dt); this.z = Math.abs(Math.sin(this.hopT * Math.PI / 0.45)) * 9; } else this.z = 0;
     if (this.stateT > 0) { this.stateT -= dt; if (this.stateT <= 0 && (this.state === 'happy' || this.state === 'curl')) this.state = 'idle'; }
     const w = game.world, P = game.player, sp = this.sp;
     if (sp.night) { this.visible = game.lightingNight || game.forceAnimals; }
@@ -53,6 +62,27 @@ export class Animal {
     const d = dist(this.x, this.y, P.x, P.y);
     this.moving = false;
     if (this.mode === 'scene') { this.moving = this.step(dt, w, false); return; }
+    if (this.fetch) {
+      // Stöckchen holen
+      const f = this.fetch;
+      const tx = f.phase === 'go' ? f.x : P.x - (P.faceX || 1) * 0.9, ty = f.phase === 'go' ? f.y : P.y + 0.3;
+      this.setTarget(tx, ty, 7);
+      this.moving = this.step(dt, w, false);
+      if (!this.target || Math.hypot(tx - this.x, ty - this.y) < 0.3) {
+        if (f.phase === 'go') { f.phase = 'back'; this.carry = true; game.audio.play('bark'); }
+        else { this.fetch = null; this.carry = false; this.state = 'happy'; this.stateT = 2; this.hop(2); game.particles.hearts(this.x, this.y - 0.5, 3); f.done?.(); }
+      }
+      return;
+    }
+    if (this.leader && this.mode !== 'scene') {
+      const L = this.leader;
+      const ox = Math.cos(this.variant * 2.1) * 1.1, oy = 0.5 + Math.sin(this.variant * 2.1) * 0.5;
+      const dl = dist(this.x, this.y, L.x + ox, L.y + oy);
+      if (dl > 12) { this.x = L.x + ox; this.y = L.y + oy; }
+      if (dl > 0.4) { this.setTarget(L.x + ox, L.y + oy, Math.min(5, 1 + dl * 1.2)); this.moving = this.step(dt, w, false); }
+      else { this.target = null; this.face = L.face; if (Math.random() < dt * 0.3) this.hop(); }
+      return;
+    }
     if (this.mode === 'follow') {
       // Krümel oder Welpe folgt
       if (d > 20) { this.x = P.x - 1; this.y = P.y + 0.5; }
@@ -128,9 +158,13 @@ export class Animal {
     ctx.save();
     ctx.translate(this.x * TILE, this.y * TILE);
     const sc = PET_SCALE[this.species] || SCALE;
+    ctx.translate(0, -this.z);
     ctx.scale(sc, sc);
     drawAnimal(ctx, this.species, { face: this.face, t: this.t, moving: this.moving, state: this.state, variant: this.variant });
+    if (this.carry) { ctx.fillStyle = '#9a6a45'; ctx.save(); ctx.translate(this.face * 13, -12); ctx.rotate(0.2 * this.face); ctx.fillRect(-7, -1.2, 14, 2.4); ctx.restore(); }
+    if (this.rosette) { ctx.save(); ctx.translate(this.face * 5, -11); flower(ctx, 0, 0, 3, '#ffd24a', '#ff6f8f', 8); ctx.fillStyle = '#ff6f8f'; ctx.fillRect(-1.5, 2, 1.4, 4); ctx.fillRect(0.3, 2, 1.4, 4); ctx.restore(); }
     ctx.restore();
+    if (this.toy) { ctx.save(); ctx.translate(this.x * TILE + this.face * 22, this.y * TILE); drawFlamingoToy(ctx, this.t); ctx.restore(); }
     if (this.name && dist(this.x, this.y, game.player.x, game.player.y) < 3) {
       ctx.font = `700 12px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       outlinedText(ctx, this.name, this.x * TILE, this.y * TILE - (this.sp.pet ? 50 : 44), '#fff', '#8a4a6a', 4);

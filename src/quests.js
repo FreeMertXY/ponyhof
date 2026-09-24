@@ -1,7 +1,7 @@
 // Aufgaben-Engine: schaltet Aufgaben frei, zählt Fortschritt, verteilt Belohnungen.
 // Reine Logik – die Spielwelt wird über das ctx-Objekt angebunden.
-import { QUESTS, QUEST_BY_ID } from './data/quests.js';
-import { itemName } from './data/items.js';
+import { QUESTS, QUEST_BY_ID, CHAPTERS } from './data/quests.js';
+import { itemName, ITEM_SOURCES } from './data/items.js';
 
 // ctx: {
 //   inv: Inventory,
@@ -139,8 +139,9 @@ export class QuestEngine {
           return { kind: 'wait', quest: q, speaker: npc, lines: ['Hast du Krümel schon gefunden? Sie muss irgendwo im Flüsterwald sein … bei einem hohlen Baumstamm auf einer Lichtung.'] };
         }
         return {
-          kind: step.ending ? 'ending' : 'quest', quest: q, speaker: npc, lines: step.lines || [],
+          kind: step.ending ? 'ending' : 'quest', quest: q, speaker: npc, lines: step.lines || [], after: step.after,
           run: () => {
+            if (step.onTalk) this.ctx.onTalk?.(step.onTalk);
             if (step.give) for (const [id, n] of Object.entries(step.give)) this.ctx.inv.add(id, n);
             if (step.startTimer) this.ctx.timer?.('start', step.startTimer);
             this.advance(q);
@@ -150,11 +151,16 @@ export class QuestEngine {
       if (step.type === 'deliver' && step.npc === npc) {
         if (this.ctx.inv.hasAll(step.items)) {
           return {
-            kind: 'quest', quest: q, speaker: npc, lines: step.lines || [],
-            run: () => { this.ctx.inv.removeAll(step.items); this.advance(q); },
+            kind: 'quest', quest: q, speaker: npc, lines: step.lines || [], after: step.after,
+            run: () => {
+              this.ctx.inv.removeAll(step.items);
+              if (step.give) for (const [id, n] of Object.entries(step.give)) this.ctx.inv.add(id, n);
+              this.advance(q);
+            },
           };
         }
-        return { kind: 'missing', quest: q, speaker: npc, lines: step.missing || ['Du hast noch nicht alles beisammen: ' + this.itemsNeed(step.items)] };
+        const tips = this.sourceTips(step.items);
+        return { kind: 'missing', quest: q, speaker: npc, lines: [...(step.missing || ['Du hast noch nicht alles beisammen: ' + this.itemsNeed(step.items)]), ...(tips.length ? [{ who: 'narr', t: 'Tipp – ' + tips.join(' ') }] : [])] };
       }
       if (step.type === 'talkAll' && step.npcs.includes(npc)) {
         const s = this.st(q.id);
@@ -183,6 +189,22 @@ export class QuestEngine {
       };
     }
     return null;
+  }
+
+  // Woher bekommt man die noch fehlenden Sachen?
+  sourceTips(items) {
+    return Object.entries(items || {}).filter(([id, n]) => this.ctx.inv.count(id) < n && ITEM_SOURCES[id]).map(([id]) => ITEM_SOURCES[id]);
+  }
+
+  // Tipp für den aktuellen Schritt (Aufgabenbuch)
+  stepHint(q) {
+    const step = this.step(q);
+    if (!step) return '';
+    const parts = [];
+    if (step.hint) parts.push(this.ctx.fmt ? this.ctx.fmt(step.hint) : step.hint);
+    if (step.type === 'deliver') parts.push(...this.sourceTips(step.items));
+    if (step.type === 'event' && step.needs) parts.push(...this.sourceTips(step.needs));
+    return parts.join(' ');
   }
 
   itemsNeed(items) {
@@ -232,11 +254,11 @@ export class QuestEngine {
 
   chapter() {
     let ch = 1;
-    for (const c of [1, 2, 3, 4]) {
+    for (const c of CHAPTERS.map((x) => x.n)) {
       const main = QUESTS.filter((q) => q.main && q.chapter === c);
-      if (main.every((q) => this.isDone(q.id))) ch = c + 1;
+      if (main.every((q) => this.isDone(q.id))) ch = c + 1; else break;
     }
-    return Math.min(ch, 5);
+    return Math.min(ch, CHAPTERS.length + 1);
   }
 
   mainProgress() {

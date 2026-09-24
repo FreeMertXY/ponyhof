@@ -296,7 +296,7 @@ export class UI {
     const chap = this.h(p, '<div class="row" style="gap:6px;margin-bottom:12px"></div>');
     CHAPTERS.forEach((c) => {
       const done = ch > c.n, cur = ch === c.n;
-      chap.insertAdjacentHTML('beforeend', `<div class="card" style="flex:1;min-width:150px;${cur ? 'border-color:var(--pink)' : ''}${done ? ';background:#f0fff6' : ''}"><div class="sub">Kapitel ${c.n}${done ? ' ✓' : ''}</div><div>${esc(c.title)}</div><div class="sub">${done ? '' : 'Belohnung: '}${esc(c.reward)}</div></div>`);
+      chap.insertAdjacentHTML('beforeend', `<div class="card" style="flex:1;min-width:120px;padding:6px;${cur ? 'border-color:var(--pink)' : ''}${done ? ';background:#f0fff6' : ''}${ch < c.n ? ';opacity:.55' : ''}"><div class="sub">Kapitel ${c.n}${done ? ' ✓' : ''}</div><div style="font-size:13px">${esc(c.title)}</div><div class="sub">${esc(c.reward)}</div></div>`);
     });
     this.questTab = this.questTab || 'active';
     const tabs = this.h(p, '<div class="tabs"></div>');
@@ -312,7 +312,8 @@ export class UI {
       for (const q of act) {
         const d = document.createElement('div');
         d.className = 'quest' + (g.S.tracked === q.id ? ' tracked' : '');
-        d.innerHTML = `<div class="qt">${esc(g.fmt(q.title))}<span class="badge ${q.main ? '' : 'side'}">${q.main ? 'Kapitel ' + q.chapter : 'Nebenaufgabe'}</span></div><div class="qd">${esc(g.fmt(q.desc || ''))}</div><div class="qs">➜ ${esc(Q.stepText(q))}</div>`;
+        const hint = Q.stepHint(q);
+        d.innerHTML = `<div class="qt">${esc(g.fmt(q.title))}<span class="badge ${q.main ? '' : 'side'}">${q.main ? 'Kapitel ' + q.chapter : 'Nebenaufgabe'}</span></div><div class="qd">${esc(g.fmt(q.desc || ''))}</div><div class="qs">➜ ${esc(Q.stepText(q))}</div>${hint ? `<div class="qd" style="margin-top:4px"><b>Tipp:</b> ${esc(hint)}</div>` : ''}`;
         d.onclick = () => { g.S.tracked = q.id; g.audio.play('click'); this.render(); };
         list.appendChild(d);
       }

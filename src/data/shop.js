@@ -21,6 +21,7 @@ export const ACCESSORIES = {
   blanket_herz: { slot: 'blanket', name: 'Decke „Herzchen“', color: '#ffb3cf', pattern: 'hearts', price: 40 },
   saddle_glitzer: { slot: 'saddle', name: 'Glitzersattel', color: '#e7c6ff', glitter: true, price: 0, special: true },
   bow_regenbogen: { slot: 'bow', name: 'Regenbogenschleifen', color: 'rainbow', price: 0, special: true },
+  bow_herz: { slot: 'bow', name: 'Herzchenschleifen', color: '#ff5f8f', price: 0, special: true },
   wreath_gold: { slot: 'wreath', name: 'Goldener Blütenkranz', color: '#ffd24a', gold: true, price: 0, special: true },
 };
 
@@ -75,7 +76,7 @@ export const SHOPS = {
     greet: 'Hm-hm. Qualität zu fairen Preisen!',
     sells: true,
     tabs: [
-      { name: 'Futter & Samen', entries: [['item', 'apple', 6], ['item', 'carrot', 6], ['item', 'hay', 4], ['item', 'seed_carrot', 3], ['item', 'seed_sunflower', 4], ['item', 'juice', 6]] },
+      { name: 'Futter & Material', entries: [['item', 'apple', 6], ['item', 'carrot', 6], ['item', 'hay', 4], ['item', 'seed_carrot', 3], ['item', 'seed_sunflower', 4], ['item', 'juice', 6], ['item', 'boards', 12]] },
       { name: 'Pferdezubehör', entries: [...Object.entries(ACCESSORIES).filter(([, a]) => !a.special).map(([id, a]) => ['acc', id, a.price])] },
       { name: 'Hof-Deko', entries: Object.entries(DECO).map(([id, d]) => ['deco', id, d.price]) },
     ],

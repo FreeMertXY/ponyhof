@@ -5,6 +5,14 @@ Oma Hilde übergibt dir ihren alten, verwilderten Ponyhof. Freunde dich mit Pfer
 Gebiete, hilf den Leuten im Dorf Kleeberg, sammle Hufeisen und Tiere fürs Album – und erwecke den Hof bis zum
 großen Sommerfest wieder zum Leben – zusammen mit Mert, Hündin Mira und den Katzen Maumau und Manni. Kein Game Over, kein Zeitdruck (außer bei den freiwilligen Rennen).
 
+Die Geschichte hat **6 Kapitel** (Ein neuer Anfang · Neue Freunde · Blütenzauber · Herzklopfen · Pfotenglück ·
+Das Sommerfest) mit 28 Haupt- und 10 Nebenaufgaben – ein Date am Steg, ein Ausritt zu zweit, Merts
+Geburtstagsparty, eine Rosenlaube, Kätzchen von Maumau, Miras Hundeshow, Herzsteine, eine Sternschnuppennacht
+und ein großes Finale. Spielzeit beim ersten Mal: etwa **2–3 Stunden**.
+
+**Nicht weiter?** Im Aufgabenbuch (`Q`) steht bei jeder Aufgabe ein **Tipp**, wo es hingeht, und der Pfeil am
+Bildschirmrand bzw. auf der Minikarte zeigt immer zum Ziel.
+
 ## ▶️ Spielen
 
 **Direkt im Browser:** <https://freemertxy.github.io/ponyhof/>
@@ -23,7 +31,7 @@ Das Spiel speichert automatisch (alle 30 Sekunden und bei jedem Fortschritt); im
 | `R` | auf-/absteigen – ist das Pferd weit weg, wird es herbeigepfiffen |
 | `Leertaste` | zu Pferd springen (klappt an niedrigen Zäunen auch automatisch) |
 | `F` | Pferde-Trick (ab Freundschaftslevel 2) |
-| `I` / `Q` / `M` / `T` / `P` | Tasche, Aufgaben, Karte, Tieralbum, Pferde |
+| `I` / `Q` / `M` / `T` / `P` | Tasche, Aufgaben (mit Tipps), Karte, Tieralbum, Pferde |
 | `Esc` | Menü (Einstellungen, Speichern, „Zurück zum Hof“) |
 
 Alles ist auch mit der Maus über die Knöpfe unten rechts, die Minikarte und das Aufgabenfeld bedienbar.
@@ -71,6 +79,7 @@ src/
   stall.js            Stall-Menü, Zubehör, Pflege & Striegel-Minispiel
   race.js             Rennen & Hindernisparcours (Checkpoints, Gegner, Medaillen)
   ending.js           Sommerfest, Sonnenuntergang, Feuerwerk, Fohlen
+  scenes.js           kleine Geschichten-Szenen: Date, Kussszenen, Ausritt mit Mert, Party, Kätzchen, Hundeshow
   screens.js          Titel, Charakter-Editor, Intro, Namenseingabe, Bilderbuch-Abspann
   ui.js               HUD, Minikarte, Karte, Inventar, Aufgabenbuch, Album, Einstellungen
   audio.js            Musik & Geräusche – komplett mit der Web Audio API erzeugt

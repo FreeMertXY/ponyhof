@@ -167,15 +167,16 @@ test('Aufgaben: kompletter Durchlauf bis zum Sommerfest', () => {
     }
   }
   assert.ok(q.isActive('k4_fest'), 'Finale erreichbar');
-  assert.deepEqual(S.farm, { stable: true, paddock: true, flowerGarden: true, festival: true });
-  assert.equal(q.chapter(), 4);
+  assert.deepEqual(S.farm, { stable: true, paddock: true, flowerGarden: true, gazebo: true, petcorner: true, festival: true });
+  assert.equal(q.chapter(), 6);
   const a = q.talk('hilde');
   assert.equal(a.kind, 'ending');
   a.run();
-  assert.equal(q.chapter(), 5);
+  assert.equal(q.chapter(), 7);
   const mp = q.mainProgress();
   assert.equal(mp.done, mp.total);
-  assert.ok(QUESTS.length >= 16);
+  assert.ok(QUESTS.length >= 30);
+  assert.ok(QUESTS.filter((x) => x.main).length >= 25);
 });
 
 test('Aufgaben: Zähm-Aufgabe ist erfüllt, wenn schon vorher gezähmt wurde', () => {

@@ -125,7 +125,11 @@ export function panelCare(p, id) {
     mode = 'groom'; setupDirt(); bar.classList.remove('hidden');
     msg.innerHTML = 'Fahr mit der Maus über das Fell und bürste den Schmutz weg!';
   });
-  btn('Streicheln', 'hand', () => { mode = 'pet'; bar.classList.add('hidden'); msg.innerHTML = 'Klick auf den Kopf oder Hals, um zu streicheln.'; });
+  btn('Streicheln', 'hand', () => {
+    mode = 'pet'; bar.classList.add('hidden');
+    msg.innerHTML = g.careAction(rec, 'pet') + ' <span class="sub">(Du kannst auch direkt auf Kopf oder Hals klicken.)</span>';
+    for (let i = 0; i < 5; i++) fx.push({ k: 'heart', x: 420 + Math.random() * 60, y: 130 + Math.random() * 30, vy: -50 - Math.random() * 40, life: 1.3 });
+  });
   for (const food of ['carrot', 'apple', 'hay']) {
     const n = g.inv.count(food);
     btn(`${ITEMS[food].name} (${n})`, food, () => {

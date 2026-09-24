@@ -235,7 +235,7 @@ export class Renderer {
       }
       default: {
         const spr = smallSprite(o.k, o);
-        const big = ['stall', 'hut', 'log', 'shelter'].includes(o.k);
+        const big = ['stall', 'hut', 'log', 'shelter', 'gazebo', 'cathouse', 'doghouse'].includes(o.k);
         drawSprite(ctx, spr, big ? o.x * T : X, Y - 6);
       }
     }

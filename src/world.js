@@ -75,6 +75,14 @@ export const SPOTS = {
   parcoursBoard: { x: 88.5, y: 66.5 },
   lighthouse: { x: 164, y: 160, w: 3, h: 3 },
   hillTop: { x: 86.5, y: 127.5 },
+  mailbox: { x: 66.5, y: 88.4 },
+  dock: { x: 53.5, y: 141.8 },
+  miraHide: { x: 126.5, y: 48.5 },
+  kittens: { x: 87.5, y: 85.6 },
+  show: { x: 132.5, y: 100.8 },
+  nest: { x: 31.5, y: 47.5 },
+  gazebo: { x: 100.5, y: 80.6 },
+  petcorner: { x: 103.5, y: 108.8 },
   festivalCenter: { x: 85.5, y: 116 },
   wildHorses: {
     kleeblatt: { x: 112.5, y: 64.5 },
@@ -148,6 +156,9 @@ const SIGNS = [
   { x: 63, y: 57, lines: [['←', 'Flüsterwald'], ['→', 'Blumenwiesen'], ['↓', 'Furt (nur zu Pferd)']] },
 ];
 
+// Merts 5 Herzsteine (nur während der Nebenaufgabe sichtbar)
+export const HEARTSTONES = [[43, 149], [109, 8], [160, 162], [84, 127], [16, 103]];
+
 // 30 goldene Hufeisen – gut versteckt
 export const HORSESHOES = [
   [64, 80], [104, 81], [99, 125], [72, 120], // Hof
@@ -196,7 +207,7 @@ function stampLine(pts, r, fn) {
 function inB(x, y) { return x >= 0 && y >= 0 && x < WW && y < WH; }
 
 export function defaultFarm() {
-  return { stable: false, paddock: false, flowerGarden: false, festival: false };
+  return { stable: false, paddock: false, flowerGarden: false, gazebo: false, petcorner: false, festival: false };
 }
 
 export class World {
@@ -399,6 +410,17 @@ export class World {
         const x = B.x + 1 + Math.floor(r() * (B.w - 2)), y = B.y + 1 + Math.floor(r() * (B.h - 2));
         if (x !== B.x + 3) this.addObj({ k: 'weed', x, y }, false);
       }
+    }
+    // Rosenlaube (Kapitel 4)
+    if (f.gazebo) {
+      this.addObj({ k: 'gazebo', x: 99, y: 79 }, true, 3, 1);
+      this.lights.push({ x: 100.5, y: 79, r: 3.5, c: '#ffc2d8' });
+    }
+    // Tierparadies (Kapitel 5)
+    if (f.petcorner) {
+      this.addObj({ k: 'cathouse', x: 101, y: 107 }, true, 2, 1);
+      this.addObj({ k: 'doghouse', x: 104, y: 107 }, true, 2, 1);
+      this.addObj({ k: 'scratchtree', x: 106, y: 107 }, true);
     }
     // Festwiese
     const FW = F.festival;
@@ -642,6 +664,15 @@ export class World {
         }
       }
       this.pickups.push({ id: 'hs_' + i, k: 'horseshoe', x: x + 0.5, y: y + 0.5 });
+    });
+    HEARTSTONES.forEach(([hx, hy], i) => {
+      let x = hx, y = hy;
+      if (!free(x, y)) {
+        outer: for (let rad = 1; rad < 5; rad++) for (let dy = -rad; dy <= rad; dy++) for (let dx = -rad; dx <= rad; dx++) {
+          if (free(x + dx, y + dy)) { x += dx; y += dy; break outer; }
+        }
+      }
+      this.pickups.push({ id: 'heart_' + i, k: 'heartstone', x: x + 0.5, y: y + 0.5 });
     });
   }
 

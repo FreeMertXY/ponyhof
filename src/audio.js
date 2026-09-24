@@ -353,8 +353,26 @@ export class AudioEngine {
       case 'whistle': tone('sine', 1600, 2200, 0.15, 0.1); tone('sine', 2200, 1500, 0.25, 0.1, 0.18); break;
       case 'sad': tone('sine', 500, 380, 0.3, 0.08); break;
       case 'buy': tone('sine', 880, 0, 0.1, 0.1); tone('sine', 1175, 0, 0.2, 0.1, 0.08); break;
+      case 'kiss': noise(2600, 2, 0.05, 0.05); tone('sine', 1400, 900, 0.08, 0.06, 0.03); [784, 988, 1319].forEach((f, i) => tone('sine', f, 0, 0.35, 0.07, 0.15 + i * 0.09)); break;
       case 'error': tone('square', 220, 180, 0.15, 0.05); break;
       default: break;
+    }
+  }
+
+  // kleine Melodien (Geburtstagslied)
+  playTune(name) {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const tunes = {
+      birthday: [[67, 0.75], [67, 0.25], [69, 1], [67, 1], [72, 1], [71, 2], [67, 0.75], [67, 0.25], [69, 1], [67, 1], [74, 1], [72, 2], [67, 0.75], [67, 0.25], [79, 1], [76, 1], [72, 1], [71, 1], [69, 2], [77, 0.75], [77, 0.25], [76, 1], [72, 1], [74, 1], [72, 2]],
+    };
+    const notes = tunes[name];
+    if (!notes) return;
+    let t = ctx.currentTime + 0.1;
+    const beat = 0.42;
+    for (const [m, d] of notes) {
+      this.note('bell', 440 * Math.pow(2, (m - 69) / 12), t, d * beat * 0.9, 0.16, this.sfx);
+      t += d * beat;
     }
   }
 

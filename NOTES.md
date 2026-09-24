@@ -67,15 +67,22 @@ Hier sind die Entscheidungen dokumentiert, die ich beim Bauen von „Jolinas Pon
   der Spielerin auf, damit es nie irgendwo feststeckt).
 - Gezähmte Pferde laufen auf der Koppel herum und traben an den Zaun, wenn man in die Nähe kommt.
 
-## Aufgaben (26 insgesamt)
+## Aufgaben (38 insgesamt)
 
-- **Hauptgeschichte in 4 Kapiteln (19 Aufgaben)** mit Hofausbau als Belohnung:
+- **Hauptgeschichte in 6 Kapiteln (28 Aufgaben)** mit Hofausbau als Belohnung:
   1. Ein neuer Anfang → Stall repariert (Pflege, Gemüsegarten, Dorf, Kätzchen Krümel, Bretter)
   2. Neue Freunde → Koppel erweitert (Lavendel, Eilpost mit 90-s-Bonus, erstes Wildpferd, Rennen gegen Ben)
   3. Blütenzauber → Blumengarten (Hindernisparcours, Rennen gegen Mia, Picknick auf der Insel, Wundersamen)
-  4. Das Sommerfest → Festwiese (Nebel zähmen, großes Rennen, Einladungen, Girlanden) → Finale
-- **7 Nebenaufgaben**, eine pro Dorfbewohner/in plus Kuno (Pilzsuppe, Muschelknöpfe, Apfelkiste,
-  Postkarte vom Aussichtspunkt, Beste Freunde, Bens Tierbuch, Sonnenschein für den Leuchtturm).
+  4. **Herzklopfen** → Rosenlaube mit Schaukel (geheimnisvoller Liebesbrief und Date am Steg bei Sonnenuntergang,
+     Mira ist weg, Ausritt zu zweit zum Aussichtspunkt, Überraschungsparty zu Merts Geburtstag, Rosenlaube)
+  5. **Pfotenglück** → Tierparadies (Maumaus Geheimnis: drei Kätzchen – Namen frei wählbar, Miras großer
+     Auftritt bei der Hundeshow, Mannis verlorener Flamingo, Katzenhaus/Hundehütte/Kratzbaum)
+  6. Das Sommerfest → Festwiese (Nebel zähmen, großes Rennen, Einladungen, Girlanden) → Finale
+- **10 Nebenaufgaben**: eine pro Dorfbewohner/in plus Kuno (Pilzsuppe, Muschelknöpfe, Apfelkiste, Postkarte
+  vom Aussichtspunkt, Beste Freunde, Bens Tierbuch, Sonnenschein für den Leuchtturm) und drei mit Mert
+  („Kuchen für Mert“, „Merts Herzsteine“ – 5 versteckte Herzsteine, „Sternschnuppennacht“ auf dem Hügel).
+- Geschätzte Spielzeit beim ersten Durchspielen: **etwa 2–3 Stunden** (plus freies Weiterspielen, Album,
+  Hufeisen, Deko).
 - Innerhalb eines Kapitels laufen mehrere Aufgaben parallel, damit man z. B. während die Karotten wachsen
   ins Dorf reiten kann.
 - **Rennen zählen immer als geschafft**, sobald man ins Ziel kommt (Medaille je nach Platz: Gold/Silber/Bronze,
@@ -86,6 +93,24 @@ Hier sind die Entscheidungen dokumentiert, die ich beim Bauen von „Jolinas Pon
 - Anti-Festhängen: Wer schon vorher ein Wildpferd gezähmt hat, erfüllt „Ein neuer Freund“ sofort; Samen gibt
   es notfalls einmal pro Tag gratis von Oma Hilde im Garten; alle benötigten Gegenstände gibt es auch im Laden;
   „Zurück zum Hof“ im Menü holt Spielerin und Pferd nach Hause.
+- Verständlichkeit: Jeder Aufgabenschritt hat einen Zielpfeil (Kompass + Minikarte) und im Aufgabenbuch einen
+  **„Tipp:“**-Text, wo genau es hingeht. Fehlt ein Gegenstand, sagt der Tipp, woher man ihn bekommt
+  (`ITEM_SOURCES`). Herzsteine zeigt der Pfeil immer zum nächsten noch fehlenden Stein.
+- Szenen überstehen Neuladen: Ist man mitten im Ausritt mit Mert oder sucht gerade Mira, wird der Zustand beim
+  Laden wiederhergestellt (geprüft mit `tools/reload-check.mjs`). Wurde das Sommerfest-Finale unterbrochen, bietet
+  Oma Hilde „Das Sommerfest beginnen!“ erneut an.
+
+## Herzklopfen & Pfotenglück (die süßen Extras)
+
+- **Kussszenen** – immer zurückhaltend und niedlich (Figuren rücken zusammen, Kuss-Geräusch, großes Herz,
+  Glitzer, Bildschirm-Vignette mit rosa Rand): beim Date am Steg, als Stirnkuss am Aussichtspunkt, als
+  Dankeschön bei der Geburtstagsparty, in der Rosenlaube und nach den Herzsteinen.
+- Mert hat jetzt ein eigenes Menü: **„Umarmen“** und **„Küsschen geben“** gehen jederzeit; einmal am Tag
+  schenkt er dabei eine Blume. Beim Schlafengehen sagt er „Gute Nacht“ und morgens „Guten Morgen“.
+- **Mira-Menü** (E bei Mira): Streicheln, Stöckchen werfen (sie holt es), Kunststück üben (für die Hundeshow),
+  Leckerli geben. Nach der Hundeshow trägt sie eine Rosette.
+- Die Kätzchen folgen Maumau über den Hof; Manni hat nach dem Flamingo-Abenteuer sein Spielzeug immer dabei.
+- In der Rosenlaube kann man auf der Schaukel sitzen.
 
 ## Sammeln & Wirtschaft
 
@@ -109,7 +134,7 @@ Blütenkranz, Blütenhaarreif und 100 Münzen.
 
 ## Ende
 
-Nach Kapitel 4 startet das Sommerfest (alle Personen, Pferde und Tiere aus dem Album auf der Festwiese,
+Nach Kapitel 6 startet das Sommerfest (alle Personen, Pferde und Tiere aus dem Album auf der Festwiese,
 festliche Musik), dann das Sommerfest-Rennen, Sonnenuntergang auf dem Hügel, Herz-Feuerwerk mit
 Sternschnuppen, Oma Hildes Abschiedsworte, die Geburt eines Fohlens (Name frei wählbar, folgt der Spielerin
 danach überallhin) und ein Bilderbuch-Abspann mit gezeichneten Erinnerungen und Statistik.
@@ -138,7 +163,11 @@ danach überallhin) und ein Bilderbuch-Abspann mit gezeichneten Erinnerungen und
 ## Selbst durchgespielt
 
 - `tools/walkthrough.mjs` spielt die komplette Geschichte im echten Browser (Chromium) automatisch durch –
-  alle 19 Hauptaufgaben, Rennen, Zähmen, Picknick, Finale, Abspann und Weiterspielen – ohne Fehler.
+  alle 28 Hauptaufgaben und 10 Nebenaufgaben, Rennen, Zähmen, Picknick, Kussszenen, Kätzchen-Namen, Finale,
+  Abspann und Weiterspielen nach dem Neuladen – ohne Fehler.
+- `tools/reload-check.mjs` lädt mitten im Ausritt und während Mira verschwunden ist neu und spielt weiter.
+- `tools/scenes-shot.mjs` macht Screenshots der neuen Szenen in echter Geschwindigkeit (Date, Party, Laube,
+  Tierparadies).
 - `tools/tour.mjs` macht Screenshots aller Gebiete (auch Nacht, Regen, Regenbogen), `tools/panels.mjs` von
   allen Menüs, `tools/finale-shot.mjs` vom Sonnenuntergang und Feuerwerk. Anhand dieser Bilder wurde die Optik
   mehrfach nachgebessert (Zoom, weiche Ufer, größere Pferde, warmes Abendlicht, Feuerwerkshöhe, Sternenhimmel).

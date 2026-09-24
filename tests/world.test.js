@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { World, SPOTS, FARM, TRACKS, WW, COL, G } from '../src/world.js';
 import { SPECIES } from '../src/data/animals.js';
 
-const farms = [{}, { stable: true, paddock: true, flowerGarden: true, festival: true }];
+const farms = [{}, { stable: true, paddock: true, flowerGarden: true, gazebo: true, petcorner: true, festival: true }];
 
 test('Welt ist deterministisch', () => {
   const a = new World({}), b = new World({});
@@ -62,6 +62,7 @@ for (const farm of farms) {
     for (const [k, p] of Object.entries(SPOTS.npc)) assert.ok(near(walk, p.x, p.y), 'NPC ' + k);
     for (const [k, p] of Object.entries(SPOTS.wildHorses)) assert.ok(near(walk, p.x, p.y), 'Wildpferd ' + k);
     assert.ok(near(walk, SPOTS.kitten.x, SPOTS.kitten.y), 'Kätzchen');
+    for (const k of ['mailbox', 'dock', 'miraHide', 'kittens', 'show', 'nest', 'hillTop', 'gazebo', 'petcorner']) assert.ok(near(walk, SPOTS[k].x, SPOTS[k].y), 'Ort erreichbar: ' + k);
     assert.ok(near(walk, SPOTS.telescope.x, SPOTS.telescope.y + 1), 'Fernrohr');
     assert.ok(!near(walk, SPOTS.picnic.x, SPOTS.picnic.y), 'Insel zu Fuß nicht erreichbar');
     assert.ok(near(ride, SPOTS.picnic.x, SPOTS.picnic.y), 'Insel zu Pferd erreichbar');

@@ -26,7 +26,7 @@ export function defaultState() {
     tracked: null,
     farm: defaultFarm(),
     flags: {},
-    collected: { hs: [], pick: {}, trees: {} },
+    collected: { hs: [], pick: {}, trees: {}, hearts: [] },
     hsRewards: [],
     garden: [],
     album: {},

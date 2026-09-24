@@ -24,6 +24,7 @@ import { panelStall, panelHorse, panelCare } from './stall.js';
 import { Race, RACES, MEDAL_NAMES } from './race.js';
 import { Screens } from './screens.js';
 import { runEnding } from './ending.js';
+import * as Sc from './scenes.js';
 import { paintMiniMap } from './draw/terrain.js';
 import { makeCanvas, rr, outlinedText, FONT, star, heart, circ, ell } from './draw/paint.js';
 import { decoSprite, drawSprite } from './draw/objects.js';
@@ -138,6 +139,7 @@ export class Game {
     this.sniffed = new Set();
     this.sniffT = 3;
     this.setupHorses();
+    this.restoreStory();
     this.rebuildEntities();
     // Deko-Kollision
     for (const d of S.deco) this.world.setDyn(d.x, d.y, true);
@@ -153,6 +155,19 @@ export class Game {
     this.cutscene = false;
     this.controlsLocked = false;
     if (S.flags.festivalMusic) this.audio.setMode('festival');
+  }
+
+  // Zustände aus den neuen Kapiteln nach dem Laden wiederherstellen
+  restoreStory() {
+    const S = this.S, pets = this.pets;
+    this.escort = null; this.escortHorse = null; this.kittens = [];
+    if (S.farm.petcorner) { pets.maumau.homeX = 102; pets.maumau.homeY = 109.2; pets.manni.homeX = 106.5; pets.manni.homeY = 108.8; pets.maumau.x = 102; pets.maumau.y = 109.2; pets.manni.x = 106.5; pets.manni.y = 108.8; }
+    if (S.flags.miraLost) { const m = pets.mira; m.mode = 'scene'; m.x = SPOTS.miraHide.x; m.y = SPOTS.miraHide.y; }
+    if (Array.isArray(S.flags.kittens)) Sc.spawnKittens(this, S.flags.kittens);
+    pets.manni.toy = !!S.flags.manniToy;
+    pets.mira.rosette = !!S.flags.miraRosette;
+    const st = this.quests.st('h_ausritt');
+    if (st && st.state === 'active' && st.step === 1) Sc.escortStart(this);
   }
 
   setupHorses() {
@@ -185,7 +200,7 @@ export class Game {
   }
 
   rebuildEntities() {
-    this.entities = [this.player, ...this.npcs, ...this.animals, ...this.horses.filter((h) => h.mode !== 'ridden'), ...(this.race ? this.race.entities : []), ...(this.sceneEntities || [])];
+    this.entities = [this.player, ...this.npcs, ...this.animals, ...this.horses.filter((h) => h.mode !== 'ridden' && h.visible !== false), ...(this.race ? this.race.entities : []), ...(this.sceneEntities || []), ...(this.escort ? [this.escort] : [])];
   }
 
   kittenState() {
@@ -216,6 +231,7 @@ export class Game {
       playerPos: () => ({ x: this.player.x, y: this.player.y }),
       flag: (n) => (n === 'kittenFollowing' ? this.S.flags.kitten === 'following' : this.S.flags[n]),
       timer: (action, id) => this.questTimer(action, id),
+      onTalk: (k) => { if (k === 'miraLost') Sc.miraLost(this); else if (k === 'escortStart') Sc.escortStart(this); },
     };
   }
 
@@ -415,6 +431,10 @@ export class Game {
     for (const a of this.animals) a.update(dt, this);
     if (this.sceneEntities) for (const e of this.sceneEntities) e.update?.(dt, this);
     if (this.race) this.race.update(dt);
+    if (this.escort) {
+      this.escort.update(dt, this);
+      if (!this.cutscene && this.state === 'play' && dist(this.player.x, this.player.y, SPOTS.lookout.x, SPOTS.lookout.y) < 4.5) this.pending.push(() => Sc.lookoutScene(this));
+    }
     this.particles.update(dt);
     // Kamera
     const ct = this.camOverride || { x: this.player.x + this.player.vx * 0.25, y: this.player.y - 0.6 + this.player.vy * 0.2 };
@@ -437,7 +457,8 @@ export class Game {
     if (this.passiveT <= 0) { this.passiveT = 0.5; this.quests.checkPassive(); this.checkKitten(); this.contextTutorials(); }
     // wartende Aktionen (nach Dialogen)
     if (!busy && this.pending.length) { const fn = this.pending.shift(); this.runScript(fn); }
-    if (!busy) this.miraSniff(dt);
+    if (!busy && !this.S.flags.miraLost) this.miraSniff(dt);
+    if (this.S.flags.miraLost && !busy) this.miraBark(dt);
     // Hinweise
     this.hintCool -= dt;
     if (this.hintCool <= 0 && this.hintQueue.length && !busy) { this.ui.hint(this.hintQueue.shift(), 7); this.hintCool = 9; }
@@ -597,6 +618,7 @@ export class Game {
   pickupAvailable(p) {
     const C = this.S.collected;
     if (p.k === 'horseshoe') return !C.hs.includes(p.id);
+    if (p.k === 'heartstone') return !C.hearts.includes(p.id) && this.quests.step(QUEST_BY_ID.s_herzsteine)?.ev === 'heartstone';
     const d = C.pick[p.id];
     return d === undefined || d < this.S.time.day;
   }
@@ -614,6 +636,16 @@ export class Game {
 
   collectPickup(p) {
     const S = this.S;
+    if (p.k === 'heartstone') {
+      S.collected.hearts.push(p.id);
+      this.inv.add('heartstone', 1);
+      this.audio.play('heart');
+      this.particles.hearts(p.x, p.y - 0.3, 8);
+      this.ui.toast(`Ein Herzstein von Mert! (${S.collected.hearts.length}/5)`, 'heart', 'mint');
+      this.quests.emit('heartstone');
+      this.requestSave();
+      return;
+    }
     if (p.k === 'horseshoe') {
       S.collected.hs.push(p.id);
       this.audio.play('horseshoe');
@@ -652,7 +684,7 @@ export class Game {
   autoCollect() {
     const P = this.player;
     for (const p of this.world.pickups) {
-      if (p.k !== 'horseshoe') continue;
+      if (p.k !== 'horseshoe' && p.k !== 'heartstone') continue;
       if (Math.abs(p.x - P.x) < 0.8 && Math.abs(p.y - P.y) < 0.8 && this.pickupAvailable(p)) this.collectPickup(p);
     }
   }
@@ -675,7 +707,7 @@ export class Game {
 
   // ---------- Interaktion ----------
   findInteraction() {
-    const P = this.player, S = this.S;
+    const P = this.player, S = this.S, q = this.quests;
     const cands = [];
     const add = (d, label, fn, x, y, icon) => cands.push({ d, label, fn, x, y, icon });
     const fx = P.face === 'left' ? -0.5 : P.face === 'right' ? 0.5 : 0, fy = P.face === 'up' ? -0.5 : P.face === 'down' ? 0.5 : 0;
@@ -698,6 +730,8 @@ export class Game {
       const r = a.sp.water || a.sp.night || a.sp.flying ? 2.6 : 1.7;
       if ((d = near(a.x, a.y, r)) !== null) {
         if (a.sp.pet && a.mode === 'follow') d += 1.3; // Mira ist immer da – andere Dinge haben Vorrang
+        if (a === this.pets?.mira) { add(S.flags.miraLost ? d - 0.8 : d, S.flags.miraLost ? 'Mira rufen' : 'Mira', () => this.petAnimal(a), a.x, a.y - 0.9); continue; }
+        if (a === this.pets?.manni && q.step(QUEST_BY_ID.p_flamingo)?.ev === 'give_manni' && this.inv.has('flamingo')) { add(d - 0.8, 'Flamingo geben', () => Sc.giveManni(this), a.x, a.y - 0.9); continue; }
         const food = a.sp.food && this.inv.has(a.sp.food) && (a.sp.shy || a.species === 'alpaca' || a.species === 'duckling' || a.species === 'seal');
         add(d + 0.1, food ? `Füttern (${ITEMS[a.sp.food].name})` : a.sp.verb, () => this.petAnimal(a), a.x, a.y - 0.9);
       }
@@ -705,7 +739,7 @@ export class Game {
     // Krümel suchen
     if (this.kitten.visible && !S.flags.kitten && (d = near(SPOTS.kitten.x, SPOTS.kitten.y, 2.4)) !== null) add(d - 0.5, 'Krümel rufen', () => this.findKitten(), SPOTS.kitten.x, SPOTS.kitten.y - 1);
     for (const p of this.world.pickups) {
-      if (p.k === 'horseshoe') continue;
+      if (p.k === 'horseshoe' || p.k === 'heartstone') continue;
       if (Math.abs(p.x - px) > 1.3 || Math.abs(p.y - py) > 1.3) continue;
       if (!this.pickupAvailable(p)) continue;
       if ((d = near(p.x, p.y, 1.15)) !== null) add(d + 0.2, p.k === 'shell' ? 'Aufheben' : p.k === 'mushroom' ? 'Sammeln' : 'Pflücken', () => this.collectPickup(p), p.x, p.y - 0.8);
@@ -734,12 +768,19 @@ export class Game {
     ];
     for (const [door, label, fn] of doors) if ((d = near(door.x, door.y, 1.3)) !== null) add(d + 0.1, label, fn, door.x, door.y - 1.6);
     // besondere Orte
-    const q = this.quests;
     if (q.isActive('k3_picknick') && q.step(QUEST_BY_ID.k3_picknick)?.ev === 'picnic' && (d = near(SPOTS.picnic.x, SPOTS.picnic.y, 2.2)) !== null) add(d - 0.5, 'Picknick auspacken', () => this.picnic(), SPOTS.picnic.x, SPOTS.picnic.y - 1);
     if ((d = near(SPOTS.telescope.x, SPOTS.telescope.y, 1.6)) !== null) add(d, 'Durchs Fernrohr schauen', () => this.telescope(), SPOTS.telescope.x, SPOTS.telescope.y - 1.6);
     if ((d = near(SPOTS.parcoursBoard.x, SPOTS.parcoursBoard.y, 2)) !== null) add(d, 'Parcours starten', () => this.startParcours(), SPOTS.parcoursBoard.x, SPOTS.parcoursBoard.y - 2);
     if ((d = near(VILLAGE.plaza.x + 0.5, VILLAGE.plaza.y + 1.6, 1.6)) !== null) add(d + 0.4, 'Münze in den Brunnen werfen', () => this.wishWell(), VILLAGE.plaza.x + 0.5, VILLAGE.plaza.y - 1);
-    if ((d = near(66.5, 88.3, 1.3)) !== null) add(d, 'Briefkasten öffnen', () => this.mailbox(), 66.5, 86.6);
+    const stepOf = (id) => (q.isActive(id) ? q.step(QUEST_BY_ID[id]) : null);
+    const letterStep = stepOf('h_brief');
+    if ((d = near(66.5, 88.3, 1.3)) !== null) add(d - (letterStep?.ev === 'read_letter' ? 0.5 : 0), letterStep?.ev === 'read_letter' ? 'Rosa Brief lesen' : 'Briefkasten öffnen', () => this.mailbox(), 66.5, 86.6);
+    if (letterStep?.ev === 'dock_date' && (d = near(SPOTS.dock.x, SPOTS.dock.y, 2.4)) !== null) add(d - 0.5, 'Mert treffen', () => Sc.dockDate(this), SPOTS.dock.x, SPOTS.dock.y - 1.5);
+    if (stepOf('p_maumau')?.ev === 'kittens' && (d = near(SPOTS.kittens.x, SPOTS.kittens.y, 1.8)) !== null) add(d - 0.5, 'Im Heu nachsehen', () => Sc.kittenScene(this), SPOTS.kittens.x, SPOTS.kittens.y - 1.2);
+    if (stepOf('p_flamingo')?.ev === 'find_flamingo' && (d = near(SPOTS.nest.x, SPOTS.nest.y, 2)) !== null) add(d - 0.5, 'Elsternnest untersuchen', () => Sc.findFlamingo(this), SPOTS.nest.x, SPOTS.nest.y - 1.2);
+    if (stepOf('p_show')?.ev === 'dog_show' && (d = near(SPOTS.show.x, SPOTS.show.y, 2.2)) !== null) add(d - 0.5, 'Hundeshow starten', () => Sc.dogShow(this), SPOTS.show.x, SPOTS.show.y - 1.2);
+    if (stepOf('s_sterne')?.ev === 'stargaze' && (d = near(SPOTS.hillTop.x, SPOTS.hillTop.y, 2.4)) !== null) add(d - 0.5, 'Mit Mert Sterne gucken', () => Sc.stargaze(this), SPOTS.hillTop.x, SPOTS.hillTop.y - 1.4);
+    if (S.farm.gazebo && (d = near(SPOTS.gazebo.x, SPOTS.gazebo.y - 0.2, 1.8)) !== null) add(d + 0.2, 'Schaukeln', () => this.swing(), SPOTS.gazebo.x, SPOTS.gazebo.y - 3);
     if (!cands.length) return null;
     cands.sort((a, b) => a.d - b.d);
     return cands[0];
@@ -842,6 +883,15 @@ export class Game {
     if (tg.spot === 'picnic') return SPOTS.picnic;
     if (tg.spot === 'telescope') return SPOTS.telescope;
     if (tg.spot === 'parcours') return SPOTS.parcoursBoard;
+    if (tg.spot === 'lookout') return SPOTS.lookout;
+    if (tg.spot === 'hill') return SPOTS.hillTop;
+    if (tg.spot && SPOTS[tg.spot]) return SPOTS[tg.spot];
+    if (tg.pet) { const a = this.pets?.[tg.pet]; return a ? { x: a.x, y: a.y } : null; }
+    if (tg.heart) {
+      const hs = this.world.pickups.filter((p) => p.k === 'heartstone' && !this.S.collected.hearts.includes(p.id));
+      hs.sort((a, b) => dist(a.x, a.y, this.player.x, this.player.y) - dist(b.x, b.y, this.player.x, this.player.y));
+      return hs[0] ? { x: hs[0].x, y: hs[0].y } : null;
+    }
     if (tg.horse === 'riding') { if (this.player.riding) return null; const h = this.horseEntity(this.S.ridingHorse); return h ? { x: h.x, y: h.y } : null; }
     if (tg.wild === 'nearest') {
       const w = this.horses.filter((h) => h.mode === 'wild');
@@ -865,6 +915,8 @@ export class Game {
       act.run?.();
       this.requestSave();
       if (act.kind === 'ending') this.pending.push(() => runEnding(this));
+      if (act.after === 'party') this.pending.push(() => Sc.partyScene(this));
+      if (act.after === 'kissHeart') this.pending.push(() => Sc.mertHug(this, 'kiss'));
       return;
     }
     if (act && act.kind === 'offer') {
@@ -887,7 +939,9 @@ export class Game {
     const opts = [];
     if (npc.shop) opts.push(['Einkaufen', () => this.ui.open('shop', npc.shop)]);
     if (!short) opts.push(['Plaudern', () => this.chat(id)]);
+    if (id === 'mert') { opts.push(['Umarmen', () => Sc.mertHug(this, 'hug')]); opts.push(['Küsschen geben', () => Sc.mertHug(this, 'kiss')]); }
     opts.push(['Etwas schenken', () => this.ui.open('gift', id)]);
+    if (id === 'hilde' && this.quests.isDone('k4_fest') && !this.S.ending.done) opts.unshift(['Das Sommerfest beginnen!', () => { this.pending.push(() => runEnding(this)); }]);
     if ((id === 'mia' || id === 'ben')) {
       const races = [];
       if (this.quests.isDone('k2_rennen1') && id === 'ben') races.push('race1');
@@ -1132,8 +1186,13 @@ export class Game {
   }
 
   // ---------- Tiere ----------
-  petAnimal(a) {
+  petAnimal(a, direct = false) {
     const S = this.S;
+    if (a === this.pets?.mira && !direct) {
+      if (S.flags.miraLost) { this.pending.push(() => Sc.findMira(this)); return; }
+      this.pending.push(() => Sc.miraMenu(this));
+      return;
+    }
     const fed = a.interact(this);
     if (a.species === 'butterfly') this.particles.sparkles(a.x, a.y, 6, 30, '#ffd6ec');
     if (a.sp.pet) {
@@ -1195,6 +1254,20 @@ export class Game {
     }
   }
 
+  // Mira bellt aus ihrem Versteck – je näher, desto lauter
+  miraBark(dt) {
+    this._barkT = (this._barkT || 0) - dt;
+    if (this._barkT > 0) return;
+    const d = dist(this.player.x, this.player.y, SPOTS.miraHide.x, SPOTS.miraHide.y);
+    this._barkT = d < 25 ? 2.2 : 5;
+    if (d < 30) {
+      this.audio.play('bark');
+      const m = this.pets.mira;
+      this.particles.add({ type: 'text', x: m.x, y: m.y - 0.8, z: 30, vz: 20, life: 1.2, text: 'Wuff!', color: '#fff' });
+      if (d > 6 && !this._barkHint) { this._barkHint = true; this.ui.hint('Da! Ein Bellen aus Richtung der Sonnenblumen – das ist Mira!', 4); }
+    }
+  }
+
   // Mira schnüffelt versteckte Hufeisen auf
   miraSniff(dt) {
     this.sniffT -= dt;
@@ -1225,6 +1298,7 @@ export class Game {
     const h = this.S.time.minutes / 60;
     const c = await this.ask(h >= 18 || h < 5 ? 'Es ist schon spät. Möchtest du schlafen gehen?' : 'Möchtest du ein Nickerchen bis zum nächsten Morgen machen?', ['Ja, schlafen bis zum Morgen', 'Nein, noch nicht'], 'narr');
     if (c !== 0) return;
+    await this.say([{ who: 'mert', t: pick(['Gute Nacht, {name}. Träum was Schönes. Am besten von mir. ♥', 'Schlaf gut! Ich pass auf, dass Maumau dir nicht wieder aufs Gesicht legt.', 'Gute Nacht, meine Liebe. Mira hat schon deine Hälfte vom Bett erobert.']) }]);
     this.cutscene = true;
     await this.fade(true);
     const S = this.S;
@@ -1242,6 +1316,8 @@ export class Game {
     this.cutscene = false;
     this.ui.banner('Guten Morgen!', `Tag ${S.time.day}`);
     this.audio.play('bird');
+    this.particles.hearts(this.player.x, this.player.y - 0.6, 4);
+    this.ui.hint(pick(['Mert hat dir einen Zettel hingelegt: „Guten Morgen, Schlafmütze! Kaffee steht in der Küche. Kuss!“ ♥', 'Mira springt aufs Bett und schleckt dich wach. Guten Morgen!', 'Mert gibt dir einen Guten-Morgen-Kuss und verschwindet summend in den Stall.']), 6);
     this.saveNow();
   }
 
@@ -1282,6 +1358,8 @@ export class Game {
 
   async mailbox() {
     const S = this.S;
+    const hb = this.quests.step(QUEST_BY_ID.h_brief);
+    if (hb && hb.ev === 'read_letter') { await Sc.readLetter(this); return; }
     const tips = [
       'Ein Brief von Oma Hilde: „Regen gießt deinen Garten. Und nach dem Regen kommt oft ein Regenbogen!“',
       'Eine Postkarte von Paula: „Vom Aussichtspunkt in den Wolkenbergen sieht man die ganze Gegend!“',
@@ -1476,13 +1554,20 @@ export class Game {
       paddock: ['Die Koppel ist erweitert!', 'Viel Platz zum Toben für alle deine Pferde.'],
       flowerGarden: ['Der Blumengarten blüht!', 'Neben der Koppel duftet es jetzt nach tausend Blüten.'],
       festival: ['Die Festwiese ist geschmückt!', 'Lampions, Wimpelketten und Blumenbögen – das Sommerfest kann kommen!'],
+      gazebo: ['Die Rosenlaube ist fertig!', 'Ein Plätzchen nur für euch zwei – mit Schaukel.'],
+      petcorner: ['Das Tierparadies ist fertig!', 'Katzenhaus, Kratzbaum und Miras eigene Hundehütte.'],
     };
     this.cutscene = true;
     await this.fade(true);
     for (let i = 0; i < 4; i++) { this.audio.play('land'); await this.wait(0.25); }
     this.S.farm[kind] = true;
     this.rebuildWorldKeepState();
-    const focus = { stable: [81, 86], paddock: [82, 99], flowerGarden: [103, 99], festival: [85, 115] }[kind];
+    const focus = { stable: [81, 86], paddock: [82, 99], flowerGarden: [103, 99], festival: [85, 115], gazebo: [100.5, 79.5], petcorner: [103.5, 107.5] }[kind];
+    if (kind === 'petcorner') {
+      const pets = this.pets;
+      pets.maumau.homeX = 102; pets.maumau.homeY = 109.2; pets.manni.homeX = 106.5; pets.manni.homeY = 108.8;
+      pets.maumau.x = 102; pets.maumau.y = 109.2; pets.manni.x = 106.5; pets.manni.y = 108.8;
+    }
     this.camOverride = { x: focus[0], y: focus[1] };
     this.renderer.follow(focus[0], focus[1], 0, true);
     await this.wait(0.3);
@@ -1500,9 +1585,21 @@ export class Game {
       }[ch];
       await this.say([{ who: 'hilde', t: { 1: 'Kapitel 1 geschafft, {name}! Der Stall ist wie neu. Opa Karl würde vor Freude tanzen.', 2: 'Kapitel 2 geschafft! Sieh nur, wie die Pferde über die neue Koppel galoppieren.', 3: 'Kapitel 3 geschafft! Dieser Duft … der Hof blüht wieder auf. Genau wie du.' }[ch] }, extra]);
     }
+    if (kind === 'petcorner') {
+      await this.say([{ who: 'mert', t: 'Maumau hat das Katzenhaus sofort mit den Kätzchen bezogen. Manni schläft auf dem Kratzbaum. Und Mira … liegt schon in ihrer Hütte und schnarcht.' }, { who: 'hilde', t: 'Kapitel 5 geschafft! Ein Hof voller Pfoten und Herzen. Genau so muss es sein.' }]);
+    }
     this.camOverride = null;
     this.cutscene = false;
     this.saveNow();
+    if (kind === 'gazebo') this.pending.push(() => Sc.gazeboScene(this));
+  }
+
+  async swing() {
+    this.audio.play('heart');
+    this.particles.hearts(SPOTS.gazebo.x, SPOTS.gazebo.y - 1, 4);
+    const m = this.npcById('mert');
+    const near = dist(m.x, m.y, SPOTS.gazebo.x, SPOTS.gazebo.y) < 14;
+    this.ui.hint(pick(near ? ['Du schaukelst sanft hin und her. Mert winkt dir vom Stall aus zu und wirft dir einen Luftkuss zu. ♥', 'Die Schaukel quietscht leise. Mert ruft: „Warte, ich komm gleich zu dir!“'] : ['Du schaukelst sanft hin und her und schaust den Pferden zu.', 'Die Rosen duften. Was für ein schöner Tag.']), 4);
   }
 
   rebuildWorldKeepState() {

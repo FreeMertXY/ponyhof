@@ -16,7 +16,9 @@ export const CHAPTERS = [
   { n: 1, title: 'Ein neuer Anfang', reward: 'Der Stall wird repariert' },
   { n: 2, title: 'Neue Freunde', reward: 'Die Koppel wird erweitert' },
   { n: 3, title: 'Blütenzauber', reward: 'Ein Blumengarten entsteht' },
-  { n: 4, title: 'Das Sommerfest', reward: 'Die Festwiese wird geschmückt' },
+  { n: 4, title: 'Herzklopfen', reward: 'Eine Rosenlaube mit Schaukel' },
+  { n: 5, title: 'Pfotenglück', reward: 'Ein Tierparadies auf dem Hof' },
+  { n: 6, title: 'Das Sommerfest', reward: 'Die Festwiese wird geschmückt' },
 ];
 
 export const QUESTS = [
@@ -308,9 +310,196 @@ export const QUESTS = [
     ],
     reward: { coins: 50, farm: 'flowerGarden', memory: 'garden' },
   },
-  // ---------------- Kapitel 4 ----------------
+  // ---------------- Kapitel 4: Herzklopfen ----------------
   {
-    id: 'k4_nebel', chapter: 4, main: true, title: 'Nebel, das Wildpferd', giver: 'hilde', requires: ['k3_samen'],
+    id: 'h_brief', chapter: 4, main: true, title: 'Ein geheimnisvoller Brief', giver: 'hilde', requires: ['k3_samen'],
+    desc: 'Im Briefkasten liegt etwas Rosafarbenes …',
+    steps: [
+      {
+        type: 'talk', npc: 'hilde', text: 'Sprich mit Oma Hilde', target: { npc: 'hilde' },
+        lines: [
+          'Oh, {name}! Im Briefkasten steckt ein rosa Umschlag. Mit einem Herz drauf!',
+          'Ich hab natürlich nicht reingeschaut. Na gut … nur ein ganz kleines bisschen. Lies ihn lieber selbst!',
+        ],
+      },
+      { type: 'event', ev: 'read_letter', count: 1, text: 'Schau in den Briefkasten (links vom Wohnhaus)', target: { spot: 'mailbox' }, hint: 'Der Briefkasten steht links neben dem Wohnhaus am Hofweg. Stell dich davor und drück E.' },
+      { type: 'event', ev: 'dock_date', count: 1, text: 'Triff Mert am Steg des Glitzersees', target: { spot: 'dock' }, hint: 'Der Steg liegt am Ostufer des Glitzersees, südwestlich vom Hof. Folge dem Weg vom Hof nach Süden (Wegweiser „Glitzersee“).' },
+    ],
+    reward: { coins: 30, memory: 'date' },
+  },
+  {
+    id: 'h_mira', chapter: 4, main: true, title: 'Wo ist Mira?', giver: 'mert', requires: ['k3_samen'],
+    desc: 'Mira ist einem Hasen hinterhergelaufen!',
+    steps: [
+      {
+        type: 'talk', npc: 'mert', text: 'Sprich mit Mert', target: { npc: 'mert' }, onTalk: 'miraLost',
+        lines: [
+          '{name}! Mira ist weg! Sie hat einen Hasen gesehen und – zack – war sie über alle Berge!',
+          'Sie ist Richtung Blumenwiesen gerannt, zu den Sonnenblumen. Ich hab schon überall gerufen …',
+          'Kannst du sie suchen? Du kennst die Wiesen besser als ich. Hör auf ihr Bellen!',
+        ],
+      },
+      { type: 'event', ev: 'find_mira', count: 1, text: 'Suche Mira im Sonnenblumenfeld (Blumenwiesen)', target: { spot: 'miraHide' }, hint: 'Das Sonnenblumenfeld liegt im Nordosten der Blumenwiesen. Wenn du in der Nähe bist, hörst du Mira bellen. Drück bei ihr E.' },
+      {
+        type: 'talk', npc: 'mert', text: 'Bring Mira zurück zu Mert', target: { npc: 'mert' },
+        lines: [
+          'MIRA! Da bist du ja, du kleiner Wirbelwind!',
+          { who: 'narr', t: 'Mira springt Mert in die Arme und schleckt ihm einmal quer übers Gesicht. Mert lacht – und drückt dich ganz fest.' },
+          'Danke, {name}. Ohne dich wären wir zwei ganz schön verloren. Also, Mira und ich.',
+        ],
+      },
+    ],
+    reward: { coins: 30 },
+  },
+  {
+    id: 'h_ausritt', chapter: 4, main: true, title: 'Ausritt zu zweit', giver: 'mert', requires: ['h_brief'],
+    desc: 'Mert hat heimlich reiten geübt!',
+    steps: [
+      {
+        type: 'talk', npc: 'mert', text: 'Sprich mit Mert', target: { npc: 'mert' }, onTalk: 'escortStart',
+        lines: [
+          'Weißt du, was ich mir schon ewig wünsche? Mit dir zusammen ausreiten.',
+          'Ich hab heimlich geübt! Mit einem von deinen Pferden. Es war sehr geduldig mit mir.',
+          'Reiten wir zum Aussichtspunkt in den Wolkenbergen? Ich reite dir hinterher – aber bitte nicht zu schnell, ja?',
+        ],
+      },
+      { type: 'event', ev: 'ride_lookout', count: 1, text: 'Reite mit Mert zum Aussichtspunkt (ganz oben in den Wolkenbergen)', target: { spot: 'lookout' }, hint: 'Nimm den Weg nördlich vom Hof über die Blumenwiesen, dann den Serpentinenpfad hinauf. Oben am Wegweiser geht es nach Norden zum Aussichtspunkt. Mert folgt dir automatisch.' },
+    ],
+    reward: { coins: 40, memory: 'ausritt' },
+  },
+  {
+    id: 'h_geburtstag', chapter: 4, main: true, title: 'Merts Geburtstag', giver: 'hilde', requires: ['h_mira'],
+    desc: 'Eine Überraschungsparty für Mert!',
+    steps: [
+      {
+        type: 'talk', npc: 'hilde', text: 'Sprich mit Oma Hilde', target: { npc: 'hilde' },
+        lines: [
+          'Psst, {name}! Komm mal her. Weißt du, was heute ist? Merts Geburtstag!',
+          'Er denkt, keiner hat es gemerkt. Lass uns eine Überraschungsparty machen!',
+          'Berta backt bestimmt eine Torte, wenn du ihr Äpfel bringst. Und Luise kann aus Muscheln die schönsten Dinge basteln.',
+        ],
+      },
+      {
+        type: 'deliver', npc: 'berta', items: { apple: 4 }, give: { birthdaycake: 1 }, text: 'Bring Berta 4 Äpfel für die Geburtstagstorte', target: { npc: 'berta' },
+        lines: ['Eine Torte für Mert? Aber sicher, Schätzchen! Apfeltorte mit Sahne und Kerzen.', { who: 'narr', t: 'Ein paar Minuten und viel Mehlstaub später …' }, 'Tadaa! Pass gut darauf auf – und kein Naschen!'],
+        missing: ['Für die Torte brauche ich 4 Äpfel. Schüttel doch einfach einen Apfelbaum!'],
+      },
+      {
+        type: 'deliver', npc: 'luise', items: { shell: 3 }, give: { giftbox: 1 }, text: 'Bring Luise 3 Muscheln für ein Geschenk', target: { npc: 'luise' },
+        lines: ['Ein Geschenk für deinen Liebsten? Wie romantisch!', 'Ich mache einen Anhänger aus zwei Muschelhälften. Zusammen ergeben sie ein Herz. Eine Hälfte für ihn, eine für dich.'],
+        missing: ['Ich brauche 3 Muscheln vom Sonnenstrand, dann bastle ich euch etwas ganz Besonderes.'],
+      },
+      {
+        type: 'deliver', npc: 'mert', items: { birthdaycake: 1, giftbox: 1 }, text: 'Überrasche Mert mit Torte und Geschenk', target: { npc: 'mert' }, after: 'party',
+        lines: ['Hm? Was versteckst du denn da hinter dem Rücken, {name}?'],
+      },
+    ],
+    reward: { coins: 40, memory: 'birthday' },
+  },
+  {
+    id: 'h_laube', chapter: 4, main: true, title: 'Die Rosenlaube', giver: 'mert', requires: ['h_ausritt', 'h_geburtstag'],
+    desc: 'Ein Plätzchen nur für euch zwei.',
+    steps: [
+      {
+        type: 'talk', npc: 'mert', text: 'Sprich mit Mert', target: { npc: 'mert' },
+        lines: [
+          'Ich hab eine Idee. Eine Laube. Nur für uns zwei. Mit Blumen und einer Schaukel.',
+          'Da sitzen wir dann abends und schauen den Pferden zu. Und Mira schnarcht auf unseren Füßen.',
+          'Ich brauche 2 Bretter von Theo und 5 Mohnblumen für die Blumenranken. Den Rest mach ich!',
+        ],
+      },
+      {
+        type: 'deliver', npc: 'mert', items: { boards: 2, poppy: 5 }, text: 'Bring Mert 2 Bretter und 5 Mohnblumen', target: { npc: 'mert' },
+        lines: ['Perfekt! Dann fang ich gleich an. Hält fest, sieht süß aus – genau wie wir.'],
+        missing: ['2 Bretter (bei Theo im Laden) und 5 Mohnblumen (Blumenwiesen) – dann kann ich loslegen!'],
+      },
+    ],
+    reward: { coins: 50, farm: 'gazebo', memory: 'laube' },
+  },
+  // ---------------- Kapitel 5: Pfotenglück ----------------
+  {
+    id: 'p_maumau', chapter: 5, main: true, title: 'Maumaus Geheimnis', giver: 'mert', requires: ['h_laube'],
+    desc: 'Maumau verschwindet ständig im Stall …',
+    steps: [
+      {
+        type: 'talk', npc: 'mert', text: 'Sprich mit Mert', target: { npc: 'mert' },
+        lines: [
+          'Sag mal, ist dir an Maumau was aufgefallen? Sie verschwindet ständig hinterm Stall und kommt mit Heu im Fell zurück.',
+          'Und sie frisst für zwei. Für drei! Was hat sie nur vor?',
+          'Schau doch mal bei den Heuballen neben dem Stall nach.',
+        ],
+      },
+      { type: 'event', ev: 'kittens', count: 1, text: 'Schau bei den Heuballen neben dem Stall nach', target: { spot: 'kittens' }, hint: 'Die Heuballen liegen rechts neben dem Stall auf dem Hof. Stell dich davor und drück E.' },
+      {
+        type: 'talk', npc: 'hilde', text: 'Erzähl Oma Hilde von den Kätzchen', target: { npc: 'hilde' },
+        lines: ['Kätzchen? DREI Kätzchen? Oh, mein Herz!', 'Maumau ist eine wunderbare Mama. Und du wirst bestimmt eine wunderbare Tante sein.'],
+      },
+    ],
+    reward: { coins: 30, memory: 'kittens' },
+  },
+  {
+    id: 'p_show', chapter: 5, main: true, title: 'Miras großer Auftritt', giver: 'paula', requires: ['h_laube'],
+    desc: 'Hundeshow auf dem Marktplatz!',
+    steps: [
+      {
+        type: 'talk', npc: 'paula', text: 'Sprich mit Postbotin Paula', target: { npc: 'paula' },
+        lines: [
+          'Zack, zack, {name}! Heute ist Hundeshow auf dem Marktplatz! Mira MUSS mitmachen. Sie ist der süßeste Hund weit und breit!',
+          'Übt vorher ein paar Kunststücke. Sprich Mira einfach an und wähle „Kunststück üben“.',
+          'Wenn ihr bereit seid: Die Bühne ist gleich hier vor dem Brunnen!',
+        ],
+      },
+      { type: 'event', ev: 'mira_trick', count: 3, text: 'Übe 3 Kunststücke mit Mira (bei Mira E drücken)', target: null, hint: 'Mira läuft immer neben dir. Stell dich zu ihr, drück E und wähle „Kunststück üben“.' },
+      { type: 'event', ev: 'dog_show', count: 1, text: 'Starte die Hundeshow vor dem Brunnen in Kleeberg', target: { spot: 'show' }, hint: 'Geh zum Marktplatz in Kleeberg, direkt unterhalb des Brunnens, und drück dort E.' },
+    ],
+    reward: { coins: 50, memory: 'dogshow' },
+  },
+  {
+    id: 'p_flamingo', chapter: 5, main: true, title: 'Mannis Flamingo', giver: 'mert', requires: ['p_maumau'],
+    desc: 'Mannis Lieblingsspielzeug ist verschwunden.',
+    steps: [
+      {
+        type: 'talk', npc: 'mert', text: 'Sprich mit Mert', target: { npc: 'mert' },
+        lines: [
+          'Manni ist ganz traurig. Sein Flamingo-Spielzeug ist weg – das rosa mit den Wackelaugen!',
+          'Er sitzt nur noch da und guckt vorwurfsvoll. Frag doch mal Ben im Dorf. Der sieht immer alles.',
+        ],
+      },
+      {
+        type: 'talk', npc: 'ben', text: 'Frag Ben im Dorf nach dem Flamingo', target: { npc: 'ben' },
+        lines: [
+          'D-den rosa Flamingo? Den hab ich gesehen! Eine Elster hat ihn geklaut. Elstern mögen bunte Sachen.',
+          'Sie ist damit in den Flüsterwald geflogen, zur großen Lichtung im Norden. Dort hat sie ihr Nest in einem Baumstumpf.',
+        ],
+      },
+      { type: 'event', ev: 'find_flamingo', count: 1, text: 'Untersuche das Elsternnest auf der nördlichen Waldlichtung', target: { spot: 'nest' }, hint: 'Die Lichtung liegt im nördlichen Flüsterwald. Nimm vom Hof den Weg nach Westen über die Brücke und dann nach Norden.' },
+      { type: 'event', ev: 'give_manni', count: 1, text: 'Bring Manni seinen Flamingo (Manni auf dem Hof)', target: { pet: 'manni' }, hint: 'Manni ist meistens auf dem Hof in der Nähe des Stalls. Stell dich zu ihm und drück E.' },
+    ],
+    reward: { coins: 30 },
+  },
+  {
+    id: 'p_zuhause', chapter: 5, main: true, title: 'Ein Zuhause für alle', giver: 'mert', requires: ['p_flamingo', 'p_show'],
+    desc: 'Ein Tierparadies für die ganze Bande.',
+    steps: [
+      {
+        type: 'talk', npc: 'mert', text: 'Sprich mit Mert', target: { npc: 'mert' },
+        lines: [
+          'Zwei Katzen, drei Kätzchen, ein Hund – wir brauchen ein richtiges Tierparadies!',
+          'Ein Katzenhaus mit Kratzbaum und eine Hundehütte für Mira. Mit ihrem Namen dran!',
+          'Bring mir 3 Bretter von Theo und 2 Heu für die Kuschelbetten.',
+        ],
+      },
+      {
+        type: 'deliver', npc: 'mert', items: { boards: 3, hay: 2 }, text: 'Bring Mert 3 Bretter und 2 Heu (beides bei Theo)', target: { npc: 'mert' },
+        lines: ['Super! Das wird das gemütlichste Tierparadies der Welt.'],
+        missing: ['3 Bretter und 2 Heu – beides gibt es bei Theo im Laden.'],
+      },
+    ],
+    reward: { coins: 50, farm: 'petcorner', memory: 'petcorner' },
+  },
+  // ---------------- Kapitel 6: Das Sommerfest ----------------
+  {
+    id: 'k4_nebel', chapter: 6, main: true, title: 'Nebel, das Wildpferd', giver: 'hilde', requires: ['p_zuhause'],
     desc: 'Hoch in den Wolkenbergen lebt ein silbergraues Wildpferd.',
     steps: [
       {
@@ -333,7 +522,7 @@ export const QUESTS = [
     reward: { coins: 60, memory: 'nebel' },
   },
   {
-    id: 'k4_rennen3', chapter: 4, main: true, title: 'Das große Kleeberg-Rennen', giver: 'mia', requires: ['k3_samen'],
+    id: 'k4_rennen3', chapter: 6, main: true, title: 'Das große Kleeberg-Rennen', giver: 'mia', requires: ['p_zuhause'],
     desc: 'Mia und Ben fordern dich zum großen Rennen heraus.',
     steps: [
       {
@@ -349,7 +538,7 @@ export const QUESTS = [
     reward: { coins: 60, memory: 'race' },
   },
   {
-    id: 'k4_einladung', chapter: 4, main: true, title: 'Einladungen', giver: 'hilde', requires: ['k4_nebel', 'k4_rennen3'],
+    id: 'k4_einladung', chapter: 6, main: true, title: 'Einladungen', giver: 'hilde', requires: ['k4_nebel', 'k4_rennen3'],
     desc: 'Lade alle zum Sommerfest auf dem Ponyhof ein.',
     steps: [
       {
@@ -380,7 +569,7 @@ export const QUESTS = [
     reward: { coins: 30, unlock: ['outfit_fest'] },
   },
   {
-    id: 'k4_festwiese', chapter: 4, main: true, title: 'Die Festwiese', giver: 'hilde', requires: ['k4_einladung'],
+    id: 'k4_festwiese', chapter: 6, main: true, title: 'Die Festwiese', giver: 'hilde', requires: ['k4_einladung'],
     desc: 'Blumen für Girlanden und Blumenbögen.',
     steps: [
       {
@@ -395,7 +584,7 @@ export const QUESTS = [
     reward: { coins: 40, farm: 'festival' },
   },
   {
-    id: 'k4_fest', chapter: 4, main: true, title: 'Sommerfest auf dem Ponyhof', giver: 'hilde', requires: ['k4_festwiese'],
+    id: 'k4_fest', chapter: 6, main: true, title: 'Sommerfest auf dem Ponyhof', giver: 'hilde', requires: ['k4_festwiese'],
     desc: 'Das große Fest beginnt!',
     steps: [
       { type: 'talk', npc: 'hilde', text: 'Sprich mit Oma Hilde, um das Sommerfest zu beginnen', target: { npc: 'hilde' }, ending: true, lines: ['Alle sind da, {name}. Bist du bereit für das Sommerfest?'] },
@@ -403,6 +592,35 @@ export const QUESTS = [
     reward: {},
   },
   // ---------------- Nebenaufgaben ----------------
+  {
+    id: 's_mert', chapter: 0, main: false, title: 'Kuchen für Mert', giver: 'mert', requires: ['k1_kruemel'],
+    offer: ['Sag mal, {name} … riecht es im Dorf nicht immer nach Bertas Streuselkuchen?', 'Ich hab so viel gehämmert, ich könnte einen ganzen Kuchen essen. Bringst du mir ein Stück Streuselkuchen und einen Apfelsaft? Dann machen wir Pause – zusammen.'],
+    steps: [
+      {
+        type: 'deliver', npc: 'mert', items: { cake: 1, juice: 1 }, text: 'Bring Mert Streuselkuchen und Apfelsaft (gibt es bei Berta)', target: { npc: 'mert' },
+        lines: ['Mmmh! Der beste Kuchen der Welt – von der besten Freundin der Welt.', { who: 'narr', t: 'Ihr sitzt zusammen auf dem Heuballen, Mira bettelt um Krümel und Maumau schläft auf Merts Schoß ein.' }, 'Für dich hab ich übrigens was gebaut: einen Herzbogen für den Hof! Du findest ihn in deiner Tasche unter „Hof-Deko“.'],
+        missing: ['Streuselkuchen und Apfelsaft gibt’s bei Berta in der Bäckerei. Ich warte hier – mit knurrendem Magen.'],
+      },
+    ],
+    reward: { coins: 30, deco: { heartarch: 1 } },
+  },
+  {
+    id: 's_herzsteine', chapter: 0, main: false, title: 'Merts Herzsteine', giver: 'mert', requires: ['h_laube'],
+    offer: ['Ich hab dir was versteckt. Fünf Herzsteine – an unseren schönsten Orten.', 'Auf der Insel im Glitzersee, am Aussichtspunkt, am Leuchtturm, auf unserem Hügel hinterm Hof und bei der Mondschein-Lichtung im Wald. Findest du sie alle?'],
+    steps: [
+      { type: 'event', ev: 'heartstone', count: 5, text: 'Finde Merts 5 Herzsteine', target: { heart: 'nearest' }, hint: 'Insel im Glitzersee (nur zu Pferd), Aussichtspunkt in den Wolkenbergen, Strand am Leuchtturm, Hügel südlich vom Hof, Mondschein-Lichtung im Wald. Einfach drüberlaufen!' },
+      { type: 'talk', npc: 'mert', text: 'Bring Mert die Herzsteine', target: { npc: 'mert' }, after: 'kissHeart', lines: ['Du hast sie alle gefunden! Fünf Herzsteine. Einer für jedes Mal, als du mich zum Lachen gebracht hast.', 'Na gut, es waren eigentlich viel mehr Male. Aber ich hatte nur fünf Steine.'] },
+    ],
+    reward: { coins: 40, unlock: ['bow_herz'] },
+  },
+  {
+    id: 's_sterne', chapter: 0, main: false, title: 'Sternschnuppennacht', giver: 'mert', requires: ['h_ausritt'],
+    offer: ['Heute Nacht soll es ganz viele Sternschnuppen geben.', 'Schaust du sie mit mir an? Oben auf unserem Hügel hinter dem Hof. Ich bring eine Decke mit.'],
+    steps: [
+      { type: 'event', ev: 'stargaze', count: 1, text: 'Schau mit Mert Sternschnuppen auf dem Hügel (südlich vom Hof)', target: { spot: 'hill' }, hint: 'Der Hügel mit dem großen Blütenbaum liegt südlich der Festwiese. Drück dort E – wenn es noch hell ist, könnt ihr bis zur Nacht warten.' },
+    ],
+    reward: { coins: 30, memory: 'stars' },
+  },
   {
     id: 's_pilze', chapter: 0, main: false, title: 'Pilzsuppe für Berta', giver: 'berta', requires: ['k1_kruemel'],
     offer: ['Du kennst dich jetzt im Flüsterwald aus, oder? Ich koche so gern Pilzsuppe …', 'Bringst du mir 5 Pilze? Sie wachsen dort am Wegrand.'],
