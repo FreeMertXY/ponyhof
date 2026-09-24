@@ -60,7 +60,7 @@ export const SPECIES = {
   seal: {
     name: 'Robbe', region: 'Sonnenstrand', verb: 'Streicheln', speed: 1, food: 'shell',
     fact: 'Robben können bis zu 30 Minuten die Luft anhalten.',
-    spawns: [[150, 162], [168, 150]],
+    spawns: [[150, 163], [169, 155]],
   },
   owl: {
     name: 'Eule', region: 'Flüsterwald', verb: 'Leise grüßen', speed: 0, night: true,

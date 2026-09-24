@@ -2,6 +2,9 @@
 import { FRIEND_LEVELS, PERSONALITIES, WILD_HORSES, COATS, TRICKS } from './data/horses.js';
 import { SPOTS } from './world.js';
 import { clamp, dist } from './util.js';
+import { drawHorse, horseLook } from './draw/horse.js';
+import { rr, heart, outlinedText, FONT } from './draw/paint.js';
+import { TILE } from './world.js';
 
 export const SPEED = { walk: 3.4, run: 5.3, trot: 5.8, gallop: 8.8 };
 
@@ -247,6 +250,34 @@ export class HorseEntity {
   }
 
   personalityAware() { return (PERSONALITIES[this.rec.personality] || PERSONALITIES.sanft).aware; }
+
+  draw(ctx, game, t) {
+    const X = this.x * TILE, Y = this.y * TILE;
+    ctx.save();
+    ctx.translate(X, Y);
+    const look = this._look && this._lookKey === JSON.stringify(this.rec.acc) + this.rec.coat ? this._look : null;
+    if (!look) { this._look = horseLook(this.rec); this._lookKey = JSON.stringify(this.rec.acc) + this.rec.coat; }
+    drawHorse(ctx, this._look, { t: this.t, pose: this.pose, face: this.face, trick: this.trick, trickT: this.trickT, scale: 1.22 });
+    const P = game.player;
+    const d = dist(this.x, this.y, P.x, P.y);
+    // Zähm-Anzeige
+    if (this.mode === 'wild' && this.tame && d < this.personalityAware() + 1 && !game.cutscene) {
+      const w = 54;
+      rr(ctx, -w / 2, -100, w, 9, 4.5); ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill();
+      rr(ctx, -w / 2 + 2, -98, (w - 4) * Math.max(0.04, this.tame.trust), 5, 2.5); ctx.fillStyle = '#ff7eb6'; ctx.fill();
+      heart(ctx, -w / 2 - 6, -95, 9, '#ff6f9f');
+      if (this.tame.nervous > 0.55 || this.status === 'flee') {
+        const k = Math.min(1, (this.tame.nervous - 0.55) / 0.45);
+        ctx.font = `800 ${22 + k * 6}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        outlinedText(ctx, '!', Math.sin(t * 30) * k * 2, -118, '#ffd23f', '#b0503a', 5);
+      }
+    }
+    if ((this.mode === 'paddock' || this.mode === 'idle' || this.mode === 'follow') && d < 3.2 && !game.cutscene) {
+      ctx.font = `700 13px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      outlinedText(ctx, this.rec.name, 0, this.foal ? -62 : -92, '#fff', '#8a4a6a', 4);
+    }
+    ctx.restore();
+  }
 
   saveTame(S) {
     if (this.tame) S.wild[this.id] = { trust: this.tame.trust };

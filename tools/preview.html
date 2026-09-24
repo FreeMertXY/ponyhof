@@ -1,0 +1,26 @@
+<!doctype html><html><body style="margin:0;background:#9ddc7a">
+<canvas id="c" width="1200" height="700"></canvas>
+<script type="module">
+import { drawCharacter, playerLook, npcLook, drawPortrait } from '../src/draw/characters.js';
+import { drawHorse, horseLook } from '../src/draw/horse.js';
+import { drawAnimal } from '../src/draw/animals.js';
+import { NPCS } from '../src/data/npcs.js';
+import { WILD_HORSES } from '../src/data/horses.js';
+const c = document.getElementById('c'), ctx = c.getContext('2d');
+const t = 0.3;
+ctx.save(); ctx.scale(2,2);
+let x = 30;
+for (let h=0; h<6; h++) { ctx.save(); ctx.translate(x, 70); drawCharacter(ctx, playerLook({skin:h%6,hair:h,hairColor:h+1,outfit:h,hat:h%2==0,hatType:'straw'}), {dir:'down', t}); ctx.restore(); x+=38; }
+for (const d of ['up','left','right']) { ctx.save(); ctx.translate(x, 70); drawCharacter(ctx, playerLook({skin:1,hair:1,hairColor:0,outfit:1,hat:true}), {dir:d, t, moving:true}); ctx.restore(); x+=38; }
+x=30;
+for (const k of Object.keys(NPCS)) { ctx.save(); ctx.translate(x, 150); drawCharacter(ctx, npcLook(NPCS[k].look), {dir:'down', t}); ctx.restore(); x+=38; }
+x=40;
+const poses=['stand','walk','trot','gallop','graze','jump','stand'];
+WILD_HORSES.forEach((w,i)=>{ ctx.save(); ctx.translate(x, 240); const H=horseLook({...w, acc: i==1?{saddle:'saddle_rosa',blanket:'blanket_herz',bow:'bow_rosa',wreath:'wreath'}:{}}); drawHorse(ctx,H,{t, pose:poses[i], z: poses[i]==='jump'?8:0, rider: i==2? (c)=>{c.save(); c.translate(-2,-30); drawCharacter(c, playerLook({skin:1,hair:1,hairColor:0,outfit:2,hat:true}), {dir:'right', seated:true, t}); c.restore();}:null}); ctx.restore(); x+=78; });
+ctx.save(); ctx.translate(x, 240); drawHorse(ctx, horseLook({coat:'palomino',foal:true}),{t}); ctx.restore();
+x=20;
+for (const s of ['rabbit','cat','puppy','duckling','hedgehog','fox','squirrel','deer','frog','butterfly','crab','seal','owl','alpaca']) { ctx.save(); ctx.translate(x, 320); drawAnimal(ctx, s, {t}); ctx.restore(); x+=40; }
+ctx.restore();
+const pc = document.createElement('canvas'); pc.width=pc.height=96; drawPortrait(pc.getContext('2d'), npcLook(NPCS.hilde.look), 96, t); ctx.drawImage(pc, 1000, 20);
+const pc2 = document.createElement('canvas'); pc2.width=pc2.height=96; drawPortrait(pc2.getContext('2d'), npcLook(NPCS.kuno.look), 96, t); ctx.drawImage(pc2, 1100, 20);
+</script></body></html>

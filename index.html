@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Jolinas Ponyhof</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="description" content="Ein gemütliches Pferde-Abenteuer im Browser: Pferde zähmen, reiten, Tiere streicheln und den alten Ponyhof wieder zum Leben erwecken.">
+  <meta name="theme-color" content="#ffd6e4">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 56C10 40 4 28 12 16c6-9 16-6 20 2 4-8 14-11 20-2 8 12 2 24-20 40z' fill='%23ff7eb6'/%3E%3Cpath d='M22 38a10 10 0 1 1 20 0' fill='none' stroke='%23ffd24a' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="hud" class="hidden">
+    <div id="hud-left">
+      <div class="pill" id="clock"><i class="ico" id="clock-ico" data-icon="sun"></i><span id="clock-text">Tag 1 · 08:00</span></div>
+      <div class="pill" id="coins"><i class="ico" data-icon="coin"></i><span id="coins-text">0</span></div>
+      <div class="pill" id="shoes" title="Goldene Hufeisen"><i class="ico" data-icon="horseshoe"></i><span id="shoes-text">0/30</span></div>
+    </div>
+    <div id="quest-tracker" title="Aufgaben (Q)">
+      <div class="qt-chapter" id="qt-chapter"></div>
+      <div class="qt-title" id="qt-title"></div>
+      <div class="qt-step" id="qt-step"></div>
+    </div>
+    <div id="minimap-wrap" title="Karte öffnen (M)"><canvas id="minimap" width="180" height="180"></canvas><div id="minimap-region"></div></div>
+    <div id="hud-buttons">
+      <button class="hbtn" data-act="ride" title="Auf-/Absteigen (R)"><span class="k">R</span><i class="bi" data-icon="horse"></i><span class="bl">Reiten</span></button>
+      <button class="hbtn" data-act="inventory" title="Inventar (I)"><span class="k">I</span><i class="bi" data-icon="bag"></i><span class="bl">Tasche</span></button>
+      <button class="hbtn" data-act="quests" title="Aufgaben (Q)"><span class="k">Q</span><i class="bi" data-icon="scroll"></i><span class="bl">Aufgaben</span></button>
+      <button class="hbtn" data-act="map" title="Karte (M)"><span class="k">M</span><i class="bi" data-icon="map"></i><span class="bl">Karte</span></button>
+      <button class="hbtn" data-act="album" title="Tieralbum (T)"><span class="k">T</span><i class="bi" data-icon="rabbit"></i><span class="bl">Album</span></button>
+      <button class="hbtn" data-act="stall" title="Pferde (P)"><span class="k">P</span><i class="bi" data-icon="stable"></i><span class="bl">Pferde</span></button>
+      <button class="hbtn" data-act="pause" title="Menü (Esc)"><span class="k">Esc</span><i class="bi" data-icon="gear"></i><span class="bl">Menü</span></button>
+    </div>
+    <div id="race-hud" class="hidden"></div>
+    <div id="act-btn" class="hidden"></div>
+  </div>
+
+  <div id="banner"></div>
+  <div id="hint"></div>
+  <div id="toasts"></div>
+
+  <div id="dialog" class="hidden">
+    <div class="dlg-portrait"><canvas id="portrait" width="150" height="150"></canvas></div>
+    <div class="dlg-body">
+      <div class="dlg-name" id="dlg-name"></div>
+      <div class="dlg-text" id="dlg-text"></div>
+      <div class="dlg-choices" id="dlg-choices"></div>
+    </div>
+    <div class="dlg-next" id="dlg-next">▼</div>
+  </div>
+
+  <div id="panel-wrap" class="hidden"><div id="panel"></div></div>
+  <div id="screen" class="hidden"></div>
+  <div id="fade"></div>
+  <div id="loading">Der Ponyhof wird geschmückt …</div>
+  <noscript><p style="padding:2em;font-family:sans-serif">Bitte JavaScript aktivieren, um Jolinas Ponyhof zu spielen.</p></noscript>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

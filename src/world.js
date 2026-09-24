@@ -466,7 +466,7 @@ export class World {
     this.addObj({ k: 'hut', x: 157, y: 152 }, true, 3, 2);
     for (const [rx, ry] of [[160, 163], [170, 157], [150, 163]]) this.addObj({ k: 'rock', v: 1, x: rx, y: ry }, true);
     // Aussichtspunkt
-    for (let y = 4; y <= 9; y++) for (let x = 103; x <= 110; x++) this.setG(x, y, G.DOCK);
+    for (let y = 4; y <= 9; y++) for (let x = 103; x <= 110; x++) this.setG(x, y, G.PLAZA);
     for (let x = 103; x <= 110; x++) this.addObj({ k: 'rail', x, y: 3 }, true);
     this.addObj({ k: 'telescope', x: 106, y: 5 }, true);
     this.addObj({ k: 'bench', x: 108, y: 7 }, true);

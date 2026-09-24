@@ -33,7 +33,7 @@ export function defaultState() {
     albumRewarded: false,
     discovered: { farm: true },
     time: { day: 1, minutes: 8 * 60 },
-    weather: { kind: 'sun', until: 10 * 60, rainbowUntil: 0 },
+    weather: { kind: 'sun', until: 1440 + 13 * 60, rainbowUntil: 0 },
     stats: { playSeconds: 0, medals: {}, parcoursBest: 0, postBest: 0, tamed: 0, petted: 0, gifts: 0 },
     memories: [],
     tutorial: {},

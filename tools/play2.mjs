@@ -1,0 +1,25 @@
+import pw from '/opt/node22/lib/node_modules/playwright/index.js';
+const { chromium } = pw;
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const W = +(process.env.W || 1280), H = +(process.env.H || 760);
+const page = await browser.newPage({ viewport: { width: W, height: H } });
+page.on('console', (m) => { if ((m.type() === 'error' || m.type() === 'warning') && !m.text().includes('CERT')) console.log('console:', m.type(), m.text()); });
+page.on('pageerror', (e) => console.log('PAGEERROR', e.message, e.stack?.split('\n').slice(0, 3).join(' | ')));
+await page.goto('http://localhost:8080/index.html');
+await page.waitForTimeout(1200);
+await page.evaluate(() => localStorage.clear());
+await page.click('#t-new'); await page.waitForTimeout(200);
+await page.click('#e-go');
+await page.click('#st-skip'); await page.waitForTimeout(200);
+await page.click('#h-go'); await page.waitForTimeout(1200);
+const g = 'window.ponyhof';
+const skipDialogs = async () => { for (let i = 0; i < 12; i++) { const open = await page.evaluate(() => window.ponyhof.dialog.open); if (!open) break; await page.keyboard.press('e'); await page.waitForTimeout(120); } };
+await skipDialogs();
+// zum Pferd laufen
+await page.keyboard.down('d'); await page.waitForTimeout(900); await page.keyboard.up('d');
+await page.waitForTimeout(300);
+await page.screenshot({ path: 'screenshots/10-near-horse.png' });
+console.log(await page.evaluate(() => { const g = window.ponyhof; return JSON.stringify({ p: [g.player.x, g.player.y], focus: g.focus?.label }); }));
+await page.keyboard.press('e'); await page.waitForTimeout(600);
+await page.screenshot({ path: 'screenshots/11-care.png' });
+await browser.close();
