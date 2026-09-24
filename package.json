@@ -1,0 +1,12 @@
+{
+  "name": "jolinas-ponyhof",
+  "version": "1.0.0",
+  "description": "Jolinas Ponyhof – ein gemütliches Pferde-Abenteuer im Browser",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "start": "npx http-server -c-1 -p 8080 ."
+  },
+  "license": "MIT"
+}

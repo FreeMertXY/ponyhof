@@ -1,0 +1,40 @@
+// Alle Gegenstände. cat: food | seed | flower | find | bake | quest
+// sell = Verkaufspreis bei Theo (0 = nicht verkaufbar)
+export const ITEMS = {
+  apple: { name: 'Apfel', plural: 'Äpfel', cat: 'food', sell: 3, desc: 'Knackig und süß – Pferde lieben ihn.' },
+  carrot: { name: 'Karotte', plural: 'Karotten', cat: 'food', sell: 3, desc: 'Frisch aus dem Garten. Ein Leckerli für Pferde.' },
+  hay: { name: 'Heu', plural: 'Heu', cat: 'food', sell: 1, desc: 'Duftet nach Sommer. Macht Pferde satt und zufrieden.' },
+  seed_carrot: { name: 'Karottensamen', plural: 'Karottensamen', cat: 'seed', sell: 1, desc: 'Im Gemüsegarten säen und gießen.' },
+  seed_sunflower: { name: 'Sonnenblumensamen', plural: 'Sonnenblumensamen', cat: 'seed', sell: 1, desc: 'Wächst zu einer strahlenden Sonnenblume.' },
+  lavender: { name: 'Lavendelstrauß', plural: 'Lavendelsträuße', cat: 'flower', sell: 4, desc: 'Duftet herrlich beruhigend.' },
+  poppy: { name: 'Mohnblume', plural: 'Mohnblumen', cat: 'flower', sell: 3, desc: 'Leuchtend rot wie ein Kirschbonbon.' },
+  sunflower: { name: 'Sonnenblume', plural: 'Sonnenblumen', cat: 'flower', sell: 5, desc: 'Dreht sich immer zur Sonne.' },
+  daisy: { name: 'Gänseblümchen', plural: 'Gänseblümchen', cat: 'flower', sell: 2, desc: 'Klein, weiß und fröhlich.' },
+  mushroom: { name: 'Pilz', plural: 'Pilze', cat: 'find', sell: 4, desc: 'Ein Steinpilz aus dem Flüsterwald.' },
+  shell: { name: 'Muschel', plural: 'Muscheln', cat: 'find', sell: 4, desc: 'Wenn man sie ans Ohr hält, rauscht das Meer.' },
+  bread: { name: 'Brot', plural: 'Brote', cat: 'bake', sell: 4, desc: 'Ofenfrisch aus Bertas Backstube.' },
+  cake: { name: 'Streuselkuchen', plural: 'Streuselkuchen', cat: 'bake', sell: 8, desc: 'Bertas berühmter Kuchen. Ein tolles Geschenk!' },
+  juice: { name: 'Apfelsaft', plural: 'Apfelsaft', cat: 'bake', sell: 3, desc: 'Naturtrüb und spritzig.' },
+  letter: { name: 'Eilbrief', plural: 'Eilbriefe', cat: 'quest', sell: 0, desc: 'Für Kuno, den Leuchtturmwärter. Schnell!' },
+  boards: { name: 'Bretter', plural: 'Bretter', cat: 'quest', sell: 0, desc: 'Stabile Bretter für den Stall.' },
+  invite: { name: 'Einladung', plural: 'Einladungen', cat: 'quest', sell: 0, desc: 'Einladung zum Sommerfest auf dem Ponyhof.' },
+};
+
+// Futterwerte für Pferde: Freundschaftspunkte
+export const HORSE_FOOD = { apple: 5, carrot: 5, hay: 3 };
+
+export const CATEGORY_NAMES = {
+  food: 'Futter', seed: 'Samen', flower: 'Blumen', find: 'Fundstücke', bake: 'Backwaren', quest: 'Aufgaben',
+};
+
+export function itemName(id, n = 1) {
+  const it = ITEMS[id];
+  if (!it) return id;
+  return n === 1 ? it.name : it.plural;
+}
+
+// Pflanzen im Gemüsegarten: benötigte "feuchte" Spielstunden
+export const CROPS = {
+  carrot: { seed: 'seed_carrot', item: 'carrot', hours: 5, yield: 1, name: 'Karotte' },
+  sunflower: { seed: 'seed_sunflower', item: 'sunflower', hours: 7, yield: 1, name: 'Sonnenblume' },
+};
