@@ -104,8 +104,8 @@ export async function runEnding(g) {
   let k = 0;
   const fire = () => {
     if (!firing) return;
-    g.particles.firework(top.x - 8 + Math.random() * 16, top.y - 3, 300 + Math.random() * 120, cols[k % cols.length], true);
-    if (k % 3 === 0) g.particles.shootingStar(top.x - 20 + Math.random() * 10, top.y - 6);
+    g.particles.firework(top.x - 7 + Math.random() * 14, top.y - 1, 140 + Math.random() * 80, cols[k % cols.length], true);
+    if (k % 3 === 0) g.particles.shootingStar(top.x - 14 + Math.random() * 8, top.y - 2);
     g.audio.play('boom');
     k++;
     g.later(0.9 + Math.random() * 0.6, fire);

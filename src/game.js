@@ -332,7 +332,10 @@ export class Game {
     // Bildrate messen
     const f = this.fps;
     f.frames++; f.acc += dt;
-    if (f.acc >= 1) { f.value = f.frames / f.acc; f.samples.push(f.value); if (f.samples.length > 120) f.samples.shift(); f.frames = 0; f.acc = 0; }
+    if (f.acc >= 1) {
+      f.value = f.frames / f.acc; f.samples.push(f.value); if (f.samples.length > 120) f.samples.shift(); f.frames = 0; f.acc = 0;
+      this.adaptQuality();
+    }
     if (this.state === 'title' || this.state === 'editor' || this.state === 'intro' || this.state === 'credits') {
       this.screens.update(dt);
     } else if (this.state === 'play' || this.state === 'ending') {
@@ -341,6 +344,19 @@ export class Game {
       this.ui.updateHUD(dt);
     }
     this.input.endFrame();
+  }
+
+  // Automatische Qualitätsanpassung: bei dauerhaft niedriger Bildrate interne Auflösung senken
+  adaptQuality() {
+    const f = this.fps, r = this.renderer;
+    if (document.hidden || (this.state !== 'play' && this.state !== 'ending')) return;
+    const last = f.samples.slice(-3);
+    if (last.length < 3) return;
+    const avg = last.reduce((a, b) => a + b, 0) / 3;
+    this._qCool = (this._qCool || 0) - 1;
+    if (this._qCool > 0) return;
+    if (avg < 48 && r.quality > 0.6) { r.quality = Math.max(0.6, r.quality - 0.15); r.resize(); this._qCool = 3; this._goodT = 0; }
+    else if (avg > 58.5 && r.quality < 1) { this._goodT = (this._goodT || 0) + 1; if (this._goodT > 20) { r.quality = Math.min(1, r.quality + 0.1); r.resize(); this._qCool = 5; this._goodT = 0; } }
   }
 
   update(dt) {
@@ -1588,7 +1604,7 @@ export class Game {
     let n = 0;
     const cols = ['#ff7eb6', '#ffd166', '#7ec8ff', '#b79cf0', '#8fe0c0'];
     const fire = () => {
-      this.particles.firework(cx + (Math.random() - 0.5) * 8, cy - 2, 260 + Math.random() * 80, cols[n % cols.length], n % 2 === 0);
+      this.particles.firework(cx + (Math.random() - 0.5) * 8, cy - 1, 170 + Math.random() * 80, cols[n % cols.length], n % 2 === 0);
       this.audio.play('boom');
       if (++n < 8) this.later(0.6, fire); else this.later(1.5, () => { this.cutscene = false; });
     };

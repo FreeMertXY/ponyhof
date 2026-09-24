@@ -1,0 +1,31 @@
+import pw from '/opt/node22/lib/node_modules/playwright/index.js';
+const { chromium } = pw;
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const page = await browser.newPage({ viewport: { width: 1280, height: 760 } });
+page.on('pageerror', (e) => console.log('PAGEERROR', e.message));
+await page.goto('http://localhost:8080/index.html');
+await page.waitForTimeout(900);
+await page.evaluate(() => localStorage.clear());
+await page.click('#t-new'); await page.click('#e-go'); await page.click('#st-skip'); await page.click('#h-go');
+await page.waitForTimeout(400);
+await page.evaluate(() => {
+  const g = window.ponyhof; g.dialog.show = async () => {}; g.dialog.close(); g.hintQueue = []; g.ui.hint = () => {};
+  g.S.farm = { stable: true, paddock: true, flowerGarden: true, festival: true }; g.rebuildWorldKeepState();
+  g.S.flags.noWeather = true; g.S.time.minutes = 19.5 * 60;
+  const P = g.player; const rh = g.horseEntity(g.S.ridingHorse); P.mount(rh); P.x = 85.5; P.y = 128; P.faceX = 1; g.rebuildEntities();
+  g.camOverride = { x: 86.5, y: 126.5 };
+  g.renderer.follow(86.5, 126.5, 0, true);
+});
+await page.waitForTimeout(600);
+await page.screenshot({ path: 'screenshots/f-sunset.png' });
+await page.evaluate(() => {
+  const g = window.ponyhof; g.S.time.minutes = 20.4 * 60;
+  const cols = ['#ff7eb6', '#ffd166', '#7ec8ff', '#b79cf0'];
+  let k = 0; const fire = () => { g.particles.firework(80 + Math.random() * 12, 125.5, 170 + Math.random() * 90, cols[k++ % 4], true); if (k % 2) g.particles.shootingStar(74, 124.5); if (k < 8) setTimeout(fire, 400); }; fire();
+});
+await page.waitForTimeout(1800);
+await page.screenshot({ path: 'screenshots/f-fireworks.png' });
+await page.evaluate(() => { const g = window.ponyhof; g.camOverride = { x: 85, y: 114 }; g.S.time.minutes = 16 * 60; g.S.flags.festivalMusic = true; });
+await page.waitForTimeout(800);
+await page.screenshot({ path: 'screenshots/f-festwiese.png' });
+await browser.close();

@@ -8,17 +8,24 @@ import { hash2, clamp, lerp, genitive } from './util.js';
 const T = TILE;
 const NCX = Math.ceil(WW / CHUNK), NCY = Math.ceil(WH / CHUNK);
 
+const KEYS = [
+  // [Stunde, Multiplikationsfarbe]
+  [0, [88, 92, 172]], [4.5, [88, 92, 172]], [5.6, [200, 150, 190]], [6.6, [255, 214, 214]], [7.5, [255, 255, 255]],
+  [17.2, [255, 255, 255]], [18.4, [255, 226, 196]], [19.4, [255, 188, 176]], [20.3, [176, 136, 200]], [21.2, [88, 92, 172]], [24, [88, 92, 172]],
+];
+
 export function lightingAt(min) {
-  const h = min / 60;
-  let dark = 0, tint = null;
-  if (h < 4.5) dark = 0.52;
-  else if (h < 6) dark = lerp(0.52, 0.28, (h - 4.5) / 1.5);
-  else if (h < 7.5) { dark = lerp(0.28, 0, (h - 6) / 1.5); tint = ['255,170,190', 0.18 * (1 - (h - 6) / 1.5)]; }
-  else if (h < 17.5) dark = 0;
-  else if (h < 19.5) { dark = lerp(0, 0.2, (h - 17.5) / 2); tint = ['255,150,90', 0.22 * ((h - 17.5) / 2)]; }
-  else if (h < 21) { dark = lerp(0.2, 0.52, (h - 19.5) / 1.5); tint = ['255,120,140', 0.2 * (1 - (h - 19.5) / 1.5)]; }
-  else dark = 0.52;
-  return { dark, tint, night: dark > 0.3 };
+  const h = (min / 60) % 24;
+  let i = 0;
+  while (i < KEYS.length - 2 && KEYS[i + 1][0] <= h) i++;
+  const [h0, c0] = KEYS[i], [h1, c1] = KEYS[i + 1];
+  const k = h1 > h0 ? (h - h0) / (h1 - h0) : 0;
+  const c = c0.map((v, j) => Math.round(lerp(v, c1[j], Math.max(0, Math.min(1, k)))));
+  const lum = (c[0] * 0.3 + c[1] * 0.5 + c[2] * 0.2) / 255;
+  const dark = Math.max(0, Math.min(0.6, (1 - lum) * 1.05));
+  // warmer Schimmer bei Sonnenuntergang
+  const glow = h > 17.5 && h < 20.5 ? Math.sin(((h - 17.5) / 3) * Math.PI) * 0.22 : h > 5.5 && h < 7.5 ? Math.sin(((h - 5.5) / 2) * Math.PI) * 0.12 : 0;
+  return { mul: `rgb(${c[0]},${c[1]},${c[2]})`, white: c[0] + c[1] + c[2] >= 762, dark, glow, night: dark > 0.3 };
 }
 
 export class Renderer {
@@ -26,6 +33,7 @@ export class Renderer {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.RS = 1;
+    this.quality = 1;
     this.Z = 1;
     this.w = 0; this.h = 0;
     this.vw = 0; this.vh = 0;
@@ -46,7 +54,7 @@ export class Renderer {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const w = window.innerWidth, h = window.innerHeight;
     // bei sehr großen Fenstern Auflösung etwas senken (60 fps)
-    const rs = w * h * dpr * dpr > 3200000 ? Math.max(1, Math.sqrt(3200000 / (w * h))) : dpr;
+    const rs = (w * h * dpr * dpr > 3200000 ? Math.max(1, Math.sqrt(3200000 / (w * h))) : dpr) * this.quality;
     // Zoom: immer etwa 16 Kacheln hoch sichtbar
     const z = Math.max(0.75, Math.min(2.2, h / 690));
     if (Math.abs(rs - this.RS) > 0.01 || Math.abs(z - this.Z) > 0.01) { this.RS = rs; this.Z = z; this.chunks.clear(); setRenderScale(rs * z); }
@@ -56,7 +64,8 @@ export class Renderer {
     this.canvas.height = Math.round(h * this.RS);
     this.canvas.style.width = w + 'px';
     this.canvas.style.height = h + 'px';
-    this.light.width = Math.ceil(w / 2); this.light.height = Math.ceil(h / 2);
+    this.LD = 3; // Lichtmaske in 1/3 Auflösung
+    this.light.width = Math.ceil(w / this.LD); this.light.height = Math.ceil(h / this.LD);
   }
 
   setWorld(world) {
@@ -333,30 +342,58 @@ export class Renderer {
     }
   }
 
+  lightSprite() {
+    if (this._ls) return this._ls;
+    const c = makeCanvas(128, 128), x = c.getContext('2d');
+    const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, 'rgba(0,0,0,0.95)'); g.addColorStop(0.5, 'rgba(0,0,0,0.6)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+    this._ls = c;
+    return c;
+  }
+
+  glowSprite(col) {
+    this._gs = this._gs || new Map();
+    let c = this._gs.get(col);
+    if (c) return c;
+    c = makeCanvas(128, 128);
+    const x = c.getContext('2d');
+    const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, hexA(col, 0.32)); g.addColorStop(0.6, hexA(col, 0.1)); g.addColorStop(1, hexA(col, 0));
+    x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+    this._gs.set(col, c);
+    return c;
+  }
+
   drawLighting(ctx, game, view, t, ox, oy) {
     const L = game.lighting, Z = this.Z;
     ctx.setTransform(this.RS, 0, 0, this.RS, 0, 0);
-    if (L.tint) { ctx.fillStyle = `rgba(${L.tint[0]},${L.tint[1]})`; ctx.fillRect(0, 0, this.w, this.h); }
-    if (L.dark <= 0.01) return;
+    if (L.glow > 0.01) {
+      const gr = ctx.createLinearGradient(0, 0, 0, this.h);
+      gr.addColorStop(0, `rgba(255,140,170,${L.glow})`); gr.addColorStop(1, `rgba(255,190,120,${L.glow * 0.6})`);
+      ctx.fillStyle = gr; ctx.fillRect(0, 0, this.w, this.h);
+    }
+    if (L.white) return;
     const lc = this.lctx, lw = this.light.width, lh = this.light.height;
     lc.globalCompositeOperation = 'source-over';
     lc.clearRect(0, 0, lw, lh);
-    lc.fillStyle = `rgba(22,20,70,${L.dark})`;
+    lc.fillStyle = L.mul;
     lc.fillRect(0, 0, lw, lh);
+    const lights = L.dark > 0.08 ? game.collectLights(view) : [];
     lc.globalCompositeOperation = 'destination-out';
-    const lights = game.collectLights(view);
+    const LD = this.LD, ls = this.lightSprite();
+    lc.globalAlpha = Math.min(1, L.dark * 1.8);
     for (const l of lights) {
-      const x = ((l.x * T - ox) * Z) / 2, y = ((l.y * T - oy) * Z) / 2, r = ((l.r * T * Z) / 2) * (1 + Math.sin(t * 3 + l.x) * 0.03);
+      const x = ((l.x * T - ox) * Z) / LD, y = ((l.y * T - oy) * Z) / LD, r = ((l.r * T * Z) / LD) * (1 + Math.sin(t * 3 + l.x) * 0.03);
       if (x < -r || y < -r || x > lw + r || y > lh + r) continue;
-      const g = lc.createRadialGradient(x, y, 0, x, y, r);
-      g.addColorStop(0, 'rgba(0,0,0,0.95)');
-      g.addColorStop(0.5, 'rgba(0,0,0,0.6)');
-      g.addColorStop(1, 'rgba(0,0,0,0)');
-      lc.fillStyle = g;
-      lc.beginPath(); lc.arc(x, y, r, 0, Math.PI * 2); lc.fill();
+      lc.drawImage(ls, x - r, y - r, r * 2, r * 2);
     }
+    lc.globalAlpha = 1;
     lc.globalCompositeOperation = 'source-over';
+    ctx.globalCompositeOperation = 'multiply';
     ctx.drawImage(this.light, 0, 0, this.w, this.h);
+    ctx.globalCompositeOperation = 'source-over';
+    if (L.dark < 0.08) return;
     // warmer Schein
     ctx.globalCompositeOperation = 'lighter';
     ctx.setTransform(this.RS * Z, 0, 0, this.RS * Z, 0, 0);
@@ -364,11 +401,9 @@ export class Renderer {
       if (!l.c) continue;
       const x = l.x * T - ox, y = l.y * T - oy, r = l.r * T * 0.55;
       if (x < -r || y < -r || x > this.vw + r || y > this.vh + r) continue;
-      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-      g.addColorStop(0, hexA(l.c, 0.28 * L.dark * 2));
-      g.addColorStop(1, hexA(l.c, 0));
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = Math.min(1, L.dark);
+      ctx.drawImage(this.glowSprite(l.c), x - r, y - r, r * 2, r * 2);
+      ctx.globalAlpha = 1;
       if (l.beam) {
         const a = t * 0.8;
         ctx.fillStyle = 'rgba(255,245,190,0.12)';
@@ -380,7 +415,7 @@ export class Renderer {
     ctx.setTransform(this.RS, 0, 0, this.RS, 0, 0);
     // Sterne am Himmel (Bilderbuch-Stil)
     if (L.dark > 0.3) {
-      const a = (L.dark - 0.3) / 0.22;
+      const a = Math.min(1, (L.dark - 0.3) / 0.2);
       const sky = ctx.createLinearGradient(0, 0, 0, this.h * 0.22);
       sky.addColorStop(0, `rgba(30,24,90,${0.35 * a})`); sky.addColorStop(1, 'rgba(30,24,90,0)');
       ctx.fillStyle = sky; ctx.fillRect(0, 0, this.w, this.h * 0.22);

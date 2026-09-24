@@ -229,3 +229,29 @@ test('Freundschaft: Level, Tempo, Tricks', () => {
   assert.deepEqual(tricksFor(50).map((t) => t.id), ['neigh', 'rear']);
   assert.ok(tricksFor(140).some((t) => t.id === 'bow'));
 });
+
+test('Laden: Kaufen von Futter, Zubehör, Kleidung und Deko', async () => {
+  const { shopBuy } = await import('../src/shop.js');
+  const { inv, S } = setup();
+  S.player.coins = 100;
+  assert.equal(shopBuy(inv, 'item', 'apple', 6), 'ok');
+  assert.equal(inv.count('apple'), 1);
+  assert.equal(shopBuy(inv, 'acc', 'saddle_rosa', 45), 'ok');
+  assert.equal(shopBuy(inv, 'acc', 'saddle_rosa', 45), 'owned', 'Zubehör nur einmal kaufen');
+  assert.equal(shopBuy(inv, 'deco', 'bench', 30), 'ok');
+  assert.equal(S.decoInv.bench, 1);
+  assert.equal(S.player.coins, 100 - 6 - 45 - 30);
+  assert.equal(shopBuy(inv, 'cloth', 'outfit_fest', 90), 'money');
+  assert.equal(shopBuy(inv, 'item', 'gibtsnicht', 1), 'unknown');
+  assert.ok(inv.takeDeco('bench'));
+  assert.equal(inv.takeDeco('bench'), false);
+});
+
+test('Hufeisen: 30 Stück mit stabilen IDs', async () => {
+  const { World, HORSESHOES } = await import('../src/world.js');
+  const w = new World({});
+  const hs = w.pickups.filter((p) => p.k === 'horseshoe');
+  assert.equal(HORSESHOES.length, 30);
+  assert.equal(hs.length, 30);
+  assert.equal(new Set(hs.map((h) => h.id)).size, 30);
+});

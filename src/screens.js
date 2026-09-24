@@ -415,7 +415,7 @@ export class Screens {
     const pages = [
       {
         text: `Es war einmal ein alter Ponyhof – und ein Mädchen namens ${S.player.name}, das ihm sein Herz zurückgab.`,
-        draw: (c, w, h, t) => { frame(c, w, h, '#bfe6ff', '#ffeaf3'); ground(c, w, h); c.save(); c.translate(w * 0.5, h * 0.86); c.scale(5, 5); drawHorse(c, horseLook(first), { t, pose: 'stand', face: -1, rider: null }); c.restore(); c.save(); c.translate(w * 0.36, h * 0.86); c.scale(5, 5); drawCharacter(c, P, { dir: 'right', t }); c.restore(); heart(c, w * 0.44, h * 0.3 + Math.sin(t * 3) * 8, 50); this.caption(c, w, 'Das erste Pferd: ' + first.name); },
+        draw: (c, w, h, t) => { frame(c, w, h, '#bfe6ff', '#ffeaf3'); ground(c, w, h); c.save(); c.translate(w * 0.58, h * 0.86); c.scale(5, 5); drawHorse(c, horseLook(first), { t, pose: 'stand', face: -1, rider: null }); c.restore(); c.save(); c.translate(w * 0.34, h * 0.86); c.scale(5, 5); drawCharacter(c, P, { dir: 'right', t }); c.restore(); heart(c, w * 0.44, h * 0.3 + Math.sin(t * 3) * 8, 50); this.caption(c, w, 'Das erste Pferd: ' + first.name); },
       },
       {
         text: `Aus einem Pferd wurden ${tamed.length}. Jedes mit eigenem Kopf – und alle mit einem großen Herzen.`,

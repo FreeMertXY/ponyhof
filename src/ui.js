@@ -78,6 +78,7 @@ export class UI {
   // ---------- HUD ----------
   updateHUD(dt) {
     const g = this.game, S = g.S;
+    document.getElementById('hud').classList.toggle('cinematic', !!(g.cutscene && !g.race));
     this.hudT += dt;
     if (this.hudT < 0.1) return;
     this.hudT = 0;

@@ -47,7 +47,7 @@ export class Particles {
       this.add({ type: 'spark', x, y, z, vx, vz, g: 30, life: 1.6 + Math.random() * 0.4, color, size: 1.2, drag: 0.6 });
     }
   }
-  shootingStar(x, y) { this.add({ type: 'shoot', x, y, z: 400, vx: 9, vz: -120, life: 1.1, size: 1 }); }
+  shootingStar(x, y) { this.add({ type: 'shoot', x, y, z: 300, vx: 9, vz: -110, life: 1.1, size: 1 }); }
 
   update(dt) {
     const L = this.list;
