@@ -256,3 +256,19 @@ test('Hufeisen: 30 Stück mit stabilen IDs', async () => {
   assert.equal(hs.length, 30);
   assert.equal(new Set(hs.map((h) => h.id)).size, 30);
 });
+
+test('Aufgaben: vorher erledigte Schritte zählen (Füttern vor Streicheln, Gießen vor dem Gieß-Schritt)', () => {
+  const { q, S } = setup();
+  q.refresh();
+  q.emit('feed_horse'); // zu früh gefüttert
+  assert.equal(S.quests.k1_pflege.step, 0);
+  q.emit('pet_horse');
+  assert.equal(S.quests.k1_pflege.step, 2, 'Füttern zählt nachträglich');
+  q.talk('hilde').run();
+  q.talk('hilde').run(); // Samen für den Garten
+  q.emit('plant'); q.emit('water'); q.emit('plant'); q.emit('plant');
+  assert.equal(S.quests.k1_garten.step, 2);
+  assert.equal(S.quests.k1_garten.p, 1, 'ein Beet war schon gegossen');
+  q.emit('water'); q.emit('water');
+  assert.equal(S.quests.k1_garten.step, 3);
+});

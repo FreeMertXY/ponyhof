@@ -467,7 +467,7 @@ export class Game {
     }
     // Aufgaben passiv prüfen
     this.passiveT -= dt;
-    if (this.passiveT <= 0) { this.passiveT = 0.5; this.quests.checkPassive(); this.checkKitten(); this.contextTutorials(); }
+    if (this.passiveT <= 0) { this.passiveT = 0.5; this.quests.checkPassive(); this.checkKitten(); this.questSafety(); this.contextTutorials(); }
     // wartende Aktionen (nach Dialogen)
     if (!busy && this.pending.length) { const fn = this.pending.shift(); this.runScript(fn); }
     if (!busy && !this.S.flags.miraLost) this.miraSniff(dt);
@@ -488,7 +488,7 @@ export class Game {
   }
 
   async runScript(fn) {
-    try { await fn(); } catch (e) { console.error(e); this.cutscene = false; this.camOverride = null; }
+    try { await fn(); } catch (e) { this.recover(e); }
   }
 
   // ---------- Zeit & Wetter ----------
@@ -552,6 +552,18 @@ export class Game {
     return 0;
   }
 
+  // Verlangt eine aktive Aufgabe gerade dieses Ereignis?
+  questWants(ev) { return this.quests.active().some((q) => this.quests.step(q)?.ev === ev); }
+
+  // Sicherheitsnetz: nie wegen fehlendem Futter festhängen
+  questSafety() {
+    if (this.cutscene || !this.questWants('feed_horse')) return;
+    if (['carrot', 'apple', 'hay'].some((id) => this.inv.has(id))) return;
+    this.inv.add('carrot', 2);
+    this.ui.toast('Oma Hilde hat dir noch 2 Karotten zugesteckt!', 'carrot');
+    this.hint('Geh zu deinem Pferd und drück <kbd>E</kbd> – dann „Füttern“.', 'feedAgain');
+  }
+
   plotIndex(tx, ty) { return this.world.gardenPlots.findIndex((p) => p.x === tx && p.y === ty); }
 
   gardenAction(i) {
@@ -585,7 +597,7 @@ export class Game {
       this.particles.sparkles(pl.x + 0.5, pl.y + 0.5, 6);
       this.quests.emit('harvest', g.crop);
       S.garden[i] = { crop: null, growth: 0, wet: g.wet };
-    } else if (!(g.wet > 0)) {
+    } else if (!(g.wet > 0) || this.questWants('water')) {
       g.wet = 12;
       this.audio.play('water');
       this.particles.splash(pl.x + 0.5, pl.y + 0.5, 8);
@@ -803,7 +815,18 @@ export class Game {
     const f = this.focus;
     if (!f) return;
     this.audio.init();
-    f.fn();
+    try {
+      const r = f.fn();
+      if (r && typeof r.catch === 'function') r.catch((e) => this.recover(e));
+    } catch (e) { this.recover(e); }
+  }
+
+  // Falls in einer Szene etwas schiefgeht: nie einfrieren, einfach normal weiterspielen
+  recover(e) {
+    console.error(e);
+    this.cutscene = false; this.controlsLocked = false; this.camOverride = null;
+    document.getElementById('love')?.classList.remove('on');
+    this.rebuildEntities();
   }
 
   clickWorld() {

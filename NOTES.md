@@ -93,6 +93,12 @@ Hier sind die Entscheidungen dokumentiert, die ich beim Bauen von „Jolinas Pon
 - Anti-Festhängen: Wer schon vorher ein Wildpferd gezähmt hat, erfüllt „Ein neuer Freund“ sofort; Samen gibt
   es notfalls einmal pro Tag gratis von Oma Hilde im Garten; alle benötigten Gegenstände gibt es auch im Laden;
   „Zurück zum Hof“ im Menü holt Spielerin und Pferd nach Hause.
+- **Vorher Erledigtes zählt:** Macht man etwas, bevor der passende Aufgabenschritt dran ist (z. B. das Pferd
+  füttern, bevor man es gestreichelt hat, oder ein Beet gießen, bevor alle gesät sind), merkt sich die Aufgabe
+  das und rechnet es an, sobald der Schritt kommt.
+- Sicherheitsnetze: Steht „Füttern“ an und man hat kein Futter mehr, steckt Oma Hilde einem 2 Karotten zu.
+  Beim Schritt „Gießen“ kann man auch schon nasse Beete (z. B. nach Regen) gießen. Geht in einer Szene etwas
+  schief, friert das Spiel nicht ein, sondern läuft normal weiter.
 - Verständlichkeit: Jeder Aufgabenschritt hat einen Zielpfeil (Kompass + Minikarte) und im Aufgabenbuch einen
   **„Tipp:“**-Text, wo genau es hingeht. Fehlt ein Gegenstand, sagt der Tipp, woher man ihn bekommt
   (`ITEM_SOURCES`). Herzsteine zeigt der Pfeil immer zum nächsten noch fehlenden Stein.

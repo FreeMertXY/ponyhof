@@ -58,7 +58,7 @@ export const ITEM_SOURCES = {
   bread: 'Brot: bei Berta in der Bäckerei (Dorf Kleeberg).',
   cake: 'Streuselkuchen: bei Berta in der Bäckerei.',
   juice: 'Apfelsaft: bei Berta oder Theo.',
-  boards: 'Bretter: bei Theo im Laden (Dorf Kleeberg).',
+  boards: 'Bretter: bei Theo im Laden (Dorf Kleeberg), 12 Münzen pro Stück. Zu wenig Münzen? Blumen, Äpfel oder Muscheln bei Theo verkaufen.',
   seed_carrot: 'Karottensamen: bei Theo – oder notfalls einmal am Tag gratis im Garten.',
   seed_sunflower: 'Sonnenblumensamen: bei Theo.',
 };

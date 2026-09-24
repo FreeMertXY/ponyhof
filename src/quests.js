@@ -66,6 +66,12 @@ export class QuestEngine {
     else {
       const next = q.steps[s.step];
       if (next.startTimer) this.ctx.timer?.('start', next.startTimer);
+      // Schon vorher erledigt (z. B. Pferd gefüttert, bevor der Schritt dran war)? Dann gilt es.
+      if (next.type === 'event' && next.ev !== 'race') {
+        const k = next.filter ? `${next.ev}:${next.filter}` : next.ev;
+        const pre = Math.min(s.seen?.[k] || 0, next.count);
+        if (pre > 0) { s.seen[k] -= pre; s.p = pre; if (pre >= next.count) { this.advance(q); return; } }
+      }
       this.checkPassive();
     }
   }
@@ -93,9 +99,16 @@ export class QuestEngine {
     let any = false;
     for (const q of this.active()) {
       const step = this.step(q);
-      if (!step || step.type !== 'event' || step.ev !== ev) continue;
-      if (step.filter && step.filter !== filter) continue;
       const s = this.st(q.id);
+      if (!step || step.type !== 'event' || step.ev !== ev || (step.filter && step.filter !== filter)) {
+        // merken, falls ein späterer Schritt genau das verlangt
+        if (step && q.steps.slice(s.step + 1).some((x) => x.type === 'event' && x.ev === ev)) {
+          s.seen = s.seen || {};
+          s.seen[ev] = (s.seen[ev] || 0) + n;
+          if (filter) s.seen[`${ev}:${filter}`] = (s.seen[`${ev}:${filter}`] || 0) + n;
+        }
+        continue;
+      }
       s.p += n;
       any = true;
       if (s.p >= step.count) this.advance(q);
