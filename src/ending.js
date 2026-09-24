@@ -158,7 +158,7 @@ export async function runEnding(g) {
   S.ending.foal = { name };
   S.memories.push({ type: 'foal', day: S.time.day, name });
   await g.say([
-    { who: 'narr', t: `${name} stupst dich mit der kleinen, weichen Nase an – und weicht dir ab jetzt nicht mehr von der Seite.` },
+    { who: 'narr', t: `${name} stupst dich mit der kleinen, weichen Nase an – und kuschelt sich an dich.` },
     { who: 'hilde', t: `${name}. Was für ein wunderschöner Name.` },
   ]);
   await g.wait(2);
@@ -176,7 +176,7 @@ export async function runEnding(g) {
   guests.forEach((id) => { const n = g.npcById(id); const s = saved.get(id); n.x = n.homeX; n.y = n.homeY; n.mode = 'home'; n.target = null; void s; });
   const pad = g.world.paddock;
   own.forEach((h) => { if (h.id === S.ridingHorse) { h.mode = 'idle'; } else { h.mode = 'paddock'; h.x = pad.x + 2 + Math.random() * (pad.w - 4); h.y = pad.y + 2 + Math.random() * (pad.h - 4); } h.target = null; });
-  fe.mode = 'follow';
+  fe.mode = 'paddock'; fe.x = pad.x + 2 + Math.random() * (pad.w - 4); fe.y = pad.y + 2 + Math.random() * (pad.h - 4); fe.target = null;
   g.sceneEntities = null;
   g.festivalLights = null;
   if (pets.maumau) { pets.maumau.mode = null; pets.maumau.x = pets.maumau.homeX; pets.maumau.y = pets.maumau.homeY; }
@@ -196,6 +196,6 @@ export async function runEnding(g) {
   g.cutscene = false;
   g.saveNow();
   await g.fade(false);
-  g.ui.banner('Ein neuer Morgen', `${name} folgt dir überallhin ♥`);
+  g.ui.banner('Ein neuer Morgen', `${name} wohnt jetzt bei dir auf der Koppel ♥`);
   g.ui.hint('Du kannst frei weiterspielen: Hufeisen suchen, das Tieralbum füllen, Rennen wiederholen und deinen Hof schmücken!', 9);
 }

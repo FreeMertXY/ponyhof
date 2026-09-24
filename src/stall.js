@@ -68,6 +68,13 @@ export function panelHorse(p, id) {
     b.onclick = () => { g.selectRidingHorse(rec.id); ui.render(); };
     actions.appendChild(b);
   }
+  if (rec.foal) {
+    const fb = document.createElement('button');
+    fb.className = 'btn ' + (rec.follow ? 'mint' : 'primary');
+    fb.textContent = rec.follow ? 'Auf der Koppel lassen' : 'Mitnehmen';
+    fb.onclick = () => { g.setFoalFollow(rec, !rec.follow); ui.render(); };
+    actions.appendChild(fb);
+  }
   const cb = document.createElement('button'); cb.className = 'btn'; cb.textContent = 'Pflegen';
   cb.onclick = () => { ui.panel = 'care'; ui.panelArg = rec.id; ui.render(); };
   actions.appendChild(cb);

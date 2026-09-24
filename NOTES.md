@@ -107,6 +107,9 @@ Hier sind die Entscheidungen dokumentiert, die ich beim Bauen von „Jolinas Pon
   Dankeschön bei der Geburtstagsparty, in der Rosenlaube und nach den Herzsteinen.
 - Mert hat jetzt ein eigenes Menü: **„Umarmen“** und **„Küsschen geben“** gehen jederzeit; einmal am Tag
   schenkt er dabei eine Blume. Beim Schlafengehen sagt er „Gute Nacht“ und morgens „Guten Morgen“.
+- **Nur Mira folgt einem dauerhaft.** Der Welpe im Dorf freut sich beim Streicheln nur (früher lief er
+  15 Sekunden hinterher), das Fohlen bleibt auf der Koppel, bis man es mitnimmt. Krümel folgt nur kurz während
+  ihrer Aufgabe, bis sie bei Berta ist.
 - **Mira-Menü** (E bei Mira): Streicheln, Stöckchen werfen (sie holt es), Kunststück üben (für die Hundeshow),
   Leckerli geben. Nach der Hundeshow trägt sie eine Rosette.
 - Die Kätzchen folgen Maumau über den Hof; Manni hat nach dem Flamingo-Abenteuer sein Spielzeug immer dabei.
@@ -136,8 +139,8 @@ Blütenkranz, Blütenhaarreif und 100 Münzen.
 
 Nach Kapitel 6 startet das Sommerfest (alle Personen, Pferde und Tiere aus dem Album auf der Festwiese,
 festliche Musik), dann das Sommerfest-Rennen, Sonnenuntergang auf dem Hügel, Herz-Feuerwerk mit
-Sternschnuppen, Oma Hildes Abschiedsworte, die Geburt eines Fohlens (Name frei wählbar, folgt der Spielerin
-danach überallhin) und ein Bilderbuch-Abspann mit gezeichneten Erinnerungen und Statistik.
+Sternschnuppen, Oma Hildes Abschiedsworte, die Geburt eines Fohlens (Name frei wählbar; es wohnt danach
+auf der Koppel und kann im Pferde-Fenster mit „Mitnehmen“ zum Begleiter werden) und ein Bilderbuch-Abspann mit gezeichneten Erinnerungen und Statistik.
 „Ende … oder doch nicht?“ führt zurück ins freie Spiel am nächsten Morgen.
 
 ## Technik

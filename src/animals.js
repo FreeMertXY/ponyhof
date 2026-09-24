@@ -148,7 +148,7 @@ export class Animal {
     const snd = sp.sound || { cat: 'purr', puppy: 'bark', duckling: 'quack', owl: 'owl' }[this.species] || 'animal';
     game.audio.play(snd);
     game.particles.hearts(this.x, this.y - 0.2, 3);
-    if (this.species === 'puppy') { this.mode = 'follow'; this.followT = 15; }
+    if (this.species === 'puppy') this.hop(2);
     if (sp.pet && this.mode !== 'follow') { this.state = 'happy'; this.stateT = 3; }
     return fed;
   }

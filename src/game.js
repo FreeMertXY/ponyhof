@@ -177,7 +177,7 @@ export class Game {
     const rp = () => ({ x: P.x + 1 + Math.random() * (P.w - 2), y: P.y + 1 + Math.random() * (P.h - 2) });
     for (const rec of S.horses) {
       let h;
-      if (rec.foal) h = new HorseEntity(rec, 'follow', this.player.x - 1.5, this.player.y + 0.5);
+      if (rec.foal && rec.follow) h = new HorseEntity(rec, 'follow', this.player.x - 1.5, this.player.y + 0.5);
       else if (rec.id === S.ridingHorse) {
         const pos = rec.place === 'world' && Number.isFinite(rec.x) && rec.x > 0 ? { x: rec.x, y: rec.y } : { x: FARM.spawn.x + 2, y: FARM.spawn.y };
         h = new HorseEntity(rec, 'idle', pos.x, pos.y);
@@ -296,6 +296,19 @@ export class Game {
       .replace(/\{horse\}/g, this.ridingRecord()?.name || 'dein Pferd')
       .replace(/\{farm\}/g, genitive(S.player.name) + ' Ponyhof');
   }
+  // Fohlen mitnehmen oder auf der Koppel lassen (sonst folgt nur Mira)
+  setFoalFollow(rec, on) {
+    rec.follow = !!on;
+    const h = this.horseEntity(rec.id);
+    if (h) {
+      const P = this.world.paddock;
+      if (on) h.mode = 'follow';
+      else { h.mode = 'paddock'; h.target = null; h.x = P.x + 2 + Math.random() * (P.w - 4); h.y = P.y + 2 + Math.random() * (P.h - 4); }
+    }
+    this.ui.toast(on ? `${rec.name} kommt jetzt mit dir mit!` : `${rec.name} bleibt auf der Koppel.`, 'horse', 'mint');
+    this.requestSave();
+  }
+
   ridingRecord() { return this.S.horses.find((h) => h.id === this.S.ridingHorse) || this.S.horses.find((h) => !h.foal); }
   regionName(id) { return regionName(id, this.S.player.name); }
   regionLabel() { return this.regionName(this.world.regionAt(this.player.x, this.player.y)); }
