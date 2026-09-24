@@ -139,6 +139,11 @@ export class HorseEntity {
   update(dt, game) {
     this.t += dt;
     if (this.hearts > 0) this.hearts -= dt;
+    // Sicherheitsnetz: ungültige Position → neben der Spielerin auftauchen
+    if (!Number.isFinite(this.x) || !Number.isFinite(this.y)) {
+      const P = game.player, f = game.world.nearestFree(P.x + 1.5, P.y + 0.5, { riding: true });
+      this.x = f.x; this.y = f.y; this.target = null;
+    }
     if (this.trick) {
       this.trickT += dt;
       const dur = this.trick === 'spin' ? 1.2 : 1.6;
@@ -155,7 +160,7 @@ export class HorseEntity {
       case 'called': {
         const d = dist(this.x, this.y, P.x, P.y);
         if (d < 1.4) { this.mode = 'idle'; this.target = null; this.speed = 0; break; }
-        this.setTarget(P.x - P.face * 0.9, P.y + 0.1, SPEED.trot);
+        this.setTarget(P.x - (P.faceX || 1) * 0.9, P.y + 0.1, d > 6 ? SPEED.gallop : SPEED.trot);
         this.moveTo(dt, world, false);
         break;
       }
