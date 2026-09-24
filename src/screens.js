@@ -173,7 +173,7 @@ export class Screens {
     const g = this.game;
     g.state = 'editor';
     this.mode = 'editor';
-    this.look = this.look || { name: 'Jolina', skin: 1, hair: 1, hairColor: 0, outfit: 1, hat: true, hatType: 'straw' };
+    this.look = this.look || { name: 'Jolina', skin: 0, hair: 0, hairColor: 2, outfit: 0, hat: false, hatType: 'straw' };
     const L = this.look;
     const sw = (arr, key, colorFn, titleFn) => arr.map((v, i) => `<div class="sw ${L[key] === i ? 'on' : ''}" data-k="${key}" data-v="${i}" style="background:${colorFn(v, i)}" title="${esc(titleFn(v, i))}"></div>`).join('');
     const chips = (arr, key) => arr.map((v, i) => `<button class="chip ${L[key] === i ? 'on' : ''}" data-k="${key}" data-v="${i}">${esc(v)}</button>`).join('');
@@ -186,7 +186,7 @@ export class Screens {
           <div class="opt"><label>Hautton</label><div class="swatches">${sw(SKINS, 'skin', (c) => c, (c, i) => 'Hautton ' + (i + 1))}</div></div>
           <div class="opt"><label>Frisur</label><div class="swatches">${chips(HAIR_STYLES, 'hair')}</div></div>
           <div class="opt"><label>Haarfarbe</label><div class="swatches">${sw(HAIR_COLORS, 'hairColor', (c) => c.c, (c) => c.name)}</div></div>
-          <div class="opt"><label>Outfit</label><div class="swatches">${chips(OUTFITS.slice(0, 6).map((o) => o.name), 'outfit')}</div></div>
+          <div class="opt"><label>Outfit</label><div class="swatches">${chips(OUTFITS.filter((o) => !o.unlock).map((o) => o.name), 'outfit')}</div></div>
           <div class="opt"><label>Strohhut</label><div class="swatches"><button class="chip ${L.hat ? 'on' : ''}" data-k="hat" data-v="1">mit Hut</button><button class="chip ${!L.hat ? 'on' : ''}" data-k="hat" data-v="0">ohne Hut</button></div></div>
           <div class="row" style="margin-top:14px"><button class="btn" id="e-back">← Zurück</button><span class="spacer"></span><button class="btn primary" id="e-go">Los geht’s! ♥</button></div>
         </div>
@@ -229,7 +229,7 @@ export class Screens {
     const name = this.look.name;
     const cards = [
       { title: 'Ein Brief', text: `„Liebe ${name}, ich werde langsam alt, und mein Ponyhof braucht junge Hände und ein großes Herz. Ich möchte, dass du ihn übernimmst. Komm bald! Deine Oma Hilde ♥“`, draw: (c, w, h, t) => this.cardLetter(c, w, h, t) },
-      { title: 'Der alte Hof', text: 'Als du ankommst, ist der Hof ganz schön verwildert: Der Stall ist morsch, die Koppel winzig, überall wächst Unkraut. Aber irgendwie fühlt er sich sofort nach Zuhause an.', draw: (c, w, h, t) => this.cardFarm(c, w, h, t) },
+      { title: 'Der alte Hof', text: `Zusammen mit Mert, eurer kleinen Yorkie-Hündin Mira und den Flauschkatzen Maumau und Manni ziehst du aufs Land. Der Hof ist ganz schön verwildert – aber er fühlt sich sofort nach Zuhause an.`, draw: (c, w, h, t) => this.cardFarm(c, w, h, t) },
       { title: 'Oma Hilde', text: '„Früher war hier das schönste Sommerfest der ganzen Gegend“, erzählt Oma Hilde. „Vielleicht schaffst du es, dem Hof sein Herz zurückzugeben?“', draw: (c, w, h, t) => this.cardHilde(c, w, h, t) },
       { title: 'Ein Geschenk', text: '„Und damit du nicht allein anfangen musst, habe ich ein Geschenk für dich.“ Oma Hilde führt dich zur Koppel – und dort wartet ein Pferd. Dein Pferd!', draw: (c, w, h, t) => this.cardGift(c, w, h, t) },
     ];
@@ -278,6 +278,9 @@ export class Screens {
     c.beginPath(); c.moveTo(-10, -66); c.lineTo(65, -120); c.lineTo(140, -66); c.closePath(); c.fillStyle = '#9c9690'; c.fill(); c.stroke();
     c.fillStyle = '#5a4a44'; ell(c, 45, -92, 12, 7); c.fill();
     rr(c, 50, -46, 30, 46, 3); c.fillStyle = '#8a7563'; c.fill();
+    c.save(); c.translate(150, -2); c.scale(0.9, 0.9); drawAnimal(c, 'maumau', { t, face: -1 }); c.restore();
+    c.save(); c.translate(-30, -2); c.scale(0.9, 0.9); drawAnimal(c, 'manni', { t: t + 1, face: 1 }); c.restore();
+    c.save(); c.translate(110, 4); c.scale(0.8, 0.8); drawAnimal(c, 'mira', { t, face: -1, moving: true }); c.restore();
     for (let i = 0; i < 9; i++) { c.fillStyle = '#6aa85a'; for (let j = -3; j <= 3; j++) { c.beginPath(); c.moveTo(-20 + i * 20 + j * 2, 0); c.quadraticCurveTo(-20 + i * 20 + j * 3, -8, -20 + i * 20 + j * 4, -14 - Math.abs(j) * -1); c.lineTo(-18 + i * 20 + j * 2, 0); c.fill(); } }
     c.restore();
   }
@@ -285,13 +288,17 @@ export class Screens {
   cardHilde(c, w, h, t) {
     drawMeadowScene(c, w, h, t);
     c.fillStyle = 'rgba(255,255,255,0.35)'; c.fillRect(0, 0, w, h);
-    c.save(); c.translate(w * 0.38, h * 0.95); c.scale(6.5, 6.5);
+    c.save(); c.translate(w * 0.28, h * 0.95); c.scale(6, 6);
     drawCharacter(c, npcLook(NPCS.hilde.look), { dir: 'right', t, blink: Math.sin(t * 1.3) > 0.97 });
     c.restore();
-    c.save(); c.translate(w * 0.62, h * 0.95); c.scale(6.5, 6.5);
+    c.save(); c.translate(w * 0.55, h * 0.95); c.scale(6, 6);
     drawCharacter(c, playerLook(this.look), { dir: 'left', t: t + 1 });
     c.restore();
-    heart(c, w / 2, h * 0.3 + Math.sin(t * 3) * 10, 60, '#ff7eb6');
+    c.save(); c.translate(w * 0.72, h * 0.95); c.scale(6.3, 6.3);
+    drawCharacter(c, npcLook(NPCS.mert.look), { dir: 'left', t: t + 2 });
+    c.restore();
+    c.save(); c.translate(w * 0.43, h * 0.96); c.scale(4.6, 4.6); drawAnimal(c, 'mira', { t, face: 1, state: 'happy' }); c.restore();
+    heart(c, w * 0.42, h * 0.28 + Math.sin(t * 3) * 10, 60, '#ff7eb6');
   }
 
   cardGift(c, w, h, t) {
@@ -434,6 +441,19 @@ export class Screens {
         draw: (c, w, h, t) => { frame(c, w, h, '#6f6bc9', '#ffb3a8'); ground(c, w, h, '#8f86b8'); for (let i = 0; i < 5; i++) { const k = ((t * 0.4 + i * 0.2) % 1); c.globalAlpha = 1 - k; heart(c, w * (0.2 + i * 0.15), h * (0.35 - k * 0.15), 30 + k * 40, ['#ff7eb6', '#ffd166', '#b79cf0', '#7ec8ff', '#8fe0c0'][i]); c.globalAlpha = 1; } if (foal) { c.save(); c.translate(w * 0.55, h * 0.86); c.scale(5, 5); drawHorse(c, horseLook(foal), { t, pose: 'stand', face: -1 }); c.restore(); } c.save(); c.translate(w * 0.38, h * 0.86); c.scale(4.6, 4.6); drawCharacter(c, P, { dir: 'right', t }); c.restore(); this.caption(c, w, 'Das Sommerfest'); },
       },
     ];
+    pages.splice(1, 0, {
+      text: `Und nie allein: Mert hämmerte, baute und lachte an ${S.player.name}s Seite, Mira schnüffelte jedes Hufeisen auf, und Maumau und Manni bewachten den Heuboden.`,
+      draw: (c, w, h, t) => {
+        frame(c, w, h, '#ffe9f1', '#fff6e0'); ground(c, w, h, '#a8dd84');
+        c.save(); c.translate(w * 0.4, h * 0.86); c.scale(5.2, 5.2); drawCharacter(c, P, { dir: 'right', t }); c.restore();
+        c.save(); c.translate(w * 0.56, h * 0.86); c.scale(5.4, 5.4); drawCharacter(c, npcLook(NPCS.mert.look), { dir: 'left', t: t + 1 }); c.restore();
+        c.save(); c.translate(w * 0.24, h * 0.88); c.scale(4, 4); drawAnimal(c, 'maumau', { t, face: 1, state: 'happy' }); c.restore();
+        c.save(); c.translate(w * 0.74, h * 0.88); c.scale(4, 4); drawAnimal(c, 'manni', { t: t + 2, face: -1 }); c.restore();
+        c.save(); c.translate(w * 0.48, h * 0.93); c.scale(3.8, 3.8); drawAnimal(c, 'mira', { t, face: 1, state: 'happy' }); c.restore();
+        heart(c, w * 0.48, h * 0.3 + Math.sin(t * 3) * 8, 56, '#ff6f9f');
+        this.caption(c, w, 'Eine kleine Familie');
+      },
+    });
     for (let i = 0; i < pages.length; i++) await this.storyCard(pages[i], i, pages.length + 1, 'Umblättern ➜', false);
     // Statistik
     await new Promise((resolve) => {

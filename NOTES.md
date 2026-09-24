@@ -2,6 +2,23 @@
 
 Hier sind die Entscheidungen dokumentiert, die ich beim Bauen von „Jolinas Ponyhof“ selbst getroffen habe.
 
+## Persönliche Figuren
+
+- **Jolina** (Hauptfigur) ist dem Foto nachempfunden: lange, glatte braune Haare, helle Haut, Blümchenkleid
+  (weiß mit blauen Blüten) mit offener weißer Strickjacke und feiner Goldkette. Das ist die Voreinstellung im
+  Charakter-Editor (Name „Jolina“, ohne Hut) – alles bleibt änderbar.
+- **Mert**, Jolinas Freund, lebt mit auf dem Hof (steht meist am Stall): kurze dunkle Locken, Vollbart, runde
+  Brille, offenes schwarzes Hemd über geripptem Top, Silberkette. Er bekommt die Bretter und **repariert den Stall**,
+  baut die neue Koppel, kommentiert jeden Hofausbau, hat die eigene Nebenaufgabe „Kuchen für Mert“ (Belohnung:
+  ein Herzbogen für den Hof), ist beim Sommerfest dabei, steht beim Sonnenuntergang an Jolinas Seite und hilft,
+  das Fohlen zu benennen. Im Abspann gibt es eine eigene Seite „Eine kleine Familie“.
+- **Mira** (Yorkshire-Terrier) begleitet Jolina ständig – zu Fuß und beim Reiten. Sie bellt ab und zu fröhlich
+  und **schnüffelt versteckte goldene Hufeisen auf**: Liegt eins in der Nähe, zeigt sie aufgeregt die
+  Himmelsrichtung an. Streicheln ist jederzeit möglich (andere Dinge haben beim `E`-Knopf Vorrang).
+- **Maumau** (langhaarige Glückskatze, grüne Augen) und **Manni** (grauer Flauschkater mit weißer Brust und
+  bernsteinfarbenen Augen) wohnen auf dem Hof, schnurren beim Streicheln (und zählen fürs Tieralbum als „Katze“),
+  kommen zum Sommerfest und kuscheln sich beim Feuerwerk dazu.
+
 ## Welt
 
 - **Größe & Maßstab:** 180×180 Kacheln à 48 px. Die Kamera zoomt abhängig von der Fensterhöhe

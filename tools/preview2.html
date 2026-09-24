@@ -1,0 +1,16 @@
+<!doctype html><html><body style="margin:0;background:#9ddc7a"><canvas id="c" width="1000" height="360"></canvas>
+<script type="module">
+import { drawCharacter, playerLook, npcLook, drawPortrait } from '../src/draw/characters.js';
+import { drawAnimal } from '../src/draw/animals.js';
+import { NPCS } from '../src/data/npcs.js';
+const c = document.getElementById('c').getContext('2d');
+c.save(); c.scale(3,3);
+let x=25;
+for (const d of ['down','right','up']) { c.save(); c.translate(x,80); drawCharacter(c, playerLook({skin:0,hair:0,hairColor:2,outfit:0,hat:false}), {dir:d,t:0.3}); c.restore(); x+=36; }
+for (const d of ['down','right']) { c.save(); c.translate(x,80); drawCharacter(c, npcLook(NPCS.mert.look), {dir:d,t:0.3}); c.restore(); x+=36; }
+for (const s of ['maumau','manni','mira']) { c.save(); c.translate(x,80); c.scale(1.5,1.5); drawAnimal(c, s, {t:0.3}); c.restore(); x+=34; }
+c.save(); c.translate(x,80); c.scale(1.5,1.5); drawAnimal(c, 'mira', {t:0.3, state:'happy', moving:true}); c.restore();
+c.restore();
+const p = document.createElement('canvas'); p.width=p.height=120; drawPortrait(p.getContext('2d'), playerLook({skin:0,hair:0,hairColor:2,outfit:0}), 120, 0.3); c.drawImage(p, 20, 240);
+const q = document.createElement('canvas'); q.width=q.height=120; drawPortrait(q.getContext('2d'), npcLook(NPCS.mert.look), 120, 0.3); c.drawImage(q, 160, 240);
+</script></body></html>

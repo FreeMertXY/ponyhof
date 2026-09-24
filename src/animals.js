@@ -1,16 +1,17 @@
 // Tiere in der Welt: Idle-Animationen, Reaktionen auf die Spielerin, Tieralbum.
-import { SPECIES } from './data/animals.js';
+import { SPECIES, PETS } from './data/animals.js';
 import { TILE, G } from './world.js';
 import { drawAnimal } from './draw/animals.js';
 import { outlinedText, FONT } from './draw/paint.js';
 import { dist } from './util.js';
 
 const SCALE = 1.35;
+const PET_SCALE = { maumau: 1.55, manni: 1.6, mira: 1.45 };
 
 export class Animal {
   constructor(species, x, y, i = 0) {
     this.species = species;
-    this.sp = SPECIES[species];
+    this.sp = SPECIES[species] || PETS[species];
     this.homeX = x; this.homeY = y;
     this.x = x; this.y = y;
     this.face = Math.random() < 0.5 ? 1 : -1;
@@ -55,7 +56,8 @@ export class Animal {
     if (this.mode === 'follow') {
       // Krümel oder Welpe folgt
       if (d > 20) { this.x = P.x - 1; this.y = P.y + 0.5; }
-      if (d > 1.6) { this.setTarget(P.x - (P.faceX || 1) * 1.1, P.y + 0.3, Math.min(9, 2 + d * 1.5)); this.moving = this.step(dt, w, false); }
+      if (d > 1.6) { this.setTarget(P.x - (P.faceX || 1) * 1.1, P.y + 0.3, Math.min(11.5, 2 + d * 1.6)); this.moving = this.step(dt, w, false); }
+      else if (this.sp.pet) this.face = P.x > this.x ? 1 : -1;
       if (this.followT > 0) { this.followT -= dt; if (this.followT <= 0) { this.mode = null; this.setTarget(this.homeX, this.homeY, 2); } }
       return;
     }
@@ -113,10 +115,11 @@ export class Animal {
     }
     this.state = 'happy'; this.stateT = 2.5;
     this.target = null;
-    const snd = { cat: 'purr', puppy: 'bark', duckling: 'quack', owl: 'owl' }[this.species] || 'animal';
+    const snd = sp.sound || { cat: 'purr', puppy: 'bark', duckling: 'quack', owl: 'owl' }[this.species] || 'animal';
     game.audio.play(snd);
     game.particles.hearts(this.x, this.y - 0.2, 3);
     if (this.species === 'puppy') { this.mode = 'follow'; this.followT = 15; }
+    if (sp.pet && this.mode !== 'follow') { this.state = 'happy'; this.stateT = 3; }
     return fed;
   }
 
@@ -124,12 +127,13 @@ export class Animal {
     if (!this.visible) return;
     ctx.save();
     ctx.translate(this.x * TILE, this.y * TILE);
-    ctx.scale(SCALE, SCALE);
+    const sc = PET_SCALE[this.species] || SCALE;
+    ctx.scale(sc, sc);
     drawAnimal(ctx, this.species, { face: this.face, t: this.t, moving: this.moving, state: this.state, variant: this.variant });
     ctx.restore();
     if (this.name && dist(this.x, this.y, game.player.x, game.player.y) < 3) {
       ctx.font = `700 12px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      outlinedText(ctx, this.name, this.x * TILE, this.y * TILE - 44, '#fff', '#8a4a6a', 4);
+      outlinedText(ctx, this.name, this.x * TILE, this.y * TILE - (this.sp.pet ? 50 : 44), '#fff', '#8a4a6a', 4);
     }
   }
 }

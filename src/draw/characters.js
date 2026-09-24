@@ -14,6 +14,7 @@ export function playerLook(p) {
     hairColor: (HAIR_COLORS[p.hairColor] || HAIR_COLORS[0]).c,
     outfit,
     hat: p.hat ? (p.hatType || 'straw') : null,
+    necklace: '#e3b35c',
     freckles: false,
     player: true,
   };
@@ -116,6 +117,7 @@ function drawHairFront(ctx, L, dir, sway) {
   if (L.hair === 'ponytail' && side) { circ(ctx, -12, HY - 7, 3); fs(ctx, '#ff6f9f'); }
   if (L.hair === 'pigtails') for (const x of side ? [-9] : [-15, 15]) { circ(ctx, x, HY + 1, 2.8); fs(ctx, '#ff6f9f'); }
   if (L.hair === 'curly') for (const [x, y] of side ? [[-8, HY - 10], [2, HY - 12], [-13, HY - 2]] : [[-9, HY - 10], [0, HY - 12], [9, HY - 10]]) { circ(ctx, x, y, 5); fs(ctx, c); }
+  if (L.hair === 'curlyshort') for (const [x, y] of side ? [[-6, HY - 11.5], [0, HY - 13], [5, HY - 11.5]] : [[-7, HY - 11.5], [-2, HY - 13.5], [3.5, HY - 13.5], [8, HY - 11.5]]) { circ(ctx, x, y, 3.8); fs(ctx, c, 1.1); }
   if (L.hair === 'short' && !side) {
     // kurze Haare: etwas kürzer an den Seiten
   }
@@ -134,6 +136,7 @@ function drawFace(ctx, L, dir, blink) {
       ctx.fillStyle = '#fff'; circ(ctx, x + 0.8, y - 1.2, 1); ctx.fill();
     }
   }
+  if (L.fullBeard) { drawGlassesEtc(ctx, L, side, eyes); return; }
   // Wangen
   ctx.fillStyle = 'rgba(255,120,140,0.35)';
   for (const [x, y] of side ? [[5, HY + 6]] : [[-8, HY + 5.5], [8, HY + 5.5]]) { ell(ctx, x, y, 3, 2); ctx.fill(); }
@@ -148,8 +151,9 @@ function drawFace(ctx, L, dir, blink) {
     for (const [x, y] of side ? [[4, HY + 4], [6, HY + 5]] : [[-8, HY + 3.5], [-6.5, HY + 4.8], [6.5, HY + 4.8], [8, HY + 3.5]]) { circ(ctx, x, y, 0.7); ctx.fill(); }
   }
   if (L.glasses) {
-    ctx.strokeStyle = '#5a4a6a'; ctx.lineWidth = 1.3;
-    for (const [x, y] of eyes) { circ(ctx, x, y, 3.8); ctx.stroke(); }
+    const round = L.glasses === 'round';
+    ctx.strokeStyle = round ? '#2b2426' : '#5a4a6a'; ctx.lineWidth = round ? 1 : 1.3;
+    for (const [x, y] of eyes) { circ(ctx, x, y, round ? 4.6 : 3.8); ctx.stroke(); }
     if (!side) { ctx.beginPath(); ctx.moveTo(-1.2, HY + 1); ctx.lineTo(1.2, HY + 1); ctx.stroke(); }
   }
   if (L.mustache) {
@@ -159,9 +163,27 @@ function drawFace(ctx, L, dir, blink) {
   }
 }
 
+function drawGlassesEtc(ctx, L, side, eyes) {
+  if (!L.glasses) return;
+  ctx.strokeStyle = '#2b2426'; ctx.lineWidth = 1;
+  for (const [x, y] of eyes) { circ(ctx, x, y, 4.6); ctx.stroke(); }
+  if (!side) { ctx.beginPath(); ctx.moveTo(-0.6, HY + 1); ctx.lineTo(0.6, HY + 1); ctx.stroke(); }
+}
+
 function drawBeard(ctx, L, dir) {
   if (!L.beard || dir === 'up') return;
   const side = dir === 'left' || dir === 'right';
+  if (L.fullBeard) {
+    ctx.beginPath();
+    if (side) { ctx.moveTo(-2, HY + 2); ctx.quadraticCurveTo(-1, HY + 14, 7, HY + 13.5); ctx.quadraticCurveTo(12.5, HY + 11, 12.5, HY + 5); ctx.quadraticCurveTo(9, HY + 5.5, 7, HY + 4.5); ctx.quadraticCurveTo(3, HY + 6, 2, HY + 2); ctx.closePath(); }
+    else { ctx.moveTo(-12.4, HY + 1); ctx.quadraticCurveTo(-12, HY + 15, 0, HY + 15.5); ctx.quadraticCurveTo(12, HY + 15, 12.4, HY + 1); ctx.quadraticCurveTo(10, HY + 7, 5, HY + 5.5); ctx.quadraticCurveTo(0, HY + 3.5, -5, HY + 5.5); ctx.quadraticCurveTo(-10, HY + 7, -12.4, HY + 1); ctx.closePath(); }
+    fs(ctx, L.beard, 1, shade(L.beard, -0.3));
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 0.8;
+    for (const x of side ? [3, 7] : [-7, -3, 3, 7]) { ctx.beginPath(); ctx.moveTo(x, HY + 8); ctx.lineTo(x * 0.9, HY + 12); ctx.stroke(); }
+    ctx.fillStyle = '#d98a8a';
+    if (side) { ell(ctx, 9.5, HY + 7.6, 1.8, 0.9); ctx.fill(); } else { ell(ctx, 0, HY + 7.8, 2.8, 1.1); ctx.fill(); }
+    return;
+  }
   ctx.beginPath();
   if (side) { ctx.moveTo(-2, HY + 3); ctx.quadraticCurveTo(0, HY + 18, 12, HY + 9); ctx.lineTo(11, HY + 4); ctx.closePath(); }
   else { ctx.moveTo(-11, HY + 2); ctx.quadraticCurveTo(0, HY + 22, 11, HY + 2); ctx.quadraticCurveTo(0, HY + 9, -11, HY + 2); ctx.closePath(); }
@@ -227,7 +249,8 @@ function drawBody(ctx, L, dir, legA, armA, seated) {
   const { main, second, style } = outfitColors(L);
   const side = dir === 'left' || dir === 'right';
   const skin = L.skin;
-  const pants = style === 'overall' ? main : style === 'dress' || style === 'fancy' || style === 'sailor' ? skin : second;
+  const pants = style === 'overall' ? main : style === 'dress' || style === 'fancy' || style === 'sailor' || style === 'floral' ? skin : second;
+  const CARDIGAN = '#f4f0e6';
   const shoe = '#6b4a4a';
   // Beine
   if (!seated) {
@@ -253,7 +276,7 @@ function drawBody(ctx, L, dir, legA, armA, seated) {
     ctx.restore();
   }
   // Arme hinter dem Körper (Seitenansicht)
-  const armCol = style === 'dress' || style === 'fancy' ? skin : style === 'overall' || style === 'vest' ? second : main;
+  const armCol = style === 'floral' ? CARDIGAN : style === 'dress' || style === 'fancy' ? skin : style === 'overall' || style === 'vest' ? second : main;
   if (side) {
     ctx.save(); ctx.translate(-1, -26); ctx.rotate(-armA * 0.6);
     rr(ctx, -2.5, 0, 5, 11, 2.5); fs(ctx, shade(armCol, -0.1));
@@ -262,7 +285,7 @@ function drawBody(ctx, L, dir, legA, armA, seated) {
   // Rumpf
   const top = -29, bot = seated ? -16 : -11;
   ctx.beginPath();
-  if (style === 'dress' || style === 'fancy') {
+  if (style === 'dress' || style === 'fancy' || style === 'floral') {
     ctx.moveTo(-7, top); ctx.lineTo(7, top); ctx.quadraticCurveTo(12, bot - 2, 13, bot); ctx.lineTo(-13, bot); ctx.quadraticCurveTo(-12, bot - 2, -7, top); ctx.closePath();
     if (side) { ctx.beginPath(); ctx.moveTo(-5, top); ctx.lineTo(5, top); ctx.quadraticCurveTo(10, bot - 2, 10, bot); ctx.lineTo(-10, bot); ctx.closePath(); }
     fs(ctx, main);
@@ -270,9 +293,39 @@ function drawBody(ctx, L, dir, legA, armA, seated) {
       ctx.fillStyle = second;
       for (let i = -12; i <= 12; i += 4) { circ(ctx, i * (side ? 0.8 : 1), bot, 2.4); ctx.fill(); }
     }
-    // Kragen
-    ctx.fillStyle = second;
-    ell(ctx, side ? 2 : 0, top + 1, side ? 4 : 6, 2.4); ctx.fill();
+    if (style === 'floral') {
+      // Blümchenmuster
+      ctx.save();
+      ctx.beginPath();
+      if (side) { ctx.moveTo(-5, top); ctx.lineTo(5, top); ctx.quadraticCurveTo(10, bot - 2, 10, bot); ctx.lineTo(-10, bot); ctx.closePath(); }
+      else { ctx.moveTo(-7, top); ctx.lineTo(7, top); ctx.quadraticCurveTo(12, bot - 2, 13, bot); ctx.lineTo(-13, bot); ctx.quadraticCurveTo(-12, bot - 2, -7, top); ctx.closePath(); }
+      ctx.clip();
+      for (const [fx, fy, r] of [[-6, top + 5, 2.2], [3, top + 3, 1.8], [-1, top + 9, 2.4], [6, top + 10, 2], [-9, bot - 3, 2.2], [0, bot - 2, 2.4], [8, bot - 3, 2], [-4, bot - 7, 1.6]]) {
+        ctx.fillStyle = second;
+        for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2; circ(ctx, fx + Math.cos(a) * r * 0.8, fy + Math.sin(a) * r * 0.8, r * 0.55); ctx.fill(); }
+        ctx.fillStyle = shade(second, -0.3); circ(ctx, fx, fy, r * 0.35); ctx.fill();
+      }
+      ctx.restore();
+      // Rüschen-Ausschnitt
+      ctx.strokeStyle = '#e6e2da'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); for (let i = -6; i <= 6; i += 2) ctx.arc(i * (side ? 0.7 : 1), top + 1, 1, 0, Math.PI); ctx.stroke();
+      // offene Strickjacke
+      for (const sgn of side ? [-1] : [-1, 1]) {
+        ctx.beginPath();
+        const x0 = sgn * (side ? 5 : 8.5);
+        ctx.moveTo(x0, top - 0.5); ctx.lineTo(sgn * (side ? 1 : 4.5), top - 0.5);
+        ctx.quadraticCurveTo(sgn * (side ? 2 : 5.5), top + 10, sgn * (side ? 3 : 7), bot - 1);
+        ctx.lineTo(sgn * (side ? 10 : 13.5), bot - 1); ctx.quadraticCurveTo(sgn * (side ? 9 : 12), top + 8, x0, top - 0.5); ctx.closePath();
+        fs(ctx, CARDIGAN, 1.2, '#cfc8b8');
+        ctx.strokeStyle = 'rgba(180,170,150,0.5)'; ctx.lineWidth = 0.8;
+        for (let j = top + 4; j < bot - 2; j += 3) { ctx.beginPath(); ctx.moveTo(sgn * (side ? 4 : 7.5), j); ctx.lineTo(sgn * (side ? 7 : 10.5), j + 1); ctx.stroke(); }
+      }
+      if (!side) { ctx.fillStyle = '#c9a070'; circ(ctx, 5.8, top + 12, 0.9); ctx.fill(); circ(ctx, 6.4, top + 7, 0.9); ctx.fill(); }
+    } else {
+      // Kragen
+      ctx.fillStyle = second;
+      ell(ctx, side ? 2 : 0, top + 1, side ? 4 : 6, 2.4); ctx.fill();
+    }
   } else {
     rr(ctx, side ? -6.5 : -9, top, side ? 13 : 18, bot - top + (style === 'sailor' ? 0 : 1), 6);
     const torso = style === 'overall' || style === 'vest' ? second : main;
@@ -302,6 +355,18 @@ function drawBody(ctx, L, dir, legA, armA, seated) {
       ctx.beginPath(); ctx.moveTo(side ? -6 : -9, bot - 3); ctx.lineTo(side ? 6 : 9, bot - 3); ctx.stroke();
       if (!side) { ctx.fillStyle = '#fff6'; ctx.beginPath(); heartPath(ctx, 0, top + 10, 3.4); ctx.fill(); }
     }
+    if (style === 'openshirt') {
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 0.8;
+      for (let i = -7; i <= 7; i += 2) { ctx.beginPath(); ctx.moveTo(i * (side ? 0.6 : 1), top + 3); ctx.lineTo(i * (side ? 0.6 : 1), bot); ctx.stroke(); }
+      for (const sgn of side ? [-1] : [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(sgn * (side ? 6.5 : 9), top); ctx.lineTo(sgn * (side ? 1.5 : 4), top - 1);
+        ctx.lineTo(sgn * (side ? 2.5 : 5), bot + 1); ctx.lineTo(sgn * (side ? 7 : 10), bot + 1); ctx.closePath();
+        fs(ctx, main, 1.2, '#111');
+        ctx.fillStyle = main; ctx.beginPath(); ctx.moveTo(sgn * 3, top - 1); ctx.lineTo(sgn * 7, top - 2); ctx.lineTo(sgn * 5, top + 4); ctx.closePath(); ctx.fill();
+      }
+      if (!side) { ctx.fillStyle = '#555'; circ(ctx, -6.5, top + 8, 0.8); ctx.fill(); circ(ctx, -6.8, top + 13, 0.8); ctx.fill(); }
+    }
     if (style === 'sailor') {
       ctx.fillStyle = second;
       ctx.beginPath(); ctx.moveTo(side ? -6 : -9, top + 1); ctx.lineTo(side ? 6 : 9, top + 1); ctx.lineTo(0, top + 8); ctx.closePath(); ctx.fill();
@@ -315,6 +380,14 @@ function drawBody(ctx, L, dir, legA, armA, seated) {
     ctx.beginPath(); ctx.moveTo(-10, top + 1); ctx.quadraticCurveTo(0, top + 9, 10, top + 1); ctx.lineTo(8, top - 1); ctx.lineTo(-8, top - 1); ctx.closePath(); fs(ctx, L.shawl, 1);
   }
   if (L.scarf) { rr(ctx, -7, top - 2, 14, 4, 2); fs(ctx, L.scarf, 1); }
+  if (L.necklace && dir !== 'up') {
+    ctx.strokeStyle = L.necklace; ctx.lineWidth = L.chain ? 1.3 : 0.8;
+    ctx.beginPath();
+    if (side) ctx.arc(2.5, top - 1, 3.5, 0.3, 1.6);
+    else ctx.arc(0, top - 3, 5, 0.35, Math.PI - 0.35);
+    ctx.stroke();
+    if (!L.chain && !side) { ctx.fillStyle = L.necklace; circ(ctx, 0, top + 2.3, 1); ctx.fill(); }
+  }
   if (L.bag && dir !== 'up') {
     ctx.strokeStyle = shade(L.bag, -0.2); ctx.lineWidth = 1.6;
     ctx.beginPath(); ctx.moveTo(side ? -4 : -7, top + 1); ctx.lineTo(side ? 3 : 7, bot - 5); ctx.stroke();

@@ -3,7 +3,7 @@
 
 export const SKINS = ['#ffe3cc', '#f7d0ab', '#e9b68c', '#cf9366', '#a36b47', '#704832'];
 export const HAIR_COLORS = [
-  { name: 'Blond', c: '#f4d27a' }, { name: 'Hellbraun', c: '#c68b59' }, { name: 'Braun', c: '#7a4a2e' },
+  { name: 'Blond', c: '#f4d27a' }, { name: 'Hellbraun', c: '#c68b59' }, { name: 'Braun', c: '#6e4431' },
   { name: 'Schwarz', c: '#2e2430' }, { name: 'Rot', c: '#dc5f33' }, { name: 'Rosa', c: '#ff9ecb' },
   { name: 'Lila', c: '#a98be8' }, { name: 'Mint', c: '#6fd3b8' },
 ];
@@ -23,6 +23,20 @@ export const NPCS = {
     loves: ['cake', 'sunflower'], likes: ['lavender', 'daisy', 'apple'],
     thanks: 'Oh, wie lieb von dir, Schatz!',
     giftBack: { item: 'apple', n: 2 },
+  },
+  mert: {
+    name: 'Mert', title: 'dein Freund', home: 'farm',
+    look: { skin: 1, hair: 'curlyshort', hairColor: '#2b221f', outfit: { main: '#2a2527', second: '#3b3a3f', style: 'openshirt' }, glasses: 'round', beard: '#3a2b25', fullBeard: true, necklace: '#d8dce4', chain: true },
+    voice: 0.8,
+    lines: [
+      ['Guten Morgen, {name}! Maumau hat schon wieder auf meinem Kopfkissen geschlafen.', 'Ich hab Mira heute früh schon Gassi geführt. Sie wollte unbedingt zu den Pferden.'],
+      ['Der Stall ist mein ganzer Stolz. Also, nach dir natürlich.', 'Manni sitzt seit einer Stunde vor dem Heuballen. Ich glaube, er jagt eine Maus. Oder er schläft.'],
+      ['Weißt du noch, wie wir zum ersten Mal hier ankamen? Und jetzt schau dir das an!', 'Wenn du ausreiten willst, pass ich auf den Hof auf. Und auf die Katzen. Vor allem auf die Katzen.'],
+      ['Das Sommerfest wird wunderschön. Genau wie du. … Hab ich das gerade laut gesagt?', 'Ich bin so stolz auf dich, {name}.'],
+    ],
+    loves: ['cake', 'bread'], likes: ['apple', 'juice', 'sunflower'],
+    thanks: 'Für mich? Du bist die Beste, {name}!',
+    giftBack: { coins: 10 },
   },
   berta: {
     name: 'Bäckerin Berta', title: 'Bäckerin', home: 'village', shop: 'berta',
@@ -124,5 +138,5 @@ export const NPCS = {
   },
 };
 
-export const NPC_ORDER = ['hilde', 'berta', 'luise', 'theo', 'paula', 'mia', 'ben', 'kuno'];
+export const NPC_ORDER = ['hilde', 'mert', 'berta', 'luise', 'theo', 'paula', 'mia', 'ben', 'kuno'];
 export const VILLAGERS = ['berta', 'luise', 'theo', 'paula', 'mia', 'ben'];

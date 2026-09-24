@@ -19,8 +19,8 @@ export async function runEnding(g) {
   S.time.minutes = 15.5 * 60;
   g.applyAudioMode();
   // Alle Gäste auf die Festwiese
-  const guests = ['hilde', ...VILLAGERS, 'kuno'];
-  const spots = [[85.5, 113.2], [76, 114.5], [79, 116.5], [92, 116.5], [95, 114.5], [73.5, 117.5], [97.5, 117.5], [88.5, 118.8]];
+  const guests = ['hilde', ...VILLAGERS, 'kuno', 'mert'];
+  const spots = [[85.5, 113.2], [76, 114.5], [79, 116.5], [92, 116.5], [95, 114.5], [73.5, 117.5], [97.5, 117.5], [88.5, 118.8], [82.5, 115.2]];
   const saved = new Map();
   guests.forEach((id, i) => {
     const n = g.npcById(id);
@@ -39,6 +39,9 @@ export async function runEnding(g) {
     fest.push(a);
   });
   g.kitten.mode = 'scene'; g.kitten.x = 84; g.kitten.y = 114; g.kitten.visible = true;
+  const pets = g.pets || {};
+  if (pets.maumau) { pets.maumau.mode = 'scene'; pets.maumau.x = 81.5; pets.maumau.y = 116.3; }
+  if (pets.manni) { pets.manni.mode = 'scene'; pets.manni.x = 89.5; pets.manni.y = 116.3; }
   g.sceneEntities = fest;
   // Spielerin mit Lieblingspferd
   const P = g.player;
@@ -60,6 +63,8 @@ export async function runEnding(g) {
     { who: 'theo', t: 'Hm-hm. Die Limonade geht auf mich. Alle drei Kannen. Heute ist ein besonderer Tag.' },
     { who: 'luise', t: 'Schaut nur, die Wimpelketten! Und die Lampions! Ich könnte weinen vor Glück.' },
     { who: 'kuno', t: 'Ahoi! So ein schönes Fest hab ich nicht mal auf den sieben Weltmeeren gesehen.' },
+    { who: 'mert', t: 'Und Maumau hat sich schon auf die Torte gesetzt. Fast. Ich hab sie gerade noch erwischt!' },
+    { who: 'narr', t: 'Mira rennt bellend im Kreis um die Festwiese. So viele Menschen, so viele Streicheleinheiten!' },
     { who: 'mia', t: 'Und jetzt: das große Sommerfest-Rennen! {name}, du reitest mit {horse}, oder?' },
     { who: 'ben', t: 'I-ich hab die Strecke abgesteckt. Einmal ums Hofgelände und über die Wiesen!' },
   ]);
@@ -83,8 +88,12 @@ export async function runEnding(g) {
   P.x = top.x - 3.5; P.y = top.y + 5; P.faceX = 1;
   if (!P.riding) { const rh = g.horseEntity(S.ridingHorse); if (rh) P.mount(rh); }
   const hn = g.npcById('hilde');
-  hn.x = top.x - 2; hn.y = top.y + 1.4; hn.face = 'right';
+  hn.x = top.x - 3.4; hn.y = top.y + 1.4; hn.face = 'right';
   guests.slice(1).forEach((id, i) => { const n = g.npcById(id); n.x = top.x - 5 + i * 1.6; n.y = top.y + 3.6 + (i % 2) * 0.8; n.face = 'up'; });
+  const mn = g.npcById('mert');
+  mn.x = top.x - 1.8; mn.y = top.y + 1.6; mn.face = 'right';
+  if (pets.maumau) { pets.maumau.x = top.x - 3; pets.maumau.y = top.y + 3; }
+  if (pets.manni) { pets.manni.x = top.x + 0.5; pets.manni.y = top.y + 3; }
   own.forEach((h, i) => { h.x = top.x + 3 + (i % 4) * 2.2; h.y = top.y + 2.5 + Math.floor(i / 4) * 1.3; h.face = -1; h.mode = 'scene'; });
   fest.forEach((a, i) => { a.x = top.x - 6 + (i % 7) * 2; a.y = top.y + 5 + Math.floor(i / 7) * 1.4; a.mode = 'scene'; });
   g.kitten.x = top.x - 1; g.kitten.y = top.y + 1.8;
@@ -96,7 +105,9 @@ export async function runEnding(g) {
   // Tiere kuscheln sich dazu
   fest.forEach((a, i) => { const ang = (i / Math.max(1, fest.length)) * Math.PI - Math.PI; a.setTarget(top.x - 0.5 + Math.cos(ang) * (2 + (i % 3) * 0.7), top.y + 1.6 + Math.abs(Math.sin(ang)) * 1.2, 2.2); });
   own.forEach((h, i) => { h.setTarget(top.x + 1.8 + (i % 4) * 1.6, top.y + 1 + Math.floor(i / 4) * 1.1, 2.4); });
-  guests.forEach((id, i) => { const n = g.npcById(id); if (id !== 'hilde') n.goTo(top.x - 4 + i * 1.4, top.y + 3.2 + (i % 2) * 0.7, 1.5); });
+  guests.forEach((id, i) => { const n = g.npcById(id); if (id !== 'hilde' && id !== 'mert') n.goTo(top.x - 4 + i * 1.4, top.y + 3.2 + (i % 2) * 0.7, 1.5); });
+  if (pets.maumau) pets.maumau.setTarget(top.x - 1.2, top.y + 1.9, 1.5);
+  if (pets.manni) pets.manni.setTarget(top.x + 0.9, top.y + 1.7, 1.5);
   await g.wait(2.5);
   // Feuerwerk
   let firing = true;
@@ -119,6 +130,8 @@ export async function runEnding(g) {
     { who: 'hilde', t: 'Dann wurde es still. Die Pferde gingen, das Fest schlief ein … und ich dachte, der Hof hätte sein Herz verloren.' },
     { who: 'hilde', t: 'Aber dann bist du gekommen. Mit deinem Lachen, deiner Geduld und deiner Liebe für jedes Tier.' },
     { who: 'hilde', t: 'Der Hof hat wieder ein Herz, {name}. Und das Herz – das bist du. ♥' },
+    { who: 'mert', t: 'Sie hat recht, weißt du? Ohne dich wäre das hier nur ein alter Hof. Mit dir ist es unser Zuhause.' },
+    { who: 'narr', t: 'Mert nimmt deine Hand. Mira kuschelt sich an deine Füße, Maumau und Manni schnurren um die Wette – und der Himmel leuchtet in tausend Herzen.' },
   ]);
   await g.wait(1.5);
   // Ein Fohlen wird geboren
@@ -127,7 +140,8 @@ export async function runEnding(g) {
     { who: 'ben', t: 'D-da! Schaut mal! Bei ' + (mother ? mother.name : 'den Pferden') + '!' },
     { who: 'narr', t: 'Im warmen Abendlicht stakst ein winziges Fohlen auf wackeligen Beinen durchs Gras.' },
     { who: 'mia', t: 'Ein Fohlen! Heute! Ist das nicht das Allerschönste?' },
-    { who: 'hilde', t: 'Es ist in deiner Nacht geboren, {name}. Es gehört zu dir. Wie soll es heißen?' },
+    { who: 'hilde', t: 'Es ist in deiner Nacht geboren, {name}. Es gehört zu dir.' },
+    { who: 'mert', t: 'Wie soll es heißen? Du hast immer die schönsten Namen.' },
   ]);
   const coat = mother ? mother.coat : 'palomino';
   const foalRec = makeHorseRecord({ id: 'foal', name: 'Wölkchen', coat, marking: 'star', socks: true, personality: 'verschmust', foal: true });
@@ -165,6 +179,8 @@ export async function runEnding(g) {
   fe.mode = 'follow';
   g.sceneEntities = null;
   g.festivalLights = null;
+  if (pets.maumau) { pets.maumau.mode = null; pets.maumau.x = pets.maumau.homeX; pets.maumau.y = pets.maumau.homeY; }
+  if (pets.manni) { pets.manni.mode = null; pets.manni.x = pets.manni.homeX; pets.manni.y = pets.manni.homeY; }
   g.kittenState();
   S.flags.festivalMusic = false;
   S.flags.noWeather = false;

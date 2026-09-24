@@ -12,7 +12,7 @@ export function defaultState() {
     version: SAVE_VERSION,
     created: 0,
     player: {
-      name: 'Jolina', skin: 1, hair: 1, hairColor: 0, outfit: 1, hat: true, hatType: 'straw',
+      name: 'Jolina', skin: 0, hair: 0, hairColor: 2, outfit: 0, hat: false, hatType: 'straw',
       x: FARM.spawn.x, y: FARM.spawn.y, facing: 'down', coins: 15, riding: false,
     },
     inv: {},

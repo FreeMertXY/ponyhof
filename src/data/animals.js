@@ -74,4 +74,11 @@ export const SPECIES = {
   },
 };
 
+// Haustiere von Jolina und Mert (nicht im Tieralbum, außer die Katzen zählen als „Katze“)
+export const PETS = {
+  maumau: { name: 'Maumau', verb: 'Streicheln', speed: 2, pet: true, albumAs: 'cat', sound: 'purr', desc: 'Glückskatze mit Wuschelfell und grünen Augen. Lässt sich am liebsten hinter den Ohren kraulen.' },
+  manni: { name: 'Manni', verb: 'Streicheln', speed: 2, pet: true, albumAs: 'cat', sound: 'purr', desc: 'Grauer Flauschkater mit bernsteinfarbenen Augen. Liebt Spielzeug mit Wackelaugen.' },
+  mira: { name: 'Mira', verb: 'Streicheln', speed: 4, pet: true, follows: true, sound: 'bark', desc: 'Kleine Yorkshire-Hündin mit großem Herz. Findet mit ihrer Nase fast alles.' },
+};
+
 export const SPECIES_ORDER = ['rabbit', 'cat', 'puppy', 'duckling', 'hedgehog', 'fox', 'squirrel', 'deer', 'frog', 'butterfly', 'crab', 'seal', 'owl', 'alpaca'];

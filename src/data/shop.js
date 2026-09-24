@@ -26,8 +26,9 @@ export const ACCESSORIES = {
 
 export const ACC_SLOTS = { saddle: 'Sattel', blanket: 'Decke', bow: 'Mähne', wreath: 'Kranz' };
 
-// Kleidung: Outfits 0–5 gibt es im Editor, 6–7 kann man bekommen
+// Kleidung: Outfits ohne „unlock“ gibt es im Editor, die anderen kann man bekommen
 export const OUTFITS = [
+  { name: 'Blümchenkleid', main: '#fbfaf7', second: '#4d6fb8', style: 'floral' },
   { name: 'Latzhose', main: '#5b8fd9', second: '#fff3d6', style: 'overall' },
   { name: 'Sommerkleid', main: '#ff9ec4', second: '#fff', style: 'dress' },
   { name: 'Reitjacke', main: '#e2574c', second: '#f3e3c3', style: 'jacket' },

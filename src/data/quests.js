@@ -34,6 +34,7 @@ export const QUESTS = [
           'Siehst du, wie {horse} dich anschaut? Ihr zwei seid jetzt ein Team.',
           'Der alte Hof braucht aber noch viel Liebe. Der Stall ist morsch, die Koppel winzig, und der Garten … ach, der Garten!',
           'Fang doch mit dem Gemüsegarten an. Und reite mal ins Dorf Kleeberg, im Osten. Die Leute dort sind herzensgut.',
+          { who: 'mert', t: 'Und ich hol schon mal meinen Werkzeugkasten raus. Wenn wir Bretter bekommen, repariere ich den Stall!' },
         ],
       },
     ],
@@ -119,10 +120,11 @@ export const QUESTS = [
         ],
       },
       {
-        type: 'deliver', npc: 'hilde', items: { boards: 1 }, text: 'Bring die Bretter zu Oma Hilde', target: { npc: 'hilde' },
+        type: 'deliver', npc: 'mert', items: { boards: 1 }, text: 'Bring die Bretter zu Mert am Stall', target: { npc: 'mert' },
         lines: [
-          'Bretter von Theo? Da hat der alte Brummbär wohl doch ein weiches Herz.',
-          'Dann los – hämmern, sägen, streichen! Zu zweit geht alles schneller.',
+          'Bretter! Von Theo? Der hat ja doch ein weiches Herz.',
+          'Dann los – hämmern, sägen, streichen! Du hältst, ich hämmere. Und Mira passt auf, dass keiner die Nägel klaut.',
+          { who: 'hilde', t: 'Ihr zwei seid ein gutes Team. Genau wie dein Opa Karl und ich damals.' },
         ],
       },
     ],
@@ -224,7 +226,8 @@ export const QUESTS = [
         lines: [
           '{name}, du hast so viele Freunde gefunden – Zweibeiner und Vierbeiner!',
           'Die Koppel ist viel zu klein geworden. Und stell dir vor: Die Leute aus dem Dorf wollen helfen!',
-          'Theo bringt Pfähle, Paula die Nägel, und Mia … Mia bringt gute Laune. Die neue Koppel steht im Nu!',
+          'Theo bringt Pfähle, Paula die Nägel, und Mia … Mia bringt gute Laune.',
+          { who: 'mert', t: 'Und ich baue! Ich hab die Pfähle schon dreimal gezählt. Bis morgen früh steht die neue Koppel, versprochen.' },
         ],
       },
     ],

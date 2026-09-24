@@ -80,7 +80,7 @@ await ev(async () => {
   g.findKitten(); await T.idle();
 });
 await shot('03-forest-kitten');
-await ev(async () => { await T.talk('berta'); await T.talk('theo'); await T.talk('hilde'); await T.idle(); });
+await ev(async () => { await T.talk('berta'); await T.talk('theo'); await T.talk('mert'); await T.idle(); });
 await log('Kapitel 1 fertig');
 await ev(() => T.tp(81, 89)); await shot('04-stable-repaired');
 // Kapitel 2
@@ -148,7 +148,7 @@ await page.waitForTimeout(4000);
 await shot('17-fireworks');
 for (let i = 0; i < 60; i++) { const has = await page.$('#st-next'); if (has) break; await page.waitForTimeout(500); }
 await shot('18-credits1');
-for (let i = 0; i < 5; i++) { await page.click('#st-next'); await page.waitForTimeout(400); if (i === 2) await shot('19-credits-race'); }
+for (let i = 0; i < 10 && (await page.$('#st-next')); i++) { await page.click('#st-next'); await page.waitForTimeout(400); if (i === 0) await shot('19-credits-family'); }
 await shot('20-stats');
 await page.click('#cr-go');
 await page.waitForTimeout(2500);

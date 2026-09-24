@@ -127,6 +127,16 @@ export class Game {
     this.kitten.name = 'Krümel';
     this.kittenState();
     this.animals.push(this.kitten);
+    // Haustiere: Maumau, Manni und Mira
+    this.pets = {
+      maumau: new Animal('maumau', 66.5, 91.6, 0),
+      manni: new Animal('manni', 87.5, 91.6, 0),
+      mira: new Animal('mira', this.player.x - 1, this.player.y + 0.4, 0),
+    };
+    for (const [id, a] of Object.entries(this.pets)) { a.name = { maumau: 'Maumau', manni: 'Manni', mira: 'Mira' }[id]; this.animals.push(a); }
+    this.pets.mira.mode = 'follow'; this.pets.mira.followT = 0;
+    this.sniffed = new Set();
+    this.sniffT = 3;
     this.setupHorses();
     this.rebuildEntities();
     // Deko-Kollision
@@ -229,7 +239,9 @@ export class Game {
     this.later(0.8, async () => {
       await this.say([
         { who: 'hilde', t: 'Da bist du ja, {name}! Willkommen auf deinem Ponyhof.' },
-        { who: 'hilde', t: '{horse} fühlt sich schon ganz wie zu Hause. Geh doch mal hin und sag Hallo – mit E kannst du es streicheln und füttern.' },
+        { who: 'mert', t: 'Wir sind wirklich da! Maumau und Manni haben schon die ganze Scheune inspiziert – und Mira will sofort alles erkunden.' },
+        { who: 'narr', t: 'Wuff! Mira hüpft aufgeregt um deine Füße. Sie wird dir überallhin folgen.' },
+        { who: 'hilde', t: '{horse} fühlt sich auch schon ganz wie zu Hause. Geh doch mal hin und sag Hallo – mit E kannst du es streicheln und füttern.' },
         { who: 'hilde', t: 'Hier sind drei Karotten. Die mag {horse} besonders!' },
       ]);
       this.tutorial('move');
@@ -425,6 +437,7 @@ export class Game {
     if (this.passiveT <= 0) { this.passiveT = 0.5; this.quests.checkPassive(); this.checkKitten(); this.contextTutorials(); }
     // wartende Aktionen (nach Dialogen)
     if (!busy && this.pending.length) { const fn = this.pending.shift(); this.runScript(fn); }
+    if (!busy) this.miraSniff(dt);
     // Hinweise
     this.hintCool -= dt;
     if (this.hintCool <= 0 && this.hintQueue.length && !busy) { this.ui.hint(this.hintQueue.shift(), 7); this.hintCool = 9; }
@@ -684,6 +697,7 @@ export class Game {
       if (!a.visible || a === this.kitten && S.flags.kitten !== 'home' && S.flags.kitten !== 'following') continue;
       const r = a.sp.water || a.sp.night || a.sp.flying ? 2.6 : 1.7;
       if ((d = near(a.x, a.y, r)) !== null) {
+        if (a.sp.pet && a.mode === 'follow') d += 1.3; // Mira ist immer da – andere Dinge haben Vorrang
         const food = a.sp.food && this.inv.has(a.sp.food) && (a.sp.shy || a.species === 'alpaca' || a.species === 'duckling' || a.species === 'seal');
         add(d + 0.1, food ? `Füttern (${ITEMS[a.sp.food].name})` : a.sp.verb, () => this.petAnimal(a), a.x, a.y - 0.9);
       }
@@ -891,7 +905,7 @@ export class Game {
   greeting(id) {
     const h = this.S.time.minutes / 60;
     const tod = h < 11 ? 'Guten Morgen' : h < 18 ? 'Hallo' : 'Guten Abend';
-    const g = { hilde: `${tod}, mein Schatz!`, theo: 'Hm-hm. Was darf’s sein?', berta: `${tod}, {name}! Frisch gebacken ist alles!`, luise: 'Wie entzückend, dich zu sehen!', paula: 'Zack, zack – was gibt’s?', mia: 'Hey {name}! Na, wie geht’s {horse}?', ben: 'Oh, h-hallo {name}!', kuno: 'Ahoi, {name}!' };
+    const g = { hilde: `${tod}, mein Schatz!`, mert: 'Hey {name}! Na, alles gut bei dir?', theo: 'Hm-hm. Was darf’s sein?', berta: `${tod}, {name}! Frisch gebacken ist alles!`, luise: 'Wie entzückend, dich zu sehen!', paula: 'Zack, zack – was gibt’s?', mia: 'Hey {name}! Na, wie geht’s {horse}?', ben: 'Oh, h-hallo {name}!', kuno: 'Ahoi, {name}!' };
     return g[id] || `${tod}!`;
   }
 
@@ -1122,11 +1136,20 @@ export class Game {
     const S = this.S;
     const fed = a.interact(this);
     if (a.species === 'butterfly') this.particles.sparkles(a.x, a.y, 6, 30, '#ffd6ec');
-    if (!S.album[a.species]) {
+    if (a.sp.pet) {
+      const lines = {
+        maumau: ['Maumau schnurrt wie ein kleiner Traktor und drückt ihr Köpfchen in deine Hand.', 'Maumau blinzelt dich langsam an. Das ist ein Katzenkuss!', 'Maumau rollt sich auf den Rücken – aber Achtung, der Bauch ist Sperrgebiet!'],
+        manni: ['Manni lässt sich plumpsen und schnurrt tief und zufrieden.', 'Manni stupst dich mit der Nase an. Ob er ein Leckerli will?', 'Manni putzt sich stolz das Flauschfell. Er ist schließlich der Schönste.'],
+        mira: ['Mira wedelt so doll mit dem Schwanz, dass sie fast umfällt!', 'Mira leckt dir die Hand und bellt fröhlich: Wuff!', 'Mira macht Männchen. Wer ist ein braves Mädchen? Mira!'],
+      }[a.species];
+      if (lines) this.ui.hint(pick(lines), 4);
+    }
+    const key = a.sp.pet ? a.sp.albumAs : a.species;
+    if (key && !S.album[key]) {
       const reg = this.regionName(this.world.regionAt(a.x, a.y));
-      S.album[a.species] = { day: S.time.day, where: reg };
+      S.album[key] = { day: S.time.day, where: reg };
       this.audio.play('pling');
-      this.ui.toast(`Neu im Tieralbum: ${SPECIES[a.species].name}! (${Object.keys(S.album).length}/14)`, iconFor(a.species), 'mint');
+      this.ui.toast(`Neu im Tieralbum: ${SPECIES[key].name}! (${Object.keys(S.album).length}/14)`, iconFor(key), 'mint');
       this.tutorial('album');
       this.quests.checkPassive();
       if (Object.keys(S.album).length >= 14 && !S.albumRewarded) {
@@ -1141,7 +1164,7 @@ export class Game {
           await this.say(['Dein Tieralbum ist vollständig! Alle 14 Tierarten!', 'Belohnung: der Goldene Blütenkranz für dein Pferd, ein Blütenhaarreif für dich und 100 Münzen!']);
         });
       }
-    } else if (fed) this.ui.hint(`${SPECIES[a.species].name} hat dir aus der Hand gefressen! ♥`, 3);
+    } else if (fed && SPECIES[a.species]) this.ui.hint(`${SPECIES[a.species].name} hat dir aus der Hand gefressen! ♥`, 3);
     this.requestSave();
   }
 
@@ -1170,6 +1193,31 @@ export class Game {
       const searching = q && q.state === 'active' && q.step === 1;
       this.kitten.visible = !!searching;
     }
+  }
+
+  // Mira schnüffelt versteckte Hufeisen auf
+  miraSniff(dt) {
+    this.sniffT -= dt;
+    if (this.sniffT > 0) return;
+    this.sniffT = 1.5;
+    const m = this.pets?.mira, P = this.player;
+    if (!m || m.mode !== 'follow') return;
+    let best = null, bd = 6.5;
+    for (const p of this.world.pickups) {
+      if (p.k !== 'horseshoe' || !this.pickupAvailable(p) || this.sniffed.has(p.id)) continue;
+      const d = dist(p.x, p.y, P.x, P.y);
+      if (d < bd) { bd = d; best = p; }
+    }
+    if (!best) {
+      if (Math.random() < 0.04) { this.audio.play('bark'); this.particles.notes(m.x, m.y - 0.6); }
+      return;
+    }
+    this.sniffed.add(best.id);
+    m.state = 'happy'; m.stateT = 2.5;
+    this.audio.play('bark');
+    this.particles.add({ type: 'text', x: m.x, y: m.y - 0.8, z: 30, vz: 20, life: 1.6, text: '!', color: '#ffd23f' });
+    const dir = Math.abs(best.x - P.x) > Math.abs(best.y - P.y) ? (best.x > P.x ? 'Osten' : 'Westen') : best.y > P.y ? 'Süden' : 'Norden';
+    this.ui.hint(`Mira schnüffelt aufgeregt und zieht Richtung ${dir} – hier ist bestimmt ein goldenes Hufeisen versteckt!`, 5);
   }
 
   // ---------- Besondere Orte ----------
@@ -1445,7 +1493,12 @@ export class Game {
     await this.wait(3);
     if (kind === 'stable' || kind === 'paddock' || kind === 'flowerGarden') {
       const ch = { stable: 1, paddock: 2, flowerGarden: 3 }[kind];
-      await this.say([{ who: 'hilde', t: { 1: 'Kapitel 1 geschafft, {name}! Der Stall ist wie neu. Opa Karl würde vor Freude tanzen.', 2: 'Kapitel 2 geschafft! Sieh nur, wie die Pferde über die neue Koppel galoppieren.', 3: 'Kapitel 3 geschafft! Dieser Duft … der Hof blüht wieder auf. Genau wie du.' }[ch] }]);
+      const extra = {
+        1: { who: 'mert', t: 'Jeder Nagel sitzt! Und Manni hat sich schon den besten Platz auf dem Heuboden gesichert.' },
+        2: { who: 'mert', t: 'Hundertzwölf Pfähle. Ich hab sie alle selbst eingeschlagen. Na gut, Mia hat beim Zählen geholfen.' },
+        3: { who: 'mert', t: 'Ich hab dir ein Beet mit Sonnenblumen gepflanzt. Weil du mein Sonnenschein bist. … Zu kitschig?' },
+      }[ch];
+      await this.say([{ who: 'hilde', t: { 1: 'Kapitel 1 geschafft, {name}! Der Stall ist wie neu. Opa Karl würde vor Freude tanzen.', 2: 'Kapitel 2 geschafft! Sieh nur, wie die Pferde über die neue Koppel galoppieren.', 3: 'Kapitel 3 geschafft! Dieser Duft … der Hof blüht wieder auf. Genau wie du.' }[ch] }, extra]);
     }
     this.camOverride = null;
     this.cutscene = false;

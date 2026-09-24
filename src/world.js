@@ -59,6 +59,7 @@ export const VILLAGE = {
 export const SPOTS = {
   npc: {
     hilde: { x: 72.5, y: 88.6 },
+    mert: { x: 85.5, y: 88.4 },
     theo: { x: 121.5, y: 90.2 },
     berta: { x: 131.5, y: 88.2 },
     luise: { x: 141.5, y: 90.2 },

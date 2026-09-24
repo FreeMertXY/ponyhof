@@ -3,7 +3,7 @@
 Ein gemütliches Open-World-Pferdeabenteuer für den Browser – warm, pastellig und verspielt wie ein Bilderbuch.
 Oma Hilde übergibt dir ihren alten, verwilderten Ponyhof. Freunde dich mit Pferden an, reite durch sieben
 Gebiete, hilf den Leuten im Dorf Kleeberg, sammle Hufeisen und Tiere fürs Album – und erwecke den Hof bis zum
-großen Sommerfest wieder zum Leben. Kein Game Over, kein Zeitdruck (außer bei den freiwilligen Rennen).
+großen Sommerfest wieder zum Leben – zusammen mit Mert, Hündin Mira und den Katzen Maumau und Manni. Kein Game Over, kein Zeitdruck (außer bei den freiwilligen Rennen).
 
 ## ▶️ Spielen
 

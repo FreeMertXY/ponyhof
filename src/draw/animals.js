@@ -265,6 +265,78 @@ const D = {
   },
 };
 
+// Langhaarkatze (Maumau, Manni)
+function fluffyCat(ctx, t, m, st, P) {
+  shadow(ctx, 0, 0, 12, 3.2);
+  const lg = m ? Math.sin(t * 12) * 2.2 : 0;
+  const tw = Math.sin(t * (st === 'happy' ? 6 : 2.2)) * 0.25;
+  // Schweif
+  ctx.save(); ctx.translate(-9, -9); ctx.rotate(-0.15 + tw);
+  for (let i = 0; i < 6; i++) { circ(ctx, -i * 0.9 + i * i * 0.12, -i * 2.6, 3.4 - i * 0.12); fs(ctx, i > 3 && P.tailTip ? P.tailTip : P.body, 0.9); }
+  ctx.restore();
+  // Beine
+  for (const [x, k] of [[-6, 1], [5, -1]]) { rr(ctx, x - 2.3 + lg * k * 0.4, -6, 4.6, 6.5, 2.2); fs(ctx, P.paws, 1); }
+  // Körper
+  ell(ctx, -1, -10, 11.5, 8); fs(ctx, P.body);
+  ctx.save(); ell(ctx, -1, -10, 11.5, 8); ctx.clip();
+  for (const [x, y, rx, ry, c] of P.patches) { ctx.fillStyle = c; ell(ctx, x, y, rx, ry, 0.3); ctx.fill(); }
+  ctx.fillStyle = P.chest; ell(ctx, 6, -5, 7, 6); ctx.fill();
+  ctx.restore();
+  // Halskrause
+  for (const [x, y, r] of [[5, -13, 4.5], [8, -10, 4.5], [4, -8, 4], [9, -15, 3.6]]) { circ(ctx, x, y, r); fs(ctx, P.chest, 0.8, '#d8d2cc'); }
+  // Kopf
+  const hy = -20 + (st === 'happy' ? Math.sin(t * 3) * 0.6 : 0);
+  for (const x of [4.5, 11]) { ctx.beginPath(); ctx.moveTo(x - 3, hy - 4); ctx.lineTo(x - 0.5, hy - 11); ctx.lineTo(x + 2.8, hy - 4); ctx.closePath(); fs(ctx, P.ear, 1); ctx.fillStyle = '#ffc2d4'; ctx.beginPath(); ctx.moveTo(x - 1.4, hy - 5); ctx.lineTo(x - 0.4, hy - 8.5); ctx.lineTo(x + 1.2, hy - 5); ctx.closePath(); ctx.fill(); }
+  circ(ctx, 8, hy, 7.5); fs(ctx, P.head);
+  ctx.save(); circ(ctx, 8, hy, 7.5); ctx.clip();
+  for (const [x, y, rx, ry, c] of P.headPatches) { ctx.fillStyle = c; ell(ctx, x, y + hy + 20, rx, ry, 0.2); ctx.fill(); }
+  ctx.fillStyle = P.muzzle; ell(ctx, 12.5, hy + 3, 4.5, 3.8); ctx.fill();
+  ctx.restore();
+  // Wangenfell
+  for (const [x, y] of [[3, hy + 5], [6, hy + 6.5]]) { circ(ctx, x, y, 2.6); fs(ctx, P.chest, 0.6, '#ddd'); }
+  if (st === 'happy') { ctx.strokeStyle = '#2c2130'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.arc(10.5, hy - 0.5, 1.8, Math.PI + 0.3, -0.3); ctx.stroke(); }
+  else { ctx.fillStyle = P.eye; ell(ctx, 10.5, hy - 0.8, 1.9, 2.2); ctx.fill(); ctx.fillStyle = '#2c2130'; ell(ctx, 10.8, hy - 0.8, 0.8, 1.7); ctx.fill(); ctx.fillStyle = '#fff'; circ(ctx, 11.2, hy - 1.8, 0.6); ctx.fill(); }
+  ctx.fillStyle = '#ff9fb4'; circ(ctx, 15.2, hy + 1.8, 1.1); ctx.fill();
+  blush(ctx, 11, hy + 3.5, 1.6);
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 0.6;
+  ctx.beginPath(); ctx.moveTo(14, hy + 3); ctx.lineTo(21, hy + 1.5); ctx.moveTo(14, hy + 3.6); ctx.lineTo(21, hy + 4.5); ctx.stroke();
+}
+
+D.maumau = (ctx, t, m, st) => fluffyCat(ctx, t, m, st, {
+  body: '#fbf8f4', chest: '#ffffff', paws: '#fbf8f4', ear: '#2c2528', head: '#fbf8f4', muzzle: '#ffffff', eye: '#9ccf6a', tailTip: '#2c2528',
+  patches: [[-6, -14, 7, 5, '#2c2528'], [-9, -9, 4, 4, '#d9853e'], [0, -16, 4, 3, '#d9853e']],
+  headPatches: [[5, -26, 7, 5, '#2c2528'], [3, -21, 3.5, 4.5, '#2c2528'], [9, -27, 3, 2.5, '#d9853e'], [4.5, -19, 2, 2.5, '#d9853e']],
+});
+D.manni = (ctx, t, m, st) => fluffyCat(ctx, t, m, st, {
+  body: '#80828f', chest: '#f7f5f2', paws: '#f7f5f2', ear: '#6d6f7c', head: '#80828f', muzzle: '#f2f0ee', eye: '#f0a23c', tailTip: '#6d6f7c',
+  patches: [[-4, -15, 8, 4, '#737582']],
+  headPatches: [[7, -27, 6, 3, '#6d6f7c']],
+});
+D.mira = (ctx, t, m, st) => {
+  shadow(ctx, 0, 0, 9, 2.6);
+  const tan = '#c9965e', blk = '#34303a', silver = '#8d8a96';
+  const wag = Math.sin(t * (st === 'happy' || m ? 18 : 5)) * 0.45;
+  ctx.save(); ctx.translate(-8, -9); ctx.rotate(-0.8 + wag); ell(ctx, 0, -3, 2, 4); fs(ctx, blk, 1); ctx.restore();
+  const lg = m ? Math.sin(t * 16) * 2 : 0;
+  for (const [x, k] of [[-5, 1], [4, -1]]) { rr(ctx, x - 1.8 + lg * k * 0.4, -5.5, 3.6, 5.5, 1.7); fs(ctx, tan, 1); }
+  // wuscheliger Körper mit schwarzem Sattel
+  ell(ctx, -1, -8.5, 8, 5); fs(ctx, tan);
+  ctx.beginPath(); ctx.ellipse(-1.5, -10, 7.4, 3.8, 0, Math.PI * 1.05, Math.PI * 1.95 + 0.3); ctx.quadraticCurveTo(-1, -7.5, -8.6, -9.2); ctx.closePath(); fs(ctx, blk, 0.8, '#1f1c22');
+  ctx.strokeStyle = 'rgba(170,170,185,0.55)'; ctx.lineWidth = 0.7;
+  for (const x of [-6, -3, 0, 3]) { ctx.beginPath(); ctx.moveTo(x, -12.5); ctx.quadraticCurveTo(x + 1, -11, x, -9.5); ctx.stroke(); }
+  // Kopf
+  const hy = -15.5;
+  for (const [x, r] of [[4, -0.3], [8.6, 0.3]]) { ctx.save(); ctx.translate(x, hy - 3.6); ctx.rotate(r + (st === 'happy' ? Math.sin(t * 8) * 0.12 : 0)); ctx.beginPath(); ctx.moveTo(-1.8, 1); ctx.lineTo(0, -4.6); ctx.lineTo(1.8, 1); ctx.closePath(); fs(ctx, tan, 0.9, '#8a5a30'); ctx.restore(); }
+  circ(ctx, 6.5, hy, 5.2); fs(ctx, tan);
+  ctx.fillStyle = silver; ctx.beginPath(); ctx.ellipse(6, hy - 2.6, 4.6, 2.6, 0, Math.PI, 0); ctx.fill();
+  for (const [x, y] of [[4.5, hy - 4.2], [7.5, hy - 4.6]]) { circ(ctx, x, y, 1.5); ctx.fill(); }
+  // Bart und Wuschelschnauze
+  for (const [x, y, r] of [[10.5, hy + 2.2, 2.6], [8.5, hy + 3.6, 2.3], [11.8, hy + 3.6, 2]]) { circ(ctx, x, y, r); fs(ctx, '#ddb07a', 0.6, '#b88a55'); }
+  ctx.fillStyle = '#1e1a1e'; circ(ctx, 12.6, hy + 0.8, 1.2); ctx.fill();
+  eye(ctx, 8, hy - 0.6, 1.45);
+  if (st === 'happy') { ctx.fillStyle = '#ff8fa3'; ell(ctx, 11, hy + 5, 1, 1.4); ctx.fill(); }
+};
+
 const BUTTERFLY_COLS = ['#ff9ecb', '#b79cf0', '#7ec8ff', '#ffd166', '#8fe0c0'];
 
 // o: { face, t, moving, state, variant, hearts }
