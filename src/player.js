@@ -101,12 +101,16 @@ export class Player {
     const hb = this.riding && this.horse ? speedBonus(this.horse.rec.pts || 0) : 1;
     let maxSpd = this.riding ? (run ? SPEED.gallop : SPEED.trot) * hb : run ? SPEED.run : SPEED.walk;
     if (this.autoMove?.spd) maxSpd = this.autoMove.spd;
-    // weiches Beschleunigen
-    const acc = this.riding ? 14 : 22;
+    // weiches Beschleunigen (auf Eis: rutschig!)
+    const onIce = !this.riding && w.collAt(Math.floor(this.x), Math.floor(this.y)) === COL.ICE;
+    if (onIce && !this.autoMove) maxSpd *= 1.25;
+    const acc = this.riding ? 14 : onIce && !this.autoMove ? 2.6 : 22;
     const tvx = ax * maxSpd, tvy = ay * maxSpd;
     this.vx += (tvx - this.vx) * Math.min(1, acc * dt);
     this.vy += (tvy - this.vy) * Math.min(1, acc * dt);
     if (!ax && !ay && Math.hypot(this.vx, this.vy) < 0.2) { this.vx = 0; this.vy = 0; }
+    if (onIce && Math.hypot(this.vx, this.vy) > 2 && Math.random() < dt * 8) g.particles.sparkles(this.x, this.y + 0.1, 1, 3, '#e6f6ff');
+    if (onIce) g.hint('Du rutschst übers Eis! Schön langsam bremsen – und zu Pferd geht es nicht aufs Eis.', 'ice');
     // Richtung
     if (Math.abs(ax) > 0.01 || Math.abs(ay) > 0.01) {
       if (Math.abs(ax) > 0.01) this.faceX = ax > 0 ? 1 : -1;
@@ -151,6 +155,7 @@ export class Player {
         if (k === COL.FORD && !this.riding) g.hint('Hier ist es zu tief zum Laufen – zu Pferd kommst du durch die Furt! (R)', 'ford');
         else if (k === COL.WATER) g.hint('Das Wasser ist zu tief. Such eine Brücke oder eine Furt!', 'deep');
         else if (k === COL.LOW && !this.riding) g.hint('Zu Pferd kannst du über niedrige Zäune springen!', 'fence');
+        else if (k === COL.ICE && this.riding) g.ui.hint('Pferde rutschen auf dem Eis aus! Steig ab (R) – zu Fuß kannst du aufs Eis.', 3);
         this.blockHintT = 3;
       }
     }

@@ -55,7 +55,7 @@ export async function endStage(g) {
   g.saveNow();
 }
 
-function love(on) {
+export function love(on) {
   const el = document.getElementById('love');
   if (el) el.classList.toggle('on', on);
 }
@@ -80,6 +80,11 @@ export async function kiss(g, kind = 'wange') {
     stirn: 'Mert gibt dir einen zarten Kuss auf die Stirn. Mira seufzt glücklich.',
     kuss: 'Ihr gebt euch einen Kuss. Ganz kurz steht die Welt still – nur die Herzen tanzen. ♥',
     zurueck: 'Du stellst dich auf die Zehenspitzen und gibst Mert ein Küsschen. Er wird knallrot. ♥',
+    nase: 'Ihr reibt eure kalten Nasen aneinander – ein Eskimokuss! Mira will auch einen.',
+    laub: 'Mitten im Laubhaufen, mit Blättern im Haar, gibt Mert dir einen Kuss. Du lachst so sehr, dass du Schluckauf bekommst. ♥',
+    eis: 'Unter dem Mond, mitten auf dem glitzernden Eis, küsst ihr euch. Ganz kurz rutscht Mert weg – aber er hält dich fest. ♥',
+    haus: 'Auf der Veranda eures eigenen Häuschens gibt Mert dir einen Kuss. „Willkommen zu Hause“, flüstert er. ♥',
+    tanz: 'Mitten im Tanz zieht Mert dich zu sich und küsst dich. Alle klatschen. Berta am lautesten. ♥',
   };
   await g.say([{ who: 'narr', t: lines[kind] || lines.wange }]);
   for (let i = 0; i <= 10; i++) { m.x = sx - dir * 0.28 * (1 - i / 10); P.x = px + dir * 0.12 * (1 - i / 10); await g.wait(0.03); }

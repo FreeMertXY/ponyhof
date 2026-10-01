@@ -6,8 +6,8 @@ import { AudioEngine } from './audio.js';
 import { SaveManager, defaultState } from './save.js';
 import { Inventory } from './inventory.js';
 import { QuestEngine } from './quests.js';
-import { QUEST_BY_ID, CHAPTERS } from './data/quests.js';
-import { ITEMS, HORSE_FOOD, CROPS, itemName } from './data/items.js';
+import { QUEST_BY_ID, CHAPTERS, QUESTS } from './data/quests.js';
+import { ITEMS, HORSE_FOOD, CROPS, SEED_ORDER, itemName } from './data/items.js';
 import { NPCS, NPC_ORDER, VILLAGERS } from './data/npcs.js';
 import { SPECIES, SPECIES_ORDER } from './data/animals.js';
 import { WILD_HORSES, COATS } from './data/horses.js';
@@ -25,6 +25,9 @@ import { Race, RACES, MEDAL_NAMES } from './race.js';
 import { Screens } from './screens.js';
 import { runEnding } from './ending.js';
 import * as Sc from './scenes.js';
+import * as P2 from './part2.js';
+import * as S2 from './scenes2.js';
+import { runEnding2 } from './ending2.js';
 import { paintMiniMap } from './draw/terrain.js';
 import { makeCanvas, rr, outlinedText, FONT, star, heart, circ, ell } from './draw/paint.js';
 import { decoSprite, drawSprite } from './draw/objects.js';
@@ -87,7 +90,7 @@ export class Game {
 
   // ---------- Aufbau ----------
   initWorld() {
-    this.world = new World(this.S.farm);
+    this.world = new World(this.S.farm, this.S.season);
     this.renderer.setWorld(this.world);
     this.mapCanvas = makeCanvas(WW * 2, WH * 2);
     paintMiniMap(this.mapCanvas.getContext('2d'), this.world, 2);
@@ -111,11 +114,13 @@ export class Game {
 
   setupPlay() {
     const S = this.S;
-    this.world = new World(S.farm);
+    this.world = new World(S.farm, S.season);
     this.renderer.setWorld(this.world);
     this.mapCanvas = makeCanvas(WW * 2, WH * 2);
     paintMiniMap(this.mapCanvas.getContext('2d'), this.world, 2);
     this._fog = null;
+    this.props = [];
+    this.lesson = null;
     this.inv = new Inventory(S, (kind, id, n) => this.onInvChange(kind, id, n));
     const qctx = this.questCtx();
     qctx.inv = this.inv;
@@ -140,6 +145,7 @@ export class Game {
     this.sniffT = 3;
     this.setupHorses();
     this.restoreStory();
+    P2.refresh(this);
     this.rebuildEntities();
     // Deko-Kollision
     for (const d of S.deco) this.world.setDyn(d.x, d.y, true);
@@ -155,7 +161,11 @@ export class Game {
     this.cutscene = false;
     this.controlsLocked = false;
     if (S.flags.festivalMusic) this.audio.setMode('festival');
+    this.audio.season = S.season;
   }
+
+  refreshPart2() { P2.refresh(this); }
+  refreshNpcVisibility() { P2.updateNpcs(this); }
 
   // Zustände aus den neuen Kapiteln nach dem Laden wiederherstellen
   restoreStory() {
@@ -188,6 +198,7 @@ export class Game {
     if (S.player.riding && riding) this.player.mount(riding);
     else S.player.riding = false;
     for (const def of WILD_HORSES) {
+      if (def.part2) continue; // wird von Teil 2 verwaltet
       if (S.horses.some((h) => h.id === def.id)) continue;
       const sp = SPOTS.wildHorses[def.id];
       const h = new HorseEntity({ ...def, acc: {} }, 'wild', sp.x, sp.y);
@@ -200,7 +211,7 @@ export class Game {
   }
 
   rebuildEntities() {
-    this.entities = [this.player, ...this.npcs, ...this.animals, ...this.horses.filter((h) => h.mode !== 'ridden' && h.visible !== false), ...(this.race ? this.race.entities : []), ...(this.sceneEntities || []), ...(this.escort ? [this.escort] : [])];
+    this.entities = [this.player, ...this.npcs, ...this.animals, ...this.horses.filter((h) => h.mode !== 'ridden' && h.visible !== false), ...(this.race ? this.race.entities : []), ...(this.sceneEntities || []), ...(this.escort ? [this.escort] : []), ...(this.props || [])];
   }
 
   kittenState() {
@@ -231,7 +242,7 @@ export class Game {
       playerPos: () => ({ x: this.player.x, y: this.player.y }),
       flag: (n) => (n === 'kittenFollowing' ? this.S.flags.kitten === 'following' : this.S.flags[n]),
       timer: (action, id) => this.questTimer(action, id),
-      onTalk: (k) => { if (k === 'miraLost') Sc.miraLost(this); else if (k === 'escortStart') Sc.escortStart(this); },
+      onTalk: (k) => { if (k === 'miraLost') Sc.miraLost(this); else if (k === 'escortStart') Sc.escortStart(this); else if (S2[k]) S2[k](this); },
     };
   }
 
@@ -275,7 +286,18 @@ export class Game {
     this.state = 'play';
     this.ui.showHUD(true);
     this.ui.banner(regionName(this.world.regionAt(this.player.x, this.player.y), S.player.name), `Tag ${S.time.day}`);
+    P2.maybeStartPart2(this);
     return true;
+  }
+
+  // Direkt mit Teil 2 starten (ohne Spielstand von Teil 1)
+  startPart2Direct() {
+    this.S = P2.makePart2State();
+    this.setupPlay();
+    this.state = 'play';
+    this.ui.showHUD(true);
+    this.saveNow();
+    P2.maybeStartPart2(this);
   }
 
   quitToTitle() {
@@ -294,7 +316,8 @@ export class Game {
     return String(text)
       .replace(/\{name\}/g, S.player.name || 'Jolina')
       .replace(/\{horse\}/g, this.ridingRecord()?.name || 'dein Pferd')
-      .replace(/\{farm\}/g, genitive(S.player.name) + ' Ponyhof');
+      .replace(/\{farm\}/g, genitive(S.player.name) + ' Ponyhof')
+      .replace(/\{foal\}|\{hedgehog\}/g, (m) => P2.fmt2(S, m));
   }
   // Fohlen mitnehmen oder auf der Koppel lassen (sonst folgt nur Mira)
   setFoalFollow(rec, on) {
@@ -315,7 +338,7 @@ export class Game {
   npcById(id) { return this.npcs.find((n) => n.id === id); }
   horseEntity(id) { return this.horses.find((h) => h.id === id); }
   isOnFarm() { return this.world.regionAt(this.player.x, this.player.y) === REG.FARM; }
-  wildLeft() { return WILD_HORSES.filter((w) => !this.S.horses.some((h) => h.id === w.id)).length; }
+  wildLeft() { return WILD_HORSES.filter((w) => (!w.part2 || P2.isPart2(this.S)) && !this.S.horses.some((h) => h.id === w.id)).length; }
 
   say(lines, who = 'narr') {
     return this.dialog.show(lines, who);
@@ -444,6 +467,9 @@ export class Game {
     for (const a of this.animals) a.update(dt, this);
     if (this.sceneEntities) for (const e of this.sceneEntities) e.update?.(dt, this);
     if (this.race) this.race.update(dt);
+    if (this.props) for (const pr of this.props) pr.update?.(dt, this);
+    if (this.lesson) S2.updateLesson(this, dt);
+    P2.update(this, dt);
     if (this.escort) {
       this.escort.update(dt, this);
       if (!this.cutscene && this.state === 'play' && dist(this.player.x, this.player.y, SPOTS.lookout.x, SPOTS.lookout.y) < 4.5) this.pending.push(() => Sc.lookoutScene(this));
@@ -496,16 +522,20 @@ export class Game {
     const S = this.S;
     const gm = dt * 2; // 12 Minuten = 1 Tag
     S.time.minutes += gm;
-    this.growCrops(gm / 60, S.weather.kind === 'rain');
+    if ((S.season || 'summer') !== 'winter') this.growCrops(gm / 60, S.weather.kind === 'rain');
     if (S.time.minutes >= 1440) { S.time.minutes -= 1440; S.time.day++; this.newDay(); }
     // Wetter
     const now = S.time.day * 1440 + S.time.minutes;
     const W = S.weather;
     if (now >= W.until && !S.flags.noWeather) {
+      const season = S.season || 'summer';
       if (W.kind === 'rain') { W.kind = 'sun'; W.rainbowUntil = now + 70; W.until = now + 180 + Math.random() * 240; this.ui.toast('Ein Regenbogen!', 'rainbow'); }
-      else if (Math.random() < 0.3) { W.kind = 'rain'; W.until = now + 50 + Math.random() * 70; }
+      else if (W.kind === 'snow') { W.kind = 'sun'; W.until = now + 140 + Math.random() * 200; }
+      else if (Math.random() < (season === 'autumn' ? 0.4 : season === 'winter' ? 0.45 : 0.3)) { W.kind = season === 'winter' ? 'snow' : 'rain'; W.until = now + 50 + Math.random() * 70; }
       else W.until = now + 120 + Math.random() * 200;
     }
+    if (W.kind === 'rain' && (S.season || 'summer') === 'winter') W.kind = 'snow';
+    if (W.kind === 'snow' && (S.season || 'summer') !== 'winter') W.kind = 'sun';
     const target = now < W.rainbowUntil && W.kind !== 'rain' && !this.lightingNight ? 1 : 0;
     this.rainbowAlpha += (target - this.rainbowAlpha) * Math.min(1, dt * 0.8);
   }
@@ -526,6 +556,7 @@ export class Game {
   }
 
   applyAudioMode() {
+    this.audio.season = this.S.season || 'summer';
     if (this.state === 'title' || this.state === 'editor' || this.state === 'intro') this.audio.setMode('title');
     else if (this.S.flags.festivalMusic || this.race) this.audio.setMode('festival');
     else this.audio.setMode(this.lightingNight ? 'night' : 'day');
@@ -564,14 +595,24 @@ export class Game {
     this.hint('Geh zu deinem Pferd und drück <kbd>E</kbd> – dann „Füttern“.', 'feedAgain');
   }
 
+  // Welche Samen werden gesät? Zuerst die, die eine Aufgabe gerade braucht
+  seedForPlanting() {
+    for (const q of this.quests.active()) {
+      const st = this.quests.step(q);
+      if (st?.ev === 'plant' && st.filter && this.inv.has(CROPS[st.filter]?.seed)) return CROPS[st.filter].seed;
+    }
+    return SEED_ORDER.find((id) => this.inv.has(id)) || null;
+  }
+
   plotIndex(tx, ty) { return this.world.gardenPlots.findIndex((p) => p.x === tx && p.y === ty); }
 
   gardenAction(i) {
     const S = this.S;
     const g = S.garden[i] || (S.garden[i] = { crop: null, growth: 0, wet: 0 });
     const pl = this.world.gardenPlots[i];
+    if ((S.season || 'summer') === 'winter') { this.ui.hint('Im Winter ist die Erde gefroren – da wächst nichts. Im Frühling geht es weiter!', 4); return; }
     if (!g.crop) {
-      const seed = this.inv.has('seed_carrot') ? 'seed_carrot' : this.inv.has('seed_sunflower') ? 'seed_sunflower' : null;
+      const seed = this.seedForPlanting();
       if (!seed) {
         if (!this.S.flags.freeSeeds || this.S.flags.freeSeeds < S.time.day) {
           this.S.flags.freeSeeds = S.time.day;
@@ -583,11 +624,11 @@ export class Game {
         return;
       }
       this.inv.remove(seed, 1);
-      g.crop = seed === 'seed_carrot' ? 'carrot' : 'sunflower';
+      g.crop = Object.keys(CROPS).find((k) => CROPS[k].seed === seed) || 'carrot';
       g.growth = 0; g.ripeNotified = false;
       this.audio.play('dig');
       this.particles.dust(pl.x + 0.5, pl.y + 0.6, 4);
-      this.quests.emit('plant');
+      this.quests.emit('plant', g.crop);
       this.hint('Jetzt gießen: nochmal <kbd>E</kbd> drücken!', 'water');
     } else if (g.growth >= 1) {
       const c = CROPS[g.crop];
@@ -640,8 +681,12 @@ export class Game {
   }
 
   // ---------- Sammeln ----------
+  pickupKind(p) { return P2.pickupKind(this, p); }
+
   pickupAvailable(p) {
     const C = this.S.collected;
+    const r2 = P2.pickupAvailable(this, p);
+    if (r2 !== null) return r2;
     if (p.k === 'horseshoe') return !C.hs.includes(p.id);
     if (p.k === 'heartstone') return !C.hearts.includes(p.id) && this.quests.step(QUEST_BY_ID.s_herzsteine)?.ev === 'heartstone';
     const d = C.pick[p.id];
@@ -654,13 +699,14 @@ export class Game {
       if (p.x < view.x0 - 1 || p.x > view.x1 + 1 || p.y < view.y0 - 1 || p.y > view.y1 + 2) continue;
       const av = this.pickupAvailable(p);
       if (av) out.push(p.picked ? Object.assign(p, { picked: false }) : p);
-      else if (p.k === 'lavender' || p.k === 'sunflower') { p.picked = true; out.push(p); }
+      else if ((p.k === 'lavender' || p.k === 'sunflower') && (this.S.season || 'summer') !== 'winter') { p.picked = true; out.push(p); }
     }
     return out;
   }
 
   collectPickup(p) {
     const S = this.S;
+    if (P2.AUTO_KINDS.has(p.k) && p.k !== 'horseshoe' && p.k !== 'heartstone') { P2.collect(this, p); return; }
     if (p.k === 'heartstone') {
       S.collected.hearts.push(p.id);
       this.inv.add('heartstone', 1);
@@ -681,11 +727,11 @@ export class Game {
       this.horseshoeReward(n);
     } else {
       S.collected.pick[p.id] = S.time.day;
-      const item = p.k;
+      const item = this.pickupKind(p);
       this.inv.add(item, 1);
       this.audio.play('pling');
       this.particles.text(p.x, p.y - 0.3, `+1 ${ITEMS[item].name}`);
-      if (p.k === 'lavender' || p.k === 'sunflower' || p.k === 'poppy' || p.k === 'daisy') this.particles.add({ type: 'petal', x: p.x, y: p.y, z: 20, vz: 30, vx: 0.4, life: 1, color: p.k === 'lavender' ? '#b99af5' : p.k === 'poppy' ? '#ef4f5f' : p.k === 'sunflower' ? '#ffd23f' : '#fff' });
+      if (p.k === 'lavender' || p.k === 'sunflower' || p.k === 'poppy' || p.k === 'daisy' || p.k === 'snowdrop') this.particles.add({ type: 'petal', x: p.x, y: p.y, z: 20, vz: 30, vx: 0.4, life: 1, color: p.k === 'lavender' ? '#b99af5' : p.k === 'poppy' ? '#ef4f5f' : p.k === 'sunflower' ? '#ffd23f' : '#fff' });
       this.tutorial('bag');
     }
     this.requestSave();
@@ -709,7 +755,7 @@ export class Game {
   autoCollect() {
     const P = this.player;
     for (const p of this.world.pickups) {
-      if (p.k !== 'horseshoe' && p.k !== 'heartstone') continue;
+      if (!P2.AUTO_KINDS.has(p.k)) continue;
       if (Math.abs(p.x - P.x) < 0.8 && Math.abs(p.y - P.y) < 0.8 && this.pickupAvailable(p)) this.collectPickup(p);
     }
   }
@@ -718,6 +764,8 @@ export class Game {
 
   shakeTree(tree) {
     const S = this.S;
+    if ((S.season || 'summer') === 'winter') { this.ui.hint('Im Winter hängen keine Äpfel an den Bäumen. Theo und euer Hofladen haben aber welche!', 4); return; }
+    if ((S.season || 'summer') === 'spring') { this.ui.hint('Der Apfelbaum blüht gerade – Äpfel gibt es erst wieder im Sommer. Theo hat aber welche!', 4); return; }
     if (this.treeShaken(tree.id)) { this.ui.hint('Dieser Baum ist für heute leer geschüttelt. Morgen hängen neue Äpfel dran!'); return; }
     S.collected.trees[tree.id] = S.time.day;
     const n = 2 + Math.floor(Math.random() * 2);
@@ -757,6 +805,7 @@ export class Game {
         if (a.sp.pet && a.mode === 'follow') d += 1.3; // Mira ist immer da – andere Dinge haben Vorrang
         if (a === this.pets?.mira) { add(S.flags.miraLost ? d - 0.8 : d, S.flags.miraLost ? 'Mira rufen' : 'Mira', () => this.petAnimal(a), a.x, a.y - 0.9); continue; }
         if (a === this.pets?.manni && q.step(QUEST_BY_ID.p_flamingo)?.ev === 'give_manni' && this.inv.has('flamingo')) { add(d - 0.8, 'Flamingo geben', () => Sc.giveManni(this), a.x, a.y - 0.9); continue; }
+        if (a.species === 'alpaca' && this.questWants('alpaca_brush')) { add(d - 0.4, 'Bürsten', () => S2.brushAlpaca(this, a), a.x, a.y - 1.2); continue; }
         const food = a.sp.food && this.inv.has(a.sp.food) && (a.sp.shy || a.species === 'alpaca' || a.species === 'duckling' || a.species === 'seal');
         add(d + 0.1, food ? `Füttern (${ITEMS[a.sp.food].name})` : a.sp.verb, () => this.petAnimal(a), a.x, a.y - 0.9);
       }
@@ -764,12 +813,14 @@ export class Game {
     // Krümel suchen
     if (this.kitten.visible && !S.flags.kitten && (d = near(SPOTS.kitten.x, SPOTS.kitten.y, 2.4)) !== null) add(d - 0.5, 'Krümel rufen', () => this.findKitten(), SPOTS.kitten.x, SPOTS.kitten.y - 1);
     for (const p of this.world.pickups) {
-      if (p.k === 'horseshoe' || p.k === 'heartstone') continue;
+      if (P2.AUTO_KINDS.has(p.k)) continue;
       if (Math.abs(p.x - px) > 1.3 || Math.abs(p.y - py) > 1.3) continue;
       if (!this.pickupAvailable(p)) continue;
-      if ((d = near(p.x, p.y, 1.15)) !== null) add(d + 0.2, p.k === 'shell' ? 'Aufheben' : p.k === 'mushroom' ? 'Sammeln' : 'Pflücken', () => this.collectPickup(p), p.x, p.y - 0.8);
+      const pk = this.pickupKind(p);
+      if ((d = near(p.x, p.y, 1.15)) !== null) add(d + 0.2, pk === 'shell' || pk === 'stone' || pk === 'chestnut' || pk === 'pinecone' ? 'Aufheben' : pk === 'mushroom' ? 'Sammeln' : 'Pflücken', () => this.collectPickup(p), p.x, p.y - 0.8);
     }
-    for (const t of this.world.appleTrees) if ((d = near(t.x + 0.5, t.y + 0.9, 1.6)) !== null) add(d + 0.3, 'Äpfel schütteln', () => this.shakeTree(t), t.x + 0.5, t.y - 1);
+    const leafless = (S.season || 'summer') === 'winter' || (S.season || 'summer') === 'spring';
+    for (const t of this.world.appleTrees) if ((d = near(t.x + 0.5, t.y + 0.9, 1.6)) !== null) add(d + 0.3, leafless ? 'Apfelbaum' : 'Äpfel schütteln', () => this.shakeTree(t), t.x + 0.5, t.y - 1);
     // Beet vor den Füßen
     if (!P.riding) {
       const tx = Math.floor(px + fx * 0.5), ty = Math.floor(py + fy * 0.5 + 0.1);
@@ -806,6 +857,9 @@ export class Game {
     if (stepOf('p_show')?.ev === 'dog_show' && (d = near(SPOTS.show.x, SPOTS.show.y, 2.2)) !== null) add(d - 0.5, 'Hundeshow starten', () => Sc.dogShow(this), SPOTS.show.x, SPOTS.show.y - 1.2);
     if (stepOf('s_sterne')?.ev === 'stargaze' && (d = near(SPOTS.hillTop.x, SPOTS.hillTop.y, 2.4)) !== null) add(d - 0.5, 'Mit Mert Sterne gucken', () => Sc.stargaze(this), SPOTS.hillTop.x, SPOTS.hillTop.y - 1.4);
     if (S.farm.gazebo && (d = near(SPOTS.gazebo.x, SPOTS.gazebo.y - 0.2, 1.8)) !== null) add(d + 0.2, 'Schaukeln', () => this.swing(), SPOTS.gazebo.x, SPOTS.gazebo.y - 3);
+    // Spieluhr (Deko)
+    for (const dd of S.deco) if (dd.id === 'musicbox' && (d = near(dd.x + 0.5, dd.y + 1, 1.3)) !== null) add(d, 'Spieluhr aufziehen', () => S2.playMusicbox(this), dd.x + 0.5, dd.y - 0.4);
+    P2.addCandidates(this, add, near);
     if (!cands.length) return null;
     cands.sort((a, b) => a.d - b.d);
     return cands[0];
@@ -937,6 +991,8 @@ export class Game {
     }
     if (tg.wildId) { const h = this.horseEntity(tg.wildId); return h && h.mode === 'wild' ? { x: h.x, y: h.y } : null; }
     if (tg.x !== undefined) return { x: tg.x, y: tg.y };
+    const t2 = P2.targetPos(this, tg);
+    if (t2 !== undefined) return t2;
     return null;
   }
 
@@ -946,13 +1002,15 @@ export class Game {
     const act = this.quests.talk(id);
     n?.say?.('');
     if (act && act.kind === 'race') { await this.raceOffer(id, act.race); return; }
-    if (act && (act.kind === 'quest' || act.kind === 'ending')) {
+    if (act && (act.kind === 'quest' || act.kind === 'ending' || act.kind === 'ending2')) {
       await this.say(act.lines, id);
       act.run?.();
       this.requestSave();
       if (act.kind === 'ending') this.pending.push(() => runEnding(this));
+      if (act.kind === 'ending2') this.pending.push(() => runEnding2(this));
       if (act.after === 'party') this.pending.push(() => Sc.partyScene(this));
-      if (act.after === 'kissHeart') this.pending.push(() => Sc.mertHug(this, 'kiss'));
+      else if (act.after === 'kissHeart') this.pending.push(() => Sc.mertHug(this, 'kiss'));
+      else if (act.after && S2[act.after]) this.pending.push(() => S2[act.after](this));
       return;
     }
     if (act && act.kind === 'offer') {
@@ -978,14 +1036,16 @@ export class Game {
     if (id === 'mert') { opts.push(['Umarmen', () => Sc.mertHug(this, 'hug')]); opts.push(['Küsschen geben', () => Sc.mertHug(this, 'kiss')]); }
     opts.push(['Etwas schenken', () => this.ui.open('gift', id)]);
     if (id === 'hilde' && this.quests.isDone('k4_fest') && !this.S.ending.done) opts.unshift(['Das Sommerfest beginnen!', () => { this.pending.push(() => runEnding(this)); }]);
+    if (id === 'hilde' && this.quests.isDone('j13_fest') && !this.S.part2.done) opts.unshift(['Das Jahresfest beginnen!', () => { this.pending.push(() => runEnding2(this)); }]);
     if ((id === 'mia' || id === 'ben')) {
       const races = [];
       if (this.quests.isDone('k2_rennen1') && id === 'ben') races.push('race1');
       if (this.quests.isDone('k3_rennen2') && id === 'mia') races.push('race2');
       if (this.quests.isDone('k4_rennen3') && id === 'mia') races.push('race3');
+      if (this.quests.isDone('j13_pokal') && id === 'mia') races.push('cup');
       for (const r of races) opts.push([`Revanche: ${RACES[r].name}`, () => this.raceOffer(id, r, true)]);
     }
-    if (id === 'hilde' && this.S.ending.done) opts.push(['Das Fest nochmal erleben', () => this.replayFireworks()]);
+    if (id === 'hilde' && this.S.ending.done && !P2.isPart2(this.S)) opts.push(['Das Fest nochmal erleben', () => this.replayFireworks()]);
     opts.push(['Tschüss!', () => {}]);
     const greet = short ? 'Kann ich sonst noch etwas für dich tun?' : this.greeting(id);
     const c = await this.ask(greet, opts.map((o) => o[0]), id);
@@ -995,13 +1055,18 @@ export class Game {
   greeting(id) {
     const h = this.S.time.minutes / 60;
     const tod = h < 11 ? 'Guten Morgen' : h < 18 ? 'Hallo' : 'Guten Abend';
-    const g = { hilde: `${tod}, mein Schatz!`, mert: 'Hey {name}! Na, alles gut bei dir?', theo: 'Hm-hm. Was darf’s sein?', berta: `${tod}, {name}! Frisch gebacken ist alles!`, luise: 'Wie entzückend, dich zu sehen!', paula: 'Zack, zack – was gibt’s?', mia: 'Hey {name}! Na, wie geht’s {horse}?', ben: 'Oh, h-hallo {name}!', kuno: 'Ahoi, {name}!' };
+    const g = { hilde: `${tod}, mein Schatz!`, mert: 'Hey {name}! Na, alles gut bei dir?', theo: 'Hm-hm. Was darf’s sein?', berta: `${tod}, {name}! Frisch gebacken ist alles!`, luise: 'Wie entzückend, dich zu sehen!', paula: 'Zack, zack – was gibt’s?', mia: 'Hey {name}! Na, wie geht’s {horse}?', ben: 'Oh, h-hallo {name}!', kuno: 'Ahoi, {name}!', lotte: 'Hallo {name}! Darf ich heute wieder reiten?', ella: `${tod}! Wie geht es deinen Tieren?` };
     return g[id] || `${tod}!`;
   }
 
   async chat(id) {
+    const npc = NPCS[id];
+    if (P2.isPart2(this.S) && npc.lines2) {
+      const l = npc.lines2[this.S.season || 'summer'] || npc.lines2.summer;
+      if (l?.length) { await this.say([pick(l)], id); return; }
+    }
     const ch = Math.min(3, this.quests.chapter() - 1);
-    const lines = NPCS[id].lines[ch] || NPCS[id].lines[0];
+    const lines = npc.lines[ch] || npc.lines[0];
     await this.say([pick(lines)], id);
   }
 
@@ -1034,6 +1099,7 @@ export class Game {
   toggleRide() {
     const P = this.player;
     this.audio.init();
+    if (this.lesson) { this.ui.hint('Bei der Reitstunde führst du das Pony zu Fuß.', 3); return; }
     if (this.race && this.race.active && this.race.phase !== 'done') { this.ui.hint('Während des Rennens bleibst du im Sattel!'); return; }
     if (P.riding) {
       if (!P.dismount()) { this.ui.hint('Hier kannst du nicht absteigen – das Wasser ist zu tief oder ein Zaun ist im Weg.'); return; }
@@ -1244,7 +1310,7 @@ export class Game {
       const reg = this.regionName(this.world.regionAt(a.x, a.y));
       S.album[key] = { day: S.time.day, where: reg };
       this.audio.play('pling');
-      this.ui.toast(`Neu im Tieralbum: ${SPECIES[key].name}! (${Object.keys(S.album).length}/14)`, iconFor(key), 'mint');
+      this.ui.toast(`Neu im Tieralbum: ${SPECIES[key].name}! (${Object.keys(S.album).length}/${P2.isPart2(S) ? SPECIES_ORDER.length : 14})`, iconFor(key), 'mint');
       this.tutorial('album');
       this.quests.checkPassive();
       if (Object.keys(S.album).length >= 14 && !S.albumRewarded) {
@@ -1257,6 +1323,17 @@ export class Game {
           this.audio.play('fanfare');
           this.particles.confetti(this.player.x, this.player.y, 60);
           await this.say(['Dein Tieralbum ist vollständig! Alle 14 Tierarten!', 'Belohnung: der Goldene Blütenkranz für dein Pferd, ein Blütenhaarreif für dich und 100 Münzen!']);
+        });
+      }
+      if (Object.keys(S.album).length >= SPECIES_ORDER.length && !S.album2Rewarded) {
+        S.album2Rewarded = true;
+        this.inv.unlock('wreath_stern');
+        this.inv.addCoins(200);
+        S.memories.push({ type: 'album2', day: S.time.day });
+        this.pending.push(async () => {
+          this.audio.play('fanfare');
+          this.particles.confetti(this.player.x, this.player.y, 80);
+          await this.say([`Alle ${SPECIES_ORDER.length} Tierarten im Album! Du kennst jedes Tier der ganzen Gegend.`, 'Belohnung: der Sternenkranz für dein Pferd und 200 Münzen!']);
         });
       }
     } else if (fed && SPECIES[a.species]) this.ui.hint(`${SPECIES[a.species].name} hat dir aus der Hand gefressen! ♥`, 3);
@@ -1312,8 +1389,9 @@ export class Game {
     const m = this.pets?.mira, P = this.player;
     if (!m || m.mode !== 'follow') return;
     let best = null, bd = 6.5;
+    const p2 = P2.isPart2(this.S);
     for (const p of this.world.pickups) {
-      if (p.k !== 'horseshoe' || !this.pickupAvailable(p) || this.sniffed.has(p.id)) continue;
+      if ((p.k !== 'horseshoe' && !(p2 && p.k === 'clover')) || !this.pickupAvailable(p) || this.sniffed.has(p.id)) continue;
       const d = dist(p.x, p.y, P.x, P.y);
       if (d < bd) { bd = d; best = p; }
     }
@@ -1326,7 +1404,7 @@ export class Game {
     this.audio.play('bark');
     this.particles.add({ type: 'text', x: m.x, y: m.y - 0.8, z: 30, vz: 20, life: 1.6, text: '!', color: '#ffd23f' });
     const dir = Math.abs(best.x - P.x) > Math.abs(best.y - P.y) ? (best.x > P.x ? 'Osten' : 'Westen') : best.y > P.y ? 'Süden' : 'Norden';
-    this.ui.hint(`Mira schnüffelt aufgeregt und zieht Richtung ${dir} – hier ist bestimmt ein goldenes Hufeisen versteckt!`, 5);
+    this.ui.hint(`Mira schnüffelt aufgeregt und zieht Richtung ${dir} – hier ist bestimmt ${best.k === 'clover' ? 'ein vierblättriges Kleeblatt' : 'ein goldenes Hufeisen'} versteckt!`, 5);
   }
 
   // ---------- Besondere Orte ----------
@@ -1334,15 +1412,18 @@ export class Game {
     const h = this.S.time.minutes / 60;
     const c = await this.ask(h >= 18 || h < 5 ? 'Es ist schon spät. Möchtest du schlafen gehen?' : 'Möchtest du ein Nickerchen bis zum nächsten Morgen machen?', ['Ja, schlafen bis zum Morgen', 'Nein, noch nicht'], 'narr');
     if (c !== 0) return;
-    await this.say([{ who: 'mert', t: pick(['Gute Nacht, {name}. Träum was Schönes. Am besten von mir. ♥', 'Schlaf gut! Ich pass auf, dass Maumau dir nicht wieder aufs Gesicht legt.', 'Gute Nacht, meine Liebe. Mira hat schon deine Hälfte vom Bett erobert.']) }]);
+    const nightLines = ['Gute Nacht, {name}. Träum was Schönes. Am besten von mir. ♥', 'Schlaf gut! Ich pass auf, dass Maumau dir nicht wieder aufs Gesicht legt.', 'Gute Nacht, meine Liebe. Mira hat schon deine Hälfte vom Bett erobert.'];
+    if ((this.S.season || 'summer') === 'winter') nightLines.push('Kuschelsocken an? Wärmflasche? Gut. Gute Nacht, mein Schneeflöckchen. ♥');
+    if (this.S.farm.cottage) nightLines.push('Gute Nacht in unserem eigenen Häuschen. Ich kann mich einfach nicht daran gewöhnen, wie schön das ist. ♥');
+    await this.say([{ who: 'mert', t: pick(nightLines) }]);
     this.cutscene = true;
     await this.fade(true);
     const S = this.S;
     const hoursLeft = ((24 * 60 - S.time.minutes) + 7 * 60) / 60;
-    this.growCrops(hoursLeft, false);
+    if ((S.season || 'summer') !== 'winter') this.growCrops(hoursLeft, false);
     S.time.day++;
     S.time.minutes = 7 * 60;
-    S.weather.kind = 'sun'; S.weather.until = S.time.day * 1440 + 11 * 60;
+    S.weather.kind = (S.season || 'summer') === 'winter' && Math.random() < 0.4 ? 'snow' : 'sun'; S.weather.until = S.time.day * 1440 + 11 * 60;
     this.player.x = FARM.house.door.x; this.player.y = FARM.house.door.y + 0.8;
     this.player.face = 'down';
     this.renderer.follow(this.player.x, this.player.y, 0, true);
@@ -1396,6 +1477,13 @@ export class Game {
     const S = this.S;
     const hb = this.quests.step(QUEST_BY_ID.h_brief);
     if (hb && hb.ev === 'read_letter') { await Sc.readLetter(this); return; }
+    if (P2.isPart2(S)) {
+      const tips2 = P2.mailLetters(this);
+      const i2 = (S.time.day + (S.flags.mailI || 0)) % tips2.length;
+      S.flags.mailI = (S.flags.mailI || 0) + 1;
+      await this.say([{ who: 'narr', t: tips2[i2] }]);
+      return;
+    }
     const tips = [
       'Ein Brief von Oma Hilde: „Regen gießt deinen Garten. Und nach dem Regen kommt oft ein Regenbogen!“',
       'Eine Postkarte von Paula: „Vom Aussichtspunkt in den Wolkenbergen sieht man die ganze Gegend!“',
@@ -1498,13 +1586,14 @@ export class Game {
       lines.push({ who: 'narr', t: `Geschafft! Zeit: ${time.toFixed(2)} Sekunden – Medaille: ${medalTxt}!${S.stats.parcoursBest === time ? ' Neue Bestzeit!' : ''}` });
       if (medal !== 'gold') lines.push({ who: 'narr', t: `Für Gold musst du unter ${RACES.parcours.medals[0]} Sekunden bleiben. Galoppieren (Shift) und direkt über die Hürden springen!` });
     } else {
-      lines.push({ who: 'narr', t: `Ziel! Du bist ${place === 1 ? 'Erste' : place === 2 ? 'Zweite' : 'Dritte'} geworden – ${medalTxt}! (${time.toFixed(1)} s)` });
+      lines.push({ who: 'narr', t: `Ziel! Du bist ${['Erste', 'Zweite', 'Dritte', 'Vierte'][place - 1] || 'im Ziel'} geworden – ${medalTxt}! (${time.toFixed(1)} s)` });
       const rival = race.rivals[0]?.id;
       const talk = {
         race1: place === 1 ? ['W-wow, du bist so schnell! Das schreib ich in mein Buch: „{name}: blitzschnell.“'] : ['Ich … hab gewonnen? Das muss ich sofort Mia erzählen! Du warst aber auch super!'],
         race2: place === 1 ? ['Waaas? Blitz und ich waren noch nie so knapp dran! Respekt, {name}!'] : ['Ha! Gewonnen! Aber du wirst immer besser, das merk ich.'],
         race3: place === 1 ? ['Unglaublich! Du hast uns beide geschlagen!', { who: 'ben', t: 'Ich wusste es. Ich hab es sogar aufgeschrieben.' }] : ['Knapp! Beim nächsten Mal hast du uns bestimmt.', { who: 'ben', t: 'D-du warst trotzdem toll!' }],
         finale: place === 1 ? ['Die Siegerin des Sommerfest-Rennens: {name}!'] : ['Was für ein Rennen! Alle jubeln für dich!'],
+        cup: place === 1 ? ['Waaas? Den Kleeberg-Pokal gewinnt … {name}! Mit {horse}! Das ist LEGENDÄR!', { who: 'lotte', t: 'Ich bin auch angekommen! Mit Butterblume! Das ist auch legendär, oder?' }] : ['Knapp! Der Kleeberg-Pokal war das spannendste Rennen aller Zeiten!', { who: 'lotte', t: 'Ich bin nicht runtergefallen! Kein einziges Mal!' }],
       }[race.id] || [];
       for (const l of talk) lines.push(typeof l === 'string' ? { who: rival, t: l } : l);
     }
@@ -1552,12 +1641,13 @@ export class Game {
     this.audio.play('quest');
     this.ui.pulseTracker();
     if (q.id === 'k1_pflege') this.later(4, () => this.tutorial('pet'));
+    if (q.season && (this.S.season || 'summer') !== q.season && P2.isPart2(this.S) && q.season !== 'autumn') this.pending.push(() => P2.changeSeason(this, q.season));
     if (q.main && q.chapter > 1 && QUEST_BY_ID[q.id] && q.requires.length && !this._chapterShown?.[q.chapter]) {
       // Kapitelbanner, wenn das erste Kapitel-Quest startet
       this._chapterShown = this._chapterShown || {};
       if (q.requires.every((r) => QUEST_BY_ID[r].chapter < q.chapter)) {
         this._chapterShown[q.chapter] = true;
-        this.later(1, () => this.ui.banner(`Kapitel ${q.chapter}`, CHAPTERS[q.chapter - 1].title));
+        this.later(q.season && q.season !== 'autumn' ? 6 : 1, () => this.ui.banner(q.chapter > 6 ? `Teil 2 · Kapitel ${q.chapter}` : `Kapitel ${q.chapter}`, CHAPTERS[q.chapter - 1].title));
       }
     }
     if (q.id === 'k1_kruemel') this.later(0.1, () => this.kittenState());
@@ -1575,6 +1665,13 @@ export class Game {
     if (r.memory && !this.S.memories.some((m) => m.type === r.memory)) this.S.memories.push({ type: r.memory, day: this.S.time.day });
     if (r.farm) this.pending.push(() => this.farmUpgrade(r.farm));
     if (q.id === 'k1_kruemel') { this.S.flags.kitten = 'home'; this.later(0.2, () => this.kittenState()); }
+    if (r.foalGrow) { const f = P2.foalRec(this.S); if (f && f.foal) f.grow = Math.max(f.grow || 0, r.foalGrow); }
+    // Kapitel in Teil 2 geschafft?
+    if (q.main && q.chapter > 6 && QUESTS.filter((x) => x.main && x.chapter === q.chapter).every((x) => this.quests.isDone(x.id))) {
+      const lines = P2.chapterLines(q.chapter);
+      if (lines) this.pending.push(async () => { await this.wait(0.5); this.ui.banner(`Kapitel ${q.chapter} geschafft!`, CHAPTERS[q.chapter - 1].title); this.audio.play('fanfare'); await this.wait(2); await this.say(lines); });
+    }
+    if (P2.isPart2(this.S)) this.later(0.3, () => P2.refresh(this));
     this.requestSave();
   }
 
@@ -1592,13 +1689,21 @@ export class Game {
       festival: ['Die Festwiese ist geschmückt!', 'Lampions, Wimpelketten und Blumenbögen – das Sommerfest kann kommen!'],
       gazebo: ['Die Rosenlaube ist fertig!', 'Ein Plätzchen nur für euch zwei – mit Schaukel.'],
       petcorner: ['Das Tierparadies ist fertig!', 'Katzenhaus, Kratzbaum und Miras eigene Hundehütte.'],
+      farmshop: ['Euer eigener Hofladen!', 'Am Hoftor: Heu, Karotten, Äpfel und Samen – und Verkaufen geht hier auch.'],
+      igelhaus: ['Das Igelhaus ist fertig!', `${this.S.flags.hedgehog || 'Stachelchen'} hat ein gemütliches Zuhause.`],
+      arena: ['Der Reitplatz ist fertig!', 'Weicher Sand, weißer Zaun – südlich der Festwiese.'],
+      school: ['Die kleine Reitschule!', 'Mit Schild, Bank und der besten Reitlehrerin der Welt.'],
+      winterlights: ['Lichterglanz auf dem Hof!', 'Lichterketten am Wohnhaus und ein Weihnachtsbaum auf dem Hofplatz.'],
+      tulips: ['Ein Meer aus Tulpen!', 'Rund um euer Häuschen blühen jetzt Opa Karls Tulpen.'],
+      cottage: ['Euer eigenes Häuschen!', 'Rechts neben der Festwiese – mit Herzfenster und Veranda.'],
     };
     this.cutscene = true;
     await this.fade(true);
     for (let i = 0; i < 4; i++) { this.audio.play('land'); await this.wait(0.25); }
     this.S.farm[kind] = true;
     this.rebuildWorldKeepState();
-    const focus = { stable: [81, 86], paddock: [82, 99], flowerGarden: [103, 99], festival: [85, 115], gazebo: [100.5, 79.5], petcorner: [103.5, 107.5] }[kind];
+    const focus = { stable: [81, 86], paddock: [82, 99], flowerGarden: [103, 99], festival: [85, 115], gazebo: [100.5, 79.5], petcorner: [103.5, 107.5], farmshop: [95, 90.5], igelhaus: [94.5, 107.6], arena: [72, 125], school: [76, 125], winterlights: [80, 88], tulips: [103, 117], cottage: [103.5, 116] }[kind];
+    if (P2.isPart2(this.S)) P2.refresh(this);
     if (kind === 'petcorner') {
       const pets = this.pets;
       pets.maumau.homeX = 102; pets.maumau.homeY = 109.2; pets.manni.homeX = 106.5; pets.manni.homeY = 108.8;
@@ -1628,6 +1733,7 @@ export class Game {
     this.cutscene = false;
     this.saveNow();
     if (kind === 'gazebo') this.pending.push(() => Sc.gazeboScene(this));
+    if (kind === 'cottage') this.pending.push(() => S2.richtfest(this));
   }
 
   async swing() {
@@ -1639,7 +1745,7 @@ export class Game {
   }
 
   rebuildWorldKeepState() {
-    this.world = new World(this.S.farm);
+    this.world = new World(this.S.farm, this.S.season);
     this.renderer.setWorld(this.world);
     this.mapCanvas = makeCanvas(WW * 2, WH * 2);
     paintMiniMap(this.mapCanvas.getContext('2d'), this.world, 2);
@@ -1721,7 +1827,7 @@ export class Game {
   collectLights(view) {
     const out = [];
     for (const l of this.world.lights) if (l.x > view.x0 - 8 && l.x < view.x1 + 8 && l.y > view.y0 - 8 && l.y < view.y1 + 8) out.push(l);
-    for (const d of this.S.deco) if (d.id === 'lantern') out.push({ x: d.x + 0.5, y: d.y - 0.1, r: 3.5, c: '#ffe1a8' });
+    for (const d of this.S.deco) if (d.id === 'lantern' || d.id === 'pumpkinlamp' || d.id === 'starlamp') out.push({ x: d.x + 0.5, y: d.y - 0.1, r: 3.5, c: d.id === 'pumpkinlamp' ? '#ffc87a' : '#ffe1a8' });
     // Fenster
     for (const o of this.world.objects) if (o.k === 'bld' && o.type !== 'lighthouse' && o.x > view.x0 - 8 && o.x < view.x1 + 2 && o.y > view.y0 - 4 && o.y < view.y1 + 4) out.push({ x: o.x + o.w / 2, y: o.y + o.h - 0.7, r: 3.2, c: '#ffd99a' });
     out.push({ x: this.player.x, y: this.player.y - 0.5, r: 3.4 });
@@ -1767,6 +1873,45 @@ export class Game {
     this.cutscene = false;
     this.ui.banner(this.regionName(REG.FARM), 'Willkommen zu Hause!');
     this.saveNow();
+  }
+
+  // ---------- Fotoalbum (Teil 2) ----------
+  capturePhoto() {
+    try {
+      this.renderer.draw(this, this.t);
+      const src = this.canvas;
+      const w = 480, h = Math.round((src.height / src.width) * w);
+      const c = makeCanvas(w, h);
+      c.getContext('2d').drawImage(src, 0, 0, w, h);
+      return c.toDataURL('image/jpeg', 0.78);
+    } catch (e) { console.warn('Foto fehlgeschlagen', e); return null; }
+  }
+
+  loadPhotos() {
+    try { return JSON.parse(localStorage.getItem('ponyhof.photos') || '{}'); } catch { return {}; }
+  }
+
+  storePhoto(id, url) {
+    const all = this.loadPhotos();
+    all[id] = url;
+    try { localStorage.setItem('ponyhof.photos', JSON.stringify(all)); } catch { /* Speicher voll: nur die Erinnerung bleibt */ }
+  }
+
+  showPolaroid(url, name) {
+    const el = document.getElementById('polaroid');
+    if (!el) return;
+    el.innerHTML = `${url ? `<img src="${url}" alt="">` : '<div class="pol-empty">♥</div>'}<div class="pol-cap">${name}</div>`;
+    el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+    clearTimeout(this._polT);
+    this._polT = setTimeout(() => el.classList.remove('show'), 3200);
+  }
+
+  // Schneekugel: Jahreszeit im freien Spiel wählen
+  async chooseSeason() {
+    const opts = ['Frühling', 'Sommer', 'Herbst', 'Winter', 'Abbrechen'];
+    const c = await this.ask('Du schüttelst Opa Karls Schneekugel … Welche Jahreszeit soll es sein?', opts, 'narr');
+    const season = ['spring', 'summer', 'autumn', 'winter'][c];
+    if (season) this.pending.push(() => P2.changeSeason(this, season));
   }
 
   hudAction(act) {

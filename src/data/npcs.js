@@ -138,5 +138,96 @@ export const NPCS = {
   },
 };
 
-export const NPC_ORDER = ['hilde', 'mert', 'berta', 'luise', 'theo', 'paula', 'mia', 'ben', 'kuno'];
+// ---------- Teil 2: neue Bewohnerinnen ----------
+NPCS.lotte = {
+  name: 'Lotte', title: 'Mias kleine Cousine', home: 'village', kid: true, part2: true,
+  look: { skin: 0, hair: 'bob', hairColor: '#f4d27a', outfit: { main: '#ffd23f', second: '#5b8fd9', style: 'jacket' }, freckles: true },
+  voice: 1.6,
+  lines: [['Ähm … hallo! Ich mag Pferde. Sehr. Sehr sehr.']],
+  loves: ['carrot', 'cookies'], likes: ['daisy', 'apple', 'snowdrop'],
+  thanks: 'Für mich?! Danke, danke, danke!',
+  giftBack: { item: 'daisy', n: 1 },
+};
+NPCS.ella = {
+  name: 'Tierärztin Ella', title: 'Tierärztin', home: 'village', part2: true,
+  look: { skin: 4, hair: 'curly', hairColor: '#2e2430', outfit: { main: '#ffffff', second: '#7fcdea', style: 'vest' }, bag: '#e86f7d', necklace: '#8a9aaa' },
+  voice: 1.05,
+  lines: [['Hallo! Ich bin Ella. Tierärztin. Und Igel-Flüsterin.']],
+  loves: ['tulip', 'pumpkinpie'], likes: ['juice', 'apple', 'snowdrop'],
+  thanks: 'Wie aufmerksam! Das kommt auf meinen Schreibtisch.',
+  giftBack: { coins: 8 },
+};
+
+// Plaudersätze in Teil 2, je nach Jahreszeit
+const L2 = {
+  hilde: {
+    autumn: ['Ich schreibe euch jede Woche, versprochen!'],
+    winter: ['Schnee auf dem Ponyhof … wie in meinen Kindertagen.', 'Ein Becher heißer Kakao, und alles ist gut.'],
+    spring: ['Die Tulpen von Karl … ich sehe sie schon blühen.', 'Gerda lässt grüßen. Sie will euch im Sommer besuchen!'],
+    summer: ['Ein ganzes Jahr, {name}. Und jeder Tag war ein Geschenk.', 'Euer Häuschen ist das schönste weit und breit.'],
+  },
+  mert: {
+    autumn: ['Herbst ist meine Lieblingsjahreszeit. Wegen der Farben. Und wegen dir. Vor allem wegen dir.', 'Manni hat heute versucht, ein Blatt zu fangen. Er hat verloren.', '{foal} hat heute mein Halstuch gefressen. Fast. Ich hab’s gerettet.'],
+    winter: ['Deine Nase ist ganz rot vor Kälte. Steht dir!', 'Mira hat einen Schneeengel gemacht. Also, sie hat sich im Schnee gewälzt.', 'Weißt du, was das Beste am Winter ist? Kuscheln. Eindeutig Kuscheln.'],
+    spring: ['Alles blüht! Sogar Theo hat heute gelächelt.', '{foal} ist so groß geworden. Wo ist nur die Zeit hin?', 'Die Vögel singen schon um fünf Uhr früh. Ich auch. Leider.'],
+    summer: ['Ein Jahr mit dir auf dem Hof. Ich würde jeden Tag genauso wieder erleben.', 'Unser Häuschen … ich kann es immer noch nicht glauben.', 'Ich bin so stolz auf dich, {name}. Hab ich das heute schon gesagt? Dann jetzt nochmal.'],
+  },
+  berta: {
+    autumn: ['Kürbiskuchen, Apfelkuchen, Zwetschgenkuchen – der Herbst ist ein Kuchenfest!', 'Hilde hat geschrieben! Aus Bremerhaven. Mit Möwe auf der Karte!'],
+    winter: ['In der Backstube ist es mollig warm. Komm rein, Schätzchen!', 'Krümel schläft jetzt den ganzen Winter auf dem Ofen.'],
+    spring: ['Frühlingszwiebelbrot! Neu im Sortiment.', 'Die Störche sind zurück – dann wird alles gut.'],
+    summer: ['Ein Jahr schon? Kinder, wie die Zeit vergeht.', 'Für das Jahresfest backe ich eine Torte in Hufeisenform!'],
+  },
+  luise: {
+    autumn: ['Herbstfarben! Rost, Senf, Kürbis – ich bin im Stoffhimmel.'],
+    winter: ['Strickzeit! Ich stricke gerade einen Schal für Theo. Er weiß es noch nicht.'],
+    spring: ['Pastell! Endlich wieder Pastell!'],
+    summer: ['Für das Jahresfest nähe ich Wimpelketten in allen Farben eines ganzen Jahres.'],
+  },
+  theo: {
+    autumn: ['Hm-hm. Warum fallen Blätter im Herbst? Weil sie es satthaben. Hehe.'],
+    winter: ['Was sagt ein Schneemann zum anderen? „Riechst du auch Karotten?“ Hm-hm.'],
+    spring: ['Tulpenzwiebeln im Angebot. Die bringen mich nicht zum Weinen. Hehe.'],
+    summer: ['Ein Jahr Ponyhof. Mein Umsatz bei Karotten hat sich verdreifacht. Danke.'],
+  },
+  paula: {
+    autumn: ['Herbstwind von vorne – das ist Training für die Waden!'],
+    winter: ['Weihnachtspost! Ich fahre jetzt mit Schneeketten am Fahrrad.'],
+    spring: ['Die Störche bringen Post aus dem Süden. Also, irgendwie.'],
+    summer: ['Ein Jahr, in dem ich dir Post bringen durfte. Zack, zack – nächstes Jahr wieder!'],
+  },
+  mia: {
+    autumn: ['Lotte malt jetzt NUR noch dich und Pferde. Manchmal auch mich. Klein. In der Ecke.'],
+    winter: ['Im Schnee galoppieren ist das Größte! Blitz liebt es.'],
+    spring: ['Bald ist wieder Rennsaison. Ich trainiere schon!'],
+    summer: ['Der Kleeberg-Pokal wird legendär. LEGENDÄR!'],
+  },
+  ben: {
+    autumn: ['W-wusstest du, dass Igel bis zu fünf Monate Winterschlaf halten?'],
+    winter: ['Rotkehlchen bleiben den ganzen Winter hier. Tapfere kleine Vögel.'],
+    spring: ['Die ersten Kaulquappen im Glitzersee! Ich hab sie gezählt. 412. Ungefähr.'],
+    summer: ['In meinem Tierbuch hast du jetzt ein eigenes Kapitel. „Die Pferdefrau“.'],
+  },
+  kuno: {
+    autumn: ['Herbststürme! Da muss mein Leuchtturm ganz besonders hell leuchten.'],
+    winter: ['Das Meer friert nie zu. Zu salzig. Wie meine Witze.'],
+    spring: ['Die Robben haben Junge! Kleine Kugeln mit Schnurrbart.'],
+    summer: ['Ein Jahr, in dem du mich besucht hast. Das hat mein altes Seemannsherz gewärmt.'],
+  },
+  lotte: {
+    autumn: ['Ich hab heute ein Pferd gemalt, das aussieht wie deins. Nur mit Flügeln.', 'Mia sagt, ich bin mutig geworden. Ich glaub, das stimmt!'],
+    winter: ['Im Winter haben Pferde Plüschfell! Wie Teddys mit Hufen!', 'Ich hab einen Schneemann gebaut. Er heißt Herr Möhre.'],
+    spring: ['Wenn ich groß bin, werde ich Reitlehrerin. Wie du!', 'Die Fohlen auf der Wildpferdewiese sind sooo süß!'],
+    summer: ['Beim Kleeberg-Pokal reite ich mit! Ein bisschen. Hinten.', 'Du bist meine allerliebste Reitlehrerin der Welt.'],
+  },
+  ella: {
+    autumn: ['Igel brauchen im Herbst viel Futter. Katzenfutter mögen sie übrigens auch.', 'Mein Wartezimmer ist heute voller Meerschweinchen. Fünf Stück. Alle heißen Fluffy.'],
+    winter: ['Im Winter brauchen Pferde viel Heu. Das wärmt von innen!', 'Stachelchen schläft tief und fest. Ich hab nachgeschaut. Leise.'],
+    spring: ['Frühling ist Babyzeit! Überall Küken, Lämmer und Fohlen.', 'Hast du die Störche auf dem Postdach gesehen?'],
+    summer: ['Deine Tiere sind die gesündesten in ganz Kleeberg. Das liegt an dir.', 'Ein Jahr Ponyhof – und ein Jahr Ella in Kleeberg. Wir sind ein gutes Team!'],
+  },
+};
+for (const [id, l] of Object.entries(L2)) NPCS[id].lines2 = l;
+
+export const NPC_ORDER = ['hilde', 'mert', 'berta', 'luise', 'theo', 'paula', 'mia', 'ben', 'kuno', 'lotte', 'ella'];
 export const VILLAGERS = ['berta', 'luise', 'theo', 'paula', 'mia', 'ben'];

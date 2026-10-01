@@ -167,6 +167,12 @@ await shot('20-stats');
 await page.click('#cr-go');
 await page.waitForTimeout(2500);
 await shot('21-after');
+// direkt weiter mit Teil 2: Introkarten
+for (let i = 0; i < 40 && !(await page.$('#st-next')); i++) await page.waitForTimeout(250);
+let p2cards = 0;
+while (await page.$('#st-next')) { await page.click('#st-next'); p2cards++; await page.waitForTimeout(400); if (p2cards > 8) break; }
+await page.waitForTimeout(3500);
+console.log('Teil 2 direkt danach', p2cards, await ev(() => JSON.stringify({ state: T.g.state, season: T.g.S.season, part2: T.g.S.part2, active: T.g.quests.active().map((q) => q.id) })));
 console.log('Abspann-Seiten', pages);
 console.log(await ev(() => JSON.stringify({ state: T.g.state, ending: T.g.S.ending, horses: T.g.S.horses.map((h) => h.name), mem: T.g.S.memories.map((m) => m.type), questsDone: T.g.quests.done().length, kittens: T.g.S.flags.kittens })));
 // Speichern & Laden nach dem Ende

@@ -12,7 +12,9 @@
 //   talkAll  { npcs, lines:{npc:[…]} }       – mit allen genannten Personen sprechen
 // Zeilen: 'Text' (Sprecher = npc des Schritts) oder { who: 'mia', t: 'Text' }. who 'player' = Spielerin.
 
-export const CHAPTERS = [
+import { QUESTS2, CHAPTERS2 } from './quests2.js';
+
+const CHAPTERS1 = [
   { n: 1, title: 'Ein neuer Anfang', reward: 'Der Stall wird repariert' },
   { n: 2, title: 'Neue Freunde', reward: 'Die Koppel wird erweitert' },
   { n: 3, title: 'Blütenzauber', reward: 'Ein Blumengarten entsteht' },
@@ -21,7 +23,7 @@ export const CHAPTERS = [
   { n: 6, title: 'Das Sommerfest', reward: 'Die Festwiese wird geschmückt' },
 ];
 
-export const QUESTS = [
+const QUESTS1 = [
   // ---------------- Kapitel 1 ----------------
   {
     id: 'k1_pflege', chapter: 1, main: true, title: 'Ein Pferd zum Liebhaben', giver: 'hilde', requires: [],
@@ -682,4 +684,7 @@ export const QUESTS = [
   },
 ];
 
+export const CHAPTERS = [...CHAPTERS1, ...CHAPTERS2];
+export const QUESTS = [...QUESTS1, ...QUESTS2];
 export const QUEST_BY_ID = Object.fromEntries(QUESTS.map((q) => [q.id, q]));
+export const PART1_CHAPTERS = CHAPTERS1.length;

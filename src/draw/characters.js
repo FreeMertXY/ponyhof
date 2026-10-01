@@ -230,6 +230,22 @@ function drawHat(ctx, L, dir) {
       ctx.beginPath(); ctx.ellipse(0, 2, 13.5, 11, 0, Math.PI, 0); ctx.closePath(); fs(ctx, '#5a7a4a');
       if (!back) { ell(ctx, side ? 11 : 0, 2.5, side ? 8 : 10, 2.2); fs(ctx, '#4a6a3a'); }
       break;
+    case 'beanie': {
+      const bc = L.beanieColor || '#ff7eb6';
+      ctx.beginPath(); ctx.ellipse(0, 3, 13.8, 12.5, 0, Math.PI, 0); ctx.closePath(); fs(ctx, bc);
+      rr(ctx, -14, 0, 28, 5, 2.5); fs(ctx, '#ffffff', 1);
+      ctx.strokeStyle = shade(bc, -0.15); ctx.lineWidth = 1; for (let x = -9; x <= 9; x += 3.5) { ctx.beginPath(); ctx.moveTo(x, -6); ctx.lineTo(x, 0); ctx.stroke(); }
+      circ(ctx, 0, -11, 4.5); fs(ctx, '#ffffff', 1);
+      break;
+    }
+    case 'flowercrown':
+      for (let i = 0; i < 9; i++) {
+        const a = Math.PI + (i / 8) * Math.PI;
+        const x = Math.cos(a) * 13, y = 7 + Math.sin(a) * 7;
+        ctx.fillStyle = ['#ff5f7f', '#ffd24a', '#ff9ecb', '#b79cf0'][i % 4];
+        ctx.beginPath(); ctx.moveTo(x - 2.4, y); ctx.lineTo(x - 2.4, y - 4); ctx.lineTo(x - 0.8, y - 2.6); ctx.lineTo(x, y - 4.6); ctx.lineTo(x + 0.8, y - 2.6); ctx.lineTo(x + 2.4, y - 4); ctx.lineTo(x + 2.4, y); ctx.closePath(); ctx.fill();
+      }
+      break;
     case 'post':
       ctx.beginPath(); ctx.ellipse(0, 2, 13.5, 10, 0, Math.PI, 0); ctx.closePath(); fs(ctx, '#3d5aa8');
       if (!back) { ell(ctx, side ? 11 : 0, 2.5, side ? 8 : 10, 2.2); fs(ctx, '#2c4383'); ctx.fillStyle = '#ffd23f'; circ(ctx, side ? 3 : 0, -3, 2.5); ctx.fill(); }
@@ -249,7 +265,7 @@ function drawBody(ctx, L, dir, legA, armA, seated) {
   const { main, second, style } = outfitColors(L);
   const side = dir === 'left' || dir === 'right';
   const skin = L.skin;
-  const pants = style === 'overall' ? main : style === 'dress' || style === 'fancy' || style === 'sailor' || style === 'floral' ? skin : second;
+  const pants = style === 'overall' ? main : style === 'coat' ? '#5a4a6a' : style === 'dress' || style === 'fancy' || style === 'sailor' || style === 'floral' ? skin : second;
   const CARDIGAN = '#f4f0e6';
   const shoe = '#6b4a4a';
   // Beine
@@ -285,7 +301,15 @@ function drawBody(ctx, L, dir, legA, armA, seated) {
   // Rumpf
   const top = -29, bot = seated ? -16 : -11;
   ctx.beginPath();
-  if (style === 'dress' || style === 'fancy' || style === 'floral') {
+  if (style === 'coat') {
+    // langer Wintermantel mit Kunstfellkragen
+    if (side) { ctx.moveTo(-6, top); ctx.lineTo(6, top); ctx.quadraticCurveTo(9, bot, 9, bot + 2); ctx.lineTo(-9, bot + 2); ctx.quadraticCurveTo(-8, bot - 4, -6, top); }
+    else { ctx.moveTo(-8, top); ctx.lineTo(8, top); ctx.quadraticCurveTo(12, bot, 12, bot + 2); ctx.lineTo(-12, bot + 2); ctx.quadraticCurveTo(-12, bot, -8, top); }
+    ctx.closePath(); fs(ctx, main);
+    rr(ctx, side ? -9 : -12, bot - 1, side ? 18 : 24, 4, 2); fs(ctx, second, 1);
+    ctx.fillStyle = second; ell(ctx, side ? 1 : 0, top + 1, side ? 6 : 9, 3.4); ctx.fill();
+    if (!side) { ctx.fillStyle = shade(main, -0.35); for (const y of [top + 7, top + 12]) { circ(ctx, -2.4, y, 1.1); ctx.fill(); circ(ctx, 2.4, y, 1.1); ctx.fill(); } }
+  } else if (style === 'dress' || style === 'fancy' || style === 'floral') {
     ctx.moveTo(-7, top); ctx.lineTo(7, top); ctx.quadraticCurveTo(12, bot - 2, 13, bot); ctx.lineTo(-13, bot); ctx.quadraticCurveTo(-12, bot - 2, -7, top); ctx.closePath();
     if (side) { ctx.beginPath(); ctx.moveTo(-5, top); ctx.lineTo(5, top); ctx.quadraticCurveTo(10, bot - 2, 10, bot); ctx.lineTo(-10, bot); ctx.closePath(); }
     fs(ctx, main);

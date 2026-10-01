@@ -180,3 +180,92 @@ auf der Koppel und kann im Pferde-Fenster mit „Mitnehmen“ zum Begleiter werd
 - `tools/tour.mjs` macht Screenshots aller Gebiete (auch Nacht, Regen, Regenbogen), `tools/panels.mjs` von
   allen Menüs, `tools/finale-shot.mjs` vom Sonnenuntergang und Feuerwerk. Anhand dieser Bilder wurde die Optik
   mehrfach nachgebessert (Zoom, weiche Ufer, größere Pferde, warmes Abendlicht, Feuerwerkshöhe, Sternenhimmel).
+
+# Teil 2 · Vier Jahreszeiten
+
+Wunsch: eine direkte Fortsetzung, länger als Teil 1, die nahtlos an Jolinas fertigen Spielstand anschließt –
+wieder mit Anleitung, Tipps und süßen Szenen. Entscheidungen, die ich dafür getroffen habe:
+
+## Übergang & Start
+
+- **Kein neuer Spielstand.** Teil 2 läuft im selben Speicherstand weiter (Version 3; ein alter v2-Stand wird
+  beim Laden ergänzt: Jahreszeit, Kleeblätter, Fotos …). Alles aus Teil 1 bleibt: Pferde, Fohlen, Kätzchen,
+  Deko, Kleidung, Münzen, Album.
+- **Start automatisch:** Ist Teil 1 geschafft, beginnt Teil 2 direkt nach dem Abspann („Weiter zu Teil 2 ♥“)
+  bzw. beim nächsten „Fortsetzen“. Das Titelbild zeigt dann „Neu: Teil 2 · Vier Jahreszeiten“ und der
+  Hauptknopf heißt „Weiter mit Teil 2 ♥“. Vier Bilderbuch-Karten erklären, was neu ist.
+- **„Direkt zu Teil 2“** auf dem Titelbild (nur wenn Teil 1 noch nicht fertig ist, z. B. auf einem anderen PC):
+  erzeugt einen Stand „Teil 1 geschafft“ mit Sternchen, Kleeblatt, Nebel, Fohlen Wölkchen und den Kätzchen.
+  Vorher kommt eine Sicherheitsabfrage.
+- Spielerin wird zum Start (und bei jedem Jahreszeitwechsel) vor dem Hof abgesetzt – so steht niemand zu Pferd
+  auf einer Insel, deren Furt im Winter zufriert.
+
+## Jahreszeiten
+
+- Teil 2 spielt ein ganzes Jahr: **Herbst → Winter → Frühling → Sommer**. Die Jahreszeit wechselt, wenn das
+  erste Kapitel der neuen Jahreszeit beginnt (Überblendung, neuer Morgen, Banner, kleine Szene).
+- Jede Jahreszeit hat eigene Farben (Gras, Bäume, Wege, Klippen, Minikarte), eigenes Wetter (Herbst: Laub und
+  mehr Regen, Winter: Schneefall, Frühling: Blütenblätter), eigene Musikfarbe (Winter mit Glöckchen),
+  Schnee auf Dächern, verschneite Beete, Wintermützen/Schals für alle, Mira im Pulli.
+- **Winter:** Seen und Furten frieren zu. Eis ist zu Fuß begehbar und rutschig (Hinweis beim ersten Mal),
+  Pferde dürfen nicht aufs Eis (sonst Hinweis „Steig ab“). Im Garten wächst nichts (Hinweis), Pilze werden
+  zu Tannenzapfen, Blumen gibt es erst wieder im Frühling.
+- **Saison-Sammelsachen:** Kastanien (Herbst), Schneeglöckchen (Frühling), Steine (immer, wachsen täglich nach).
+- Nach dem Finale gibt es Opa Karls **Schneekugel**: Menü → „Jahreszeit wählen“. Damit lassen sich auch
+  verpasste Winter-Nebenaufgaben jederzeit nachholen – man kann also nichts endgültig verpassen.
+
+## Aufgaben (51 neue: 41 Haupt-, 10 Nebenaufgaben)
+
+| Kapitel | Inhalt |
+| --- | --- |
+| 7 Herbstzauber | Oma Hilde fährt zu ihrer Schwester (Postwagen-Abschied), Fohlen-Spaziergang mit Halfter zum See, Kürbisse, Kastanienmännchen, ein Igelbaby (Name frei wählbar) + Igelhaus, Laubhaufen-Sprung mit Kuss, Erntedankfest → Hofladen |
+| 8 Die kleine Reitschule | Neue Figur **Lotte** (8, pferdeverrückt), Reitplatz bauen, drei Reitstunden (Pony am Führstrick um nummerierte Pylonen führen), Ben überwindet seine Angst, Reitabzeichen-Turnier → Reitschule |
+| 9 Opas Schatzkarte | Truhe auf dem Dachboden, vier Kartenteile (Leuchtturm, Insel, Echo in den Bergen), Opa Karls Schatz: Spieluhr + Liebesbrief, Tanz und Kuss, Brief an Hilde |
+| 10 Winterwunderland | Schneemann in drei Kugeln, Schneeballschlacht, Alpakawolle → Mira-Pulli & Wintersachen, Futterkrippe im Wald, Eisstern-Suche + Eislaufen mit Mert, Weihnachtsmarkt + Tanne holen (zu Pferd), Geschenke für alle, Winterabend: Hilde kommt mit dem Schlitten zurück, Silvesterfeuerwerk |
+| 11 Frühlingserwachen | Schneeglöckchen, Longieren + **erster Ritt auf dem Fohlen** (wird groß und reitbar), verirrtes Wildfohlen zur Herde bringen (mit der neuen Tierärztin **Ella**), Storchennest, Frühjahrsputz, Opa Karls Tulpen |
+| 12 Unser kleines Zuhause | Mert und Jolina bauen ein eigenes Häuschen: Platz + Farben aussuchen (Wand & Dach wählbar), Steine, Bretter, Hämmern, Richtfest, Einrichten, Einweihungsparty |
+| 13 Das große Jahresfest | Rückblick mit Hilde, Laternen basteln und am See aufstellen, Kleeberg-Pokal (Rennen gegen Mia, Ben, Lotte), Finale am Glitzersee mit Laternen, Merts Rede, Kuss, Feuerwerk, Bilderbuch-Abspann mit Fotoalbum |
+
+Nebenaufgaben: Fotoalbum (8 Fotos mit Mert an schönen Orten – echte Screenshots als Polaroid), Merts
+Zettelchen (5 Liebesbotschaften), Lottes Glückssammlung (20 vierblättrige Kleeblätter, Mira schnüffelt sie
+auf; Belohnungen bei 10 und 20), Bertas Rezeptbuch, Vogelhäuschen, Sturm am Leuchtturm / Schlittenfahrt /
+das weiße Pony Flocke (nur im Winter angeboten), Sternentaufe am Fernrohr, Luises Modenschau.
+
+Geschätzte Spielzeit: **3–4 Stunden** (Teil 1: 38 Aufgaben, 2–3 Stunden).
+
+## Anleitung & nie festhängen
+
+- Wie in Teil 1: jede Aufgabe hat einen Text, einen **Tipp** im Aufgabenbuch und einen Zielpfeil. Neue
+  Mechaniken (Eis, Reitstunde, Fohlen am Halfter, Longieren, Laternen, Fotos, Schneekugel) erklären sich beim
+  ersten Mal mit einem kurzen Hinweis.
+- Neue Orts-Aktionen (`use`-Schritte) erscheinen als ganz normales „E“-Feld am Ort. Hauptaufgaben haben dabei
+  Vorrang vor Nebenaufgaben; Foto-Punkte liegen bewusst nicht auf anderen Aktionen.
+- Für fast jede Szene steigt man automatisch ab (nur die Tanne braucht ein Pferd zum Ziehen).
+- **Zwei Aufgaben bei derselben Person blockieren sich nie mehr:** Wer gerade etwas Erledigbares hat, geht vor
+  einem „Dir fehlt noch …“ einer anderen Aufgabe (wurde durch den automatischen Test gefunden: Ben wartete auf
+  Kastanien und blockierte dadurch das Vogelhäuschen).
+- Fehlende Sachen haben Bezugsquellen-Tipps (z. B. „Sand: am Sonnenstrand – an der Sandkuhle E drücken“).
+- Oma Hilde ist während ihrer Reise (Kapitel 7–10) unsichtbar; keine Aufgabe braucht sie in dieser Zeit.
+
+## Neue Figuren, Tiere & Sachen
+
+- **Lotte** (Nachbarskind, gelbe Jacke), **Ella** (Tierärztin, eigene Praxis im Dorf).
+- 6 neue Tierarten fürs Album (Schwan, Ziege, Rotkehlchen, Storch, Lamm, Fledermaus), teils nur in
+  bestimmten Jahreszeiten (das Album zeigt „Nur im Frühling“ usw.). Album mit 20 Arten → Sternenkranz.
+- Neue Kleidung (Reitlehrerin, Herbstkleid, Wintermantel, Frühlingskleid, Mütze, Blumenkranz), neues Zubehör
+  (Herbstkranz, Winterdecke, Opa Karls Sattel, Kleeblatt-Schleife/-Sattel, Regenbogendecke) und Deko
+  (Kastanienmännchen, Kürbislaterne, Spieluhr, Schneekugel, Fotorahmen, Schlitten, Sternenlampe).
+- Hofladen auf dem Hof (verkauft Saisonware), Reitplatz, Igelhaus, Lichterketten, Tulpenbeete, das Häuschen.
+
+## Tests für Teil 2
+
+- `tests/logic.test.js`: kompletter Durchlauf aller 51 Aufgaben von Teil 2 inkl. Jahreszeiten und Finale.
+- `tests/world.test.js`: in allen vier Jahreszeiten sind alle neuen Orte, Laternen-, Foto- und Vogelhausplätze
+  erreichbar, Eis ist im Winter zu Fuß begehbar (zu Pferd nicht), alle Rennstrecken bleiben befahrbar.
+- `tools/walkthrough2.mjs`: spielt Teil 2 im echten Browser komplett durch (alle 51 Aufgaben über die echten
+  „E“-Aktionen, Reitstunden, Pokalrennen, Finale, Abspann, Neuladen) – 0 Fehler.
+- `tools/p2-transition.mjs`: alter v2-Spielstand nach Teil 1 → „Weiter mit Teil 2“ → Intro → Herbst,
+  Kapitel 7; nochmal laden → kein zweites Intro.
+- `tools/walkthrough.mjs` (Teil 1) läuft weiterhin fehlerfrei und geht nach dem Abspann direkt in Teil 2 über.
+- `tools/scenes2-shot.mjs`: Screenshots mitten in 25 Szenen; danach nachgebessert: Schnee auf Dächern
+  (weicher Rand statt Rechteck), verschneite Beete, zarterer Abendschimmer auf Schnee.

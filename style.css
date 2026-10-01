@@ -198,3 +198,20 @@ input.name:focus { border-color: var(--pink); }
   .editor { flex-direction: column; }
   .editor .preview { width: 100%; }
 }
+
+/* ---------- Teil 2 ---------- */
+.logo .logo-sub { display: block; font-size: 0.3em; -webkit-text-stroke: 1px #e8587a; margin-top: 10px; letter-spacing: 0.04em; }
+#flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 40; }
+#flash.on { animation: flash 0.7s ease-out; }
+@keyframes flash { 0% { opacity: 0.95; } 100% { opacity: 0; } }
+#polaroid { position: fixed; right: 30px; top: 50%; width: 270px; padding: 12px 12px 44px; background: #fff; border-radius: 6px; box-shadow: 0 10px 30px rgba(90, 40, 70, 0.35); transform: translate(130%, -50%) rotate(6deg); transition: transform 0.6s cubic-bezier(.2,1.4,.4,1); z-index: 30; pointer-events: none; }
+#polaroid.show { transform: translate(0, -50%) rotate(-4deg); }
+#polaroid img { width: 100%; display: block; border-radius: 2px; }
+#polaroid .pol-empty { height: 160px; display: flex; align-items: center; justify-content: center; font-size: 60px; color: #ff7eb6; background: #fff0f6; }
+#polaroid .pol-cap { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; font-weight: 600; color: #8a4a6a; }
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 18px; padding: 6px; }
+.photo-card { background: #fff; padding: 10px 10px 34px; border-radius: 6px; box-shadow: 0 6px 18px rgba(90, 40, 70, 0.18); position: relative; }
+.photo-card:nth-child(odd) { transform: rotate(-1.5deg); } .photo-card:nth-child(even) { transform: rotate(1.5deg); }
+.photo-card img { width: 100%; display: block; border-radius: 2px; }
+.photo-card .ph-empty { height: 120px; display: flex; align-items: center; justify-content: center; color: #c9a0b8; background: repeating-linear-gradient(45deg, #fff6fa, #fff6fa 8px, #ffeef6 8px, #ffeef6 16px); border-radius: 2px; text-align: center; font-size: 14px; padding: 6px; }
+.photo-card .ph-cap { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; font-weight: 600; color: #8a4a6a; font-size: 14px; }

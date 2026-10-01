@@ -48,6 +48,11 @@ export class Particles {
     }
   }
   shootingStar(x, y) { this.add({ type: 'shoot', x, y, z: 300, vx: 9, vz: -110, life: 1.1, size: 1 }); }
+  snow(x, y, n = 8) {
+    for (let i = 0; i < n; i++) this.add({ type: 'snowpuff', x: x + (Math.random() - 0.5) * 0.8, y: y + (Math.random() - 0.5) * 0.3, z: 6 + Math.random() * 20, vx: (Math.random() - 0.5) * 1.6, vz: 20 + Math.random() * 40, g: 120, life: 0.7 + Math.random() * 0.4, size: 0.6 + Math.random() * 0.8 });
+  }
+  // aufsteigende Himmelslaterne (Jahresfest)
+  lantern(x, y, color = '#ffb3c8') { this.add({ type: 'lanternup', x, y, z: 10, vx: (Math.random() - 0.5) * 0.25, vz: 22 + Math.random() * 10, life: 14, size: 1, color, ph: Math.random() * 6 }); }
 
   update(dt) {
     const L = this.list;
@@ -69,7 +74,7 @@ export class Particles {
 
   draw(ctx, t, top = false) {
     for (const p of this.list) {
-      if ((p.type === 'spark' || p.type === 'shoot') !== top) continue;
+      if ((p.type === 'spark' || p.type === 'shoot' || p.type === 'lanternup') !== top) continue;
       const k = p.age / p.life;
       const x = p.x * T, y = p.y * T - p.z;
       const a = 1 - k;
@@ -104,6 +109,24 @@ export class Particles {
           ctx.globalAlpha = Math.min(1, a * 1.6);
           heart(ctx, x, y, 46 * sc, '#ff4f8f');
           heart(ctx, x, y - 2, 30 * sc, '#ff8fb8');
+          ctx.globalAlpha = 1;
+          break;
+        }
+        case 'snowpuff':
+          ctx.fillStyle = `rgba(255,255,255,${0.9 * a})`;
+          circ(ctx, x, y, (2.5 + k * 3) * p.size); ctx.fill();
+          break;
+        case 'snowball':
+          ctx.fillStyle = '#ffffff'; circ(ctx, x, y, 5.5); ctx.fill();
+          ctx.strokeStyle = '#c8d8ea'; ctx.lineWidth = 1; ctx.stroke();
+          break;
+        case 'lanternup': {
+          const fade = Math.min(1, p.age / 1.2) * Math.min(1, (p.life - p.age) / 3);
+          const lx = x + Math.sin(p.age * 0.8 + p.ph) * 10;
+          ctx.globalAlpha = fade * 0.35; ctx.fillStyle = '#ffe9a8'; circ(ctx, lx, y - 10, 20); ctx.fill();
+          ctx.globalAlpha = fade;
+          ctx.fillStyle = p.color; ctx.beginPath(); ctx.moveTo(lx - 8, y - 22); ctx.lineTo(lx + 8, y - 22); ctx.lineTo(lx + 6, y); ctx.lineTo(lx - 6, y); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = `rgba(255,240,170,${0.8 + Math.sin(p.age * 9) * 0.15})`; circ(ctx, lx, y - 6, 3.5); ctx.fill();
           ctx.globalAlpha = 1;
           break;
         }

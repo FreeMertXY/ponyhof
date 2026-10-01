@@ -66,7 +66,7 @@ for (const farm of farms) {
     assert.ok(near(walk, SPOTS.telescope.x, SPOTS.telescope.y + 1), 'Fernrohr');
     assert.ok(!near(walk, SPOTS.picnic.x, SPOTS.picnic.y), 'Insel zu Fuß nicht erreichbar');
     assert.ok(near(ride, SPOTS.picnic.x, SPOTS.picnic.y), 'Insel zu Pferd erreichbar');
-    for (const p of w.pickups) assert.ok(near(ride, p.x, p.y), 'Pickup ' + p.id);
+    for (const p of w.pickups) if (p.k !== 'icestar') assert.ok(near(ride, p.x, p.y), 'Pickup ' + p.id);
     for (const t of w.appleTrees) assert.ok(near(walk, t.x + 0.5, t.y + 1.5) || near(walk, t.x + 0.5, t.y - 0.5), 'Apfelbaum ' + t.id);
     for (const pl of w.gardenPlots) assert.ok(near(walk, pl.x + 0.5, pl.y + 0.5), 'Beet');
   });
@@ -108,4 +108,60 @@ test('Anti-Festhängen: nearestFree findet immer eine freie Stelle', () => {
   assert.ok(w.canStand(p.x, p.y));
   const q = w.nearestFree(40.5, 140.5); // im See
   assert.ok(w.canStand(q.x, q.y));
+});
+
+const FULL2 = { stable: true, paddock: true, flowerGarden: true, gazebo: true, petcorner: true, festival: true, part2: true, farmshop: true, igelhaus: true, arena: true, school: true, winterlights: true, tulips: true, cottage: true, cottageStyle: 'rose' };
+const ISLAND = new Set(['picnic', 'dig_insel', 'Foto island']);
+for (const season of ['spring', 'summer', 'autumn', 'winter']) {
+  for (const farm of [{ part2: true }, FULL2]) {
+    test(`Teil 2: alle Orte erreichbar (${season}, ${farm.cottage ? 'fertig ausgebaut' : 'Anfang'})`, () => {
+      const w = new World(farm, season);
+      const walk = w.reachable(FARM.spawn.x, FARM.spawn.y, {});
+      const ride = w.reachable(FARM.spawn.x, FARM.spawn.y, { riding: true });
+      const near = (set, x, y, r = 1) => {
+        for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (set[(Math.floor(y) + dy) * WW + Math.floor(x) + dx]) return true;
+        return false;
+      };
+      const check = (name, p) => {
+        if (ISLAND.has(name)) assert.ok(near(season === 'winter' ? walk : ride, p.x, p.y), name + (season === 'winter' ? ' übers Eis' : ' zu Pferd'));
+        else assert.ok(near(walk, p.x, p.y), name + ` (${p.x},${p.y})`);
+      };
+      for (const [k, p] of Object.entries(SPOTS)) {
+        if (['npc', 'wildHorses', 'herd', 'lanterns', 'photos', 'birdspots', 'telescope', 'parcoursBoard', 'lookout', 'lighthouse', 'festivalCenter'].includes(k)) continue;
+        if (k === 'icecenter' && season !== 'winter') continue;
+        if (p && typeof p.x === 'number') check(k, p);
+      }
+      for (const [k, p] of Object.entries(SPOTS.npc)) check('NPC ' + k, p);
+      SPOTS.lanterns.forEach((p, i) => check('Laterne ' + i, p));
+      SPOTS.birdspots.forEach((p, i) => check('Vogelhaus ' + i, p));
+      for (const [k, p] of Object.entries(SPOTS.photos)) check('Foto ' + k, p);
+      for (const p of w.pickups) {
+        if (p.k === 'icestar') { if (season === 'winter') assert.ok(near(walk, p.x, p.y), 'Eisstern ' + p.id); }
+        else assert.ok(near(ride, p.x, p.y) || near(walk, p.x, p.y), 'Pickup ' + p.id);
+      }
+      for (const pl of w.gardenPlots) assert.ok(near(walk, pl.x + 0.5, pl.y + 0.5), 'Beet');
+      // Winter: Eis ist zu Fuß begehbar, zu Pferd nicht
+      if (season === 'winter') {
+        assert.equal(w.g(40, 140), G.ICE);
+        assert.equal(w.passable(40, 140, {}), true);
+        assert.equal(w.passable(40, 140, { riding: true }), false);
+      } else assert.equal(w.passable(40, 140, {}), false);
+    });
+  }
+}
+
+test('Teil 2: Rennstrecken bleiben in allen Jahreszeiten befahrbar', () => {
+  for (const season of ['autumn', 'winter', 'spring', 'summer']) {
+    const w = new World(FULL2, season);
+    for (const [k, t] of Object.entries(TRACKS)) {
+      for (let i = 0; i < t.length - 1; i++) {
+        const [ax, ay] = t[i], [bx, by] = t[i + 1];
+        const n = Math.ceil(Math.hypot(bx - ax, by - ay) * 3);
+        for (let s = 0; s <= n; s++) {
+          const x = ax + ((bx - ax) * s) / n + 0.5, y = ay + ((by - ay) * s) / n + 0.5;
+          assert.ok(w.passable(Math.floor(x), Math.floor(y), { riding: true, jumping: true }), `${season} ${k} Abschnitt ${i} bei ${x},${y}`);
+        }
+      }
+    }
+  }
 });

@@ -3,6 +3,7 @@ import { ITEMS, CATEGORY_NAMES, itemName } from './data/items.js';
 import { ACCESSORIES, OUTFITS, HATS, DECO, CLOTHES } from './data/shop.js';
 import { SPECIES, SPECIES_ORDER } from './data/animals.js';
 import { QUESTS, CHAPTERS } from './data/quests.js';
+import { SPOTS } from './world.js';
 import { NPCS } from './data/npcs.js';
 import { REGIONS, REG, WW, WH } from './world.js';
 import { iconCanvas, fillIcons } from './draw/icons.js';
@@ -89,6 +90,9 @@ export class UI {
     if (ci.dataset.icon !== icoKind) { ci.dataset.icon = icoKind; ci.innerHTML = ''; ci.appendChild(iconCanvas(icoKind, 40)); }
     $('coins-text').textContent = S.player.coins;
     $('shoes-text').textContent = `${S.collected.hs.length}/30`;
+    const p2 = !!S.part2?.started;
+    $('clovers').classList.toggle('hidden', !p2);
+    if (p2) $('clovers-text').textContent = `${S.collected.clovers.length}/20`;
     // Aufgabe
     const q = g.trackedQuest();
     if (q) {
@@ -96,6 +100,11 @@ export class UI {
       $('qt-chapter').textContent = q.main ? `Kapitel ${q.chapter} · ${CHAPTERS[q.chapter - 1].title}` : 'Nebenaufgabe';
       $('qt-title').textContent = g.fmt(q.title);
       $('qt-step').textContent = g.quests.stepText(q);
+    } else if (S.part2?.done) {
+      $('quest-tracker').classList.remove('hidden');
+      $('qt-chapter').textContent = 'Freies Spiel · Teil 2';
+      $('qt-title').textContent = 'Ein Jahr voller Herzen ♥';
+      $('qt-step').textContent = `Kleeblätter ${S.collected.clovers.length}/20 · Fotos ${Object.keys(S.photos || {}).length}/8 · Tieralbum ${Object.keys(S.album).length}/${albumTotal(S)}`;
     } else if (S.ending.done) {
       $('quest-tracker').classList.remove('hidden');
       $('qt-chapter').textContent = 'Freies Spiel';
@@ -135,6 +144,7 @@ export class UI {
     }
     // Personen
     for (const n of g.npcs) {
+      if (n.visible === false) continue;
       const [mx, my] = toMini(n.x, n.y);
       if (mx < 0 || my < 0 || mx > 180 || my > 180) continue;
       const news = g.quests.npcHasNews(n.id);
@@ -293,8 +303,10 @@ export class UI {
     const g = this.game, Q = g.quests;
     this.h(p, '<h2>Aufgaben</h2>');
     const ch = Q.chapter();
+    const part2 = !!g.S.part2?.started;
+    if (part2) this.h(p, '<div class="sub" style="margin:-4px 0 6px;font-size:15px">Teil 2 · Vier Jahreszeiten</div>');
     const chap = this.h(p, '<div class="row" style="gap:6px;margin-bottom:12px"></div>');
-    CHAPTERS.forEach((c) => {
+    CHAPTERS.filter((c) => (part2 ? c.n > 6 : c.n <= 6)).forEach((c) => {
       const done = ch > c.n, cur = ch === c.n;
       chap.insertAdjacentHTML('beforeend', `<div class="card" style="flex:1;min-width:120px;padding:6px;${cur ? 'border-color:var(--pink)' : ''}${done ? ';background:#f0fff6' : ''}${ch < c.n ? ';opacity:.55' : ''}"><div class="sub">Kapitel ${c.n}${done ? ' ✓' : ''}</div><div style="font-size:13px">${esc(c.title)}</div><div class="sub">${esc(c.reward)}</div></div>`);
     });
@@ -354,6 +366,7 @@ export class UI {
       }
       // Personen
       for (const n of g.npcs) {
+        if (n.visible === false) continue;
         const news = g.quests.npcHasNews(n.id);
         if (!S.discovered[n.id === 'kuno' ? 'beach' : n.id === 'hilde' ? 'farm' : 'village']) continue;
         c.fillStyle = news === 'offer' ? '#ffd23f' : news ? '#ff7eb6' : '#b79cf0';
@@ -393,17 +406,18 @@ export class UI {
   panel_album(p) {
     const g = this.game, S = g.S;
     const n = Object.keys(S.album).length;
-    this.h(p, `<h2>Tieralbum <span style="font-size:18px;color:var(--ink-soft)">${n}/14</span></h2>`);
-    this.h(p, `<div class="bar" style="margin-bottom:12px"><div style="width:${(n / 14) * 100}%"></div></div>`);
+    const tot = albumTotal(S);
+    this.h(p, `<h2>Tieralbum <span style="font-size:18px;color:var(--ink-soft)">${n}/${tot}</span></h2>`);
+    this.h(p, `<div class="bar" style="margin-bottom:12px"><div style="width:${Math.min(1, n / tot) * 100}%"></div></div>`);
     const grid = this.h(p, '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))"></div>');
-    for (const id of SPECIES_ORDER) {
+    for (const id of SPECIES_ORDER.filter((x) => S.part2?.started || !SPECIES[x].part2)) {
       const sp = SPECIES[id], e = S.album[id];
       const c = document.createElement('div'); c.className = 'card' + (e ? '' : ' locked');
       const cv = document.createElement('canvas'); cv.width = 128; cv.height = 128; cv.style.width = '96px'; cv.style.height = '96px';
       drawAnimalPortrait(cv.getContext('2d'), id, 128, 0.5, !e);
       c.appendChild(cv);
       if (e) c.insertAdjacentHTML('beforeend', `<div>${esc(sp.name)}</div><div class="sub">Gefunden: ${esc(e.where || sp.region)} · Tag ${e.day}</div><div class="sub" style="margin-top:4px">${esc(sp.fact)}</div>`);
-      else c.insertAdjacentHTML('beforeend', `<div>???</div><div class="sub">Lebt irgendwo: ${esc(sp.region)}${sp.night ? ' (nachts)' : ''}</div>`);
+      else c.insertAdjacentHTML('beforeend', `<div>???</div><div class="sub">Lebt irgendwo: ${esc(sp.region)}${sp.night ? ' (nachts)' : ''}${sp.seasonHint ? ' – ' + esc(sp.seasonHint) : ''}</div>`);
       grid.appendChild(c);
     }
     this.h(p, `<div class="desc-box">${S.albumRewarded ? 'Album vollständig! Du bist offiziell die größte Tierfreundin der Gegend. ♥ Der Goldene Blütenkranz gehört dir.' : 'Streichle oder füttere ein Tier, um es einzutragen. Scheue Tiere laufen weg, wenn du rennst oder reitest – geh langsam! Mit vollem Album wartet eine Überraschung.'}</div>`);
@@ -418,10 +432,32 @@ export class UI {
     add('Weiterspielen', () => this.close(), 'primary');
     add('Einstellungen', () => { this.panel = 'settings'; this.render(); });
     add('Tastenübersicht', () => { this.panel = 'keys'; this.render(); });
+    if (g.S.part2?.started) add('Fotoalbum', () => { this.panel = 'photos'; this.render(); });
+    if (g.S.part2?.done) add('Jahreszeit wählen (Schneekugel)', () => { this.close(); g.chooseSeason(); });
     add('Jetzt speichern', () => { g.saveNow(true); });
     add('Zurück zum Hof (Notfall)', () => { this.close(); g.teleportHome(); });
     add('Zum Titelbildschirm', () => { this.close(); g.quitToTitle(); });
     this.h(p, `<div class="sub" style="text-align:center">Gespielt: ${Math.floor(g.S.stats.playSeconds / 60)} Minuten · Das Spiel speichert automatisch.</div>`);
+  }
+
+  // Fotoalbum (Teil 2)
+  panel_photos(p) {
+    const g = this.game, S = g.S;
+    const photos = g.loadPhotos();
+    const taken = Object.keys(S.photos || {}).length;
+    this.h(p, `<h2>Unser Fotoalbum <span style="font-size:18px;color:var(--ink-soft)">${taken}/8</span></h2>`);
+    const grid = this.h(p, '<div class="photo-grid"></div>');
+    for (const [id, sp] of Object.entries(SPOTS.photos)) {
+      const meta = S.photos?.[id];
+      const c = document.createElement('div'); c.className = 'photo-card';
+      if (meta && photos[id]) c.innerHTML = `<img src="${photos[id]}" alt=""><div class="ph-cap">${esc(sp.name)}</div>`;
+      else if (meta) c.innerHTML = `<div class="ph-empty">♥ Erinnerung ♥</div><div class="ph-cap">${esc(sp.name)}</div>`;
+      else c.innerHTML = `<div class="ph-empty">Noch kein Foto<br>(Kamerasymbol suchen)</div><div class="ph-cap">${esc(sp.name)}</div>`;
+      grid.appendChild(c);
+    }
+    this.h(p, `<div class="desc-box">${S.quests.s2_foto ? 'An den Orten mit dem Kamerasymbol macht ihr ein Foto zusammen – Mert stellt den Selbstauslöser.' : 'Sprich mit Mert – er hat Opa Karls alte Kamera gefunden!'}</div>`);
+    const b = this.h(p, '<div class="row" style="margin-top:10px"><button class="btn small">Zurück</button></div>');
+    b.querySelector('button').onclick = () => { this.panel = 'pause'; this.render(); };
   }
 
   panel_settings(p) {
@@ -478,5 +514,7 @@ export class UI {
     }
   }
 }
+
+export function albumTotal(S) { return S.part2?.started ? SPECIES_ORDER.length : SPECIES_ORDER.filter((x) => !SPECIES[x].part2).length; }
 
 export { esc, formatTime, CLOTHES };

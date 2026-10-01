@@ -46,6 +46,8 @@ export class Renderer {
     this.world = null;
     this.stars = Array.from({ length: 90 }, (_, i) => ({ x: hash2(i, 1, 3), y: hash2(i, 2, 3), s: 0.6 + hash2(i, 3, 3) * 1.6, p: hash2(i, 4, 3) * 6 }));
     this.rain = Array.from({ length: 160 }, (_, i) => ({ x: Math.random(), y: Math.random(), s: 0.7 + Math.random() * 0.6 }));
+    this.flakes = Array.from({ length: 140 }, () => ({ x: Math.random(), y: Math.random(), s: 0.5 + Math.random() * 0.9, p: Math.random() * 6 }));
+    this.drift = Array.from({ length: 18 }, () => ({ x: Math.random(), y: Math.random(), s: 0.6 + Math.random() * 0.8, p: Math.random() * 6, c: Math.floor(Math.random() * 4) }));
     this.frameMs = 16;
     this.resize();
   }
@@ -192,7 +194,7 @@ export class Renderer {
       case 'tree': {
         let extra = '';
         if (o.v === 'apple' && game.treeShaken(o.id)) extra = 'empty';
-        const spr = treeSprite(o.v, o.s || 1, extra);
+        const spr = treeSprite(o.v, o.s || 1, extra, this.world.season);
         const behind = P && Math.abs(P.x - (o.x + 0.5)) < 1.3 * (o.v === 'bigblossom' ? 1.8 : 1) && P.y < o.y + 0.9 && P.y > o.y - 2.2 * (o.v === 'bigblossom' ? 1.8 : 1);
         const sway = o.v === 'palm' ? 0 : 0;
         drawSprite(ctx, spr, X + sway, Y - 6, behind ? 0.55 : 1);
@@ -204,7 +206,7 @@ export class Renderer {
       case 'stump': drawSprite(ctx, stumpSprite(), X, Y - 10); break;
       case 'bld': {
         if (o.type === 'lighthouse') drawSprite(ctx, buildingSprite(o), (o.x + o.w / 2) * T, (o.y + o.h) * T - 4);
-        else drawSprite(ctx, buildingSprite(o), o.x * T, (o.y + o.h) * T);
+        else drawSprite(ctx, buildingSprite(o, this.world.season), o.x * T, (o.y + o.h) * T);
         if (game.lightingNight && o.type !== 'lighthouse') {
           // warme Fenster nachts
           ctx.fillStyle = 'rgba(255,220,140,0.35)';
@@ -234,8 +236,8 @@ export class Renderer {
         break;
       }
       default: {
-        const spr = smallSprite(o.k, o);
-        const big = ['stall', 'hut', 'log', 'shelter', 'gazebo', 'cathouse', 'doghouse'].includes(o.k);
+        const spr = smallSprite(o.k, o, this.world.season);
+        const big = ['stall', 'hut', 'log', 'shelter', 'gazebo', 'cathouse', 'doghouse', 'farmshop', 'xstall', 'rack'].includes(o.k);
         drawSprite(ctx, spr, big ? o.x * T : X, Y - 6);
       }
     }
@@ -326,8 +328,8 @@ export class Renderer {
   }
 
   drawWeatherWorld(ctx, game, view, t) {
-    // Glühwürmchen nachts
-    if (!game.lightingNight) return;
+    // Glühwürmchen nachts (nicht im Winter)
+    if (!game.lightingNight || this.world.season === 'winter') return;
     const w = this.world;
     const x0 = Math.floor(view.x0), y0 = Math.floor(view.y0);
     for (let y = y0; y < view.y1; y += 2) for (let x = x0; x < view.x1; x += 2) {
@@ -368,9 +370,11 @@ export class Renderer {
   drawLighting(ctx, game, view, t, ox, oy) {
     const L = game.lighting, Z = this.Z;
     ctx.setTransform(this.RS, 0, 0, this.RS, 0, 0);
-    if (L.glow > 0.01) {
+    // auf Schnee wirkt der rosa Abendschimmer viel stärker – im Winter nur ganz zart
+    const glow = L.glow * (this.world?.season === 'winter' ? 0.35 : 1);
+    if (glow > 0.01) {
       const gr = ctx.createLinearGradient(0, 0, 0, this.h);
-      gr.addColorStop(0, `rgba(255,140,170,${L.glow})`); gr.addColorStop(1, `rgba(255,190,120,${L.glow * 0.6})`);
+      gr.addColorStop(0, `rgba(255,140,170,${glow})`); gr.addColorStop(1, `rgba(255,190,120,${glow * 0.6})`);
       ctx.fillStyle = gr; ctx.fillRect(0, 0, this.w, this.h);
     }
     if (L.white) return;
@@ -430,6 +434,31 @@ export class Renderer {
 
   drawWeatherScreen(ctx, game, t) {
     const W = game.S.weather;
+    const season = this.world.season;
+    // Schneefall
+    if (W.kind === 'snow') {
+      ctx.fillStyle = 'rgba(200,215,240,0.10)';
+      ctx.fillRect(0, 0, this.w, this.h);
+      for (const f of this.flakes) {
+        const y = ((f.y + t * 0.06 * f.s) % 1) * (this.h + 20) - 10;
+        const x = ((f.x + Math.sin(t * 0.8 + f.p) * 0.02 + t * 0.01) % 1) * this.w;
+        ctx.fillStyle = `rgba(255,255,255,${0.55 + f.s * 0.35})`;
+        circ(ctx, x, y, 1.6 + f.s * 2.2); ctx.fill();
+      }
+    }
+    // Herbstblätter und Frühlingsblüten wehen durchs Bild
+    if ((season === 'autumn' || season === 'spring') && W.kind !== 'rain' && game.state === 'play') {
+      const cols = season === 'autumn' ? ['#e8874a', '#d9603c', '#f2b84a', '#c9783a'] : ['#ffd6e7', '#ffffff', '#ffc2d8', '#fff0f6'];
+      for (const d of this.drift) {
+        const k = (d.x + t * 0.035 * d.s) % 1;
+        const x = k * (this.w + 80) - 40, y = ((d.y + t * 0.025 * d.s) % 1) * this.h + Math.sin(t * 1.5 + d.p) * 24;
+        ctx.save(); ctx.translate(x, y); ctx.rotate(t * 1.2 * d.s + d.p);
+        ctx.fillStyle = cols[d.c]; ctx.globalAlpha = 0.85;
+        ell(ctx, 0, 0, season === 'autumn' ? 6 * d.s + 2 : 4 * d.s + 1.5, season === 'autumn' ? 3 * d.s + 1 : 2.4 * d.s + 1, 0); ctx.fill();
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+    }
     if (W.kind === 'rain') {
       ctx.fillStyle = 'rgba(80,90,130,0.12)';
       ctx.fillRect(0, 0, this.w, this.h);

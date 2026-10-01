@@ -1,5 +1,5 @@
 // Läden: Kaufen und Verkaufen.
-import { SHOPS, ACCESSORIES, CLOTHES, DECO } from './data/shop.js';
+import { SHOPS, ACCESSORIES, CLOTHES, DECO, entryAvailable } from './data/shop.js';
 import { ITEMS } from './data/items.js';
 import { iconCanvas } from './draw/icons.js';
 
@@ -44,7 +44,8 @@ export function panelShop(p, shopId) {
   const grid = ui.h(p, '<div class="grid"></div>');
   const desc = ui.h(p, '<div class="desc-box">Klicke etwas an, um es zu kaufen.</div>');
   if (ui.shopTab < shop.tabs.length) {
-    for (const [type, id, price] of shop.tabs[ui.shopTab].entries) {
+    for (const [type, id, price, opts] of shop.tabs[ui.shopTab].entries) {
+      if (!entryAvailable(opts, g.S)) continue;
       const owned = (type === 'acc' || type === 'cloth') && g.inv.owns(id);
       const c = document.createElement('div');
       c.className = 'card click' + (owned ? ' locked' : '');

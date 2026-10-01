@@ -11,12 +11,14 @@ export const RACES = {
   race2: { name: 'Strandrennen', rivals: [['mia', 7.9]] },
   race3: { name: 'Das große Kleeberg-Rennen', rivals: [['mia', 8.15], ['ben', 7.85]] },
   finale: { name: 'Sommerfest-Rennen', rivals: [['mia', 8.2], ['ben', 7.95]] },
+  cup: { name: 'Kleeberg-Pokal', rivals: [['mia', 8.3], ['ben', 8.0], ['lotte', 7.4]] },
   parcours: { name: 'Hindernisparcours', rivals: [], medals: [24, 34] },
 };
 
 const RIVAL_HORSE = {
   mia: { name: 'Blitz', coat: 'falbe', mane: '#4a3628', marking: 'star', socks: true, acc: { saddle: 'saddle_kirsch', bow: 'bow_rosa' } },
   ben: { name: 'Wolke', coat: 'schimmel', mane: '#e8e2f0', marking: 'none', acc: { saddle: 'saddle_himmel', blanket: 'blanket_sterne' } },
+  lotte: { name: 'Butterblume', coat: 'palomino', mane: '#fff5df', marking: 'star', acc: { saddle: 'saddle_sonne', bow: 'bow_rosa' } },
 };
 
 export const MEDAL_NAMES = { gold: 'Gold', silver: 'Silber', bronze: 'Bronze' };
@@ -147,7 +149,7 @@ export class Race {
     const place = 1 + this.rivals.filter((r) => r.done).length;
     let medal;
     if (this.id === 'parcours') medal = this.time < this.def.medals[0] ? 'gold' : this.time < this.def.medals[1] ? 'silver' : 'bronze';
-    else medal = ['gold', 'silver', 'bronze'][place - 1];
+    else medal = ['gold', 'silver', 'bronze'][Math.min(2, place - 1)];
     this.result = { place, medal, time: this.time };
     g.onRaceFinished(this);
   }

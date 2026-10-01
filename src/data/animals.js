@@ -18,12 +18,12 @@ export const SPECIES = {
     spawns: [[92, 90], [124, 98]],
   },
   duckling: {
-    name: 'Entenküken', region: 'Glitzersee', verb: 'Zuwinken', speed: 1.5, water: true, food: 'bread',
+    name: 'Entenküken', region: 'Glitzersee', verb: 'Zuwinken', speed: 1.5, water: true, food: 'bread', seasons: ['spring', 'summer', 'autumn'],
     fact: 'Entenküken folgen dem ersten Lebewesen, das sie nach dem Schlüpfen sehen.',
     spawns: [[50, 139], [52, 144], [48, 148]],
   },
   hedgehog: {
-    name: 'Igel', region: 'Flüsterwald', verb: 'Vorsichtig streicheln', speed: 1,
+    name: 'Igel', region: 'Flüsterwald', verb: 'Vorsichtig streicheln', speed: 1, seasons: ['spring', 'summer', 'autumn'],
     fact: 'Ein Igel hat etwa 7000 Stacheln. Bei Gefahr rollt er sich zu einer Kugel.',
     spawns: [[30, 86], [18, 70], [46, 108]],
   },
@@ -43,12 +43,12 @@ export const SPECIES = {
     spawns: [[30, 49], [62, 44], [14, 102]],
   },
   frog: {
-    name: 'Frosch', region: 'Glitzersee', verb: 'Beobachten', speed: 2.5,
+    name: 'Frosch', region: 'Glitzersee', verb: 'Beobachten', speed: 2.5, seasons: ['spring', 'summer', 'autumn'],
     fact: 'Frösche trinken nicht mit dem Mund – sie nehmen Wasser über die Haut auf.',
     spawns: [[57, 146], [26, 138], [53, 142]],
   },
   butterfly: {
-    name: 'Schmetterling', region: 'Blumenwiesen', verb: 'Anlocken', speed: 1.5, flying: true,
+    name: 'Schmetterling', region: 'Blumenwiesen', verb: 'Anlocken', speed: 1.5, flying: true, seasons: ['spring', 'summer', 'autumn'],
     fact: 'Schmetterlinge schmecken mit ihren Füßen!',
     spawns: [[72, 48], [96, 52], [124, 46], [110, 66], [103, 98], [86, 62]],
   },
@@ -72,6 +72,37 @@ export const SPECIES = {
     fact: 'Alpakas summen, um sich miteinander zu unterhalten.',
     spawns: [[76, 16], [82, 20], [70, 22], [88, 14]],
   },
+  // ---------- Teil 2 ----------
+  swan: {
+    name: 'Schwan', region: 'Glitzersee', verb: 'Zuwinken', speed: 1.2, water: true, food: 'bread', part2: true, seasons: ['spring', 'summer', 'autumn'], seasonHint: 'nicht im Winter',
+    fact: 'Schwäne bleiben ihr ganzes Leben lang mit ihrem Partner zusammen.',
+    spawns: [[46, 141], [31, 151]],
+  },
+  goat: {
+    name: 'Bergziege', region: 'Wolkenberge', verb: 'Streicheln', speed: 2.4, food: 'carrot', part2: true,
+    fact: 'Ziegen können auf fast senkrechten Felsen klettern – und sie lieben es, auf Dingen zu stehen.',
+    spawns: [[122, 10], [136, 25], [94, 24]],
+  },
+  robin: {
+    name: 'Rotkehlchen', region: 'Ponyhof', verb: 'Leise grüßen', speed: 2, part2: true, seasons: ['autumn', 'winter'], seasonHint: 'Herbst und Winter',
+    fact: 'Rotkehlchen singen sogar im Winter – und manchmal nachts unter einer Laterne.',
+    spawns: [[64, 87], [129, 104], [58, 101]],
+  },
+  stork: {
+    name: 'Storch', region: 'Blumenwiesen', verb: 'Bewundern', speed: 1.4, part2: true, seasons: ['spring', 'summer'], seasonHint: 'Frühling und Sommer',
+    fact: 'Störche fliegen jedes Jahr Tausende Kilometer – und kommen immer zum selben Nest zurück.',
+    spawns: [[146, 72], [119, 63]],
+  },
+  lamb: {
+    name: 'Lämmchen', region: 'Blumenwiesen', verb: 'Streicheln', speed: 2.2, food: 'carrot', part2: true, seasons: ['spring', 'summer'], seasonHint: 'Frühling und Sommer',
+    fact: 'Lämmer erkennen ihre Mama am Blöken – unter hunderten anderen Schafen.',
+    spawns: [[151, 58], [154, 62], [147, 61]],
+  },
+  bat: {
+    name: 'Fledermaus', region: 'Dorf Kleeberg', verb: 'Leise grüßen', speed: 0, night: true, flying: true, part2: true, seasons: ['spring', 'summer', 'autumn'], seasonHint: 'nachts, nicht im Winter',
+    fact: 'Fledermäuse sehen mit den Ohren: Sie rufen ganz hoch und hören das Echo.',
+    spawns: [[112, 96], [66, 80]],
+  },
 };
 
 // Haustiere von Jolina und Mert (nicht im Tieralbum, außer die Katzen zählen als „Katze“)
@@ -82,4 +113,4 @@ export const PETS = {
   mira: { name: 'Mira', verb: 'Streicheln', speed: 4, pet: true, follows: true, sound: 'bark', desc: 'Kleine Yorkshire-Hündin mit großem Herz. Findet mit ihrer Nase fast alles.' },
 };
 
-export const SPECIES_ORDER = ['rabbit', 'cat', 'puppy', 'duckling', 'hedgehog', 'fox', 'squirrel', 'deer', 'frog', 'butterfly', 'crab', 'seal', 'owl', 'alpaca'];
+export const SPECIES_ORDER = ['rabbit', 'cat', 'puppy', 'duckling', 'hedgehog', 'fox', 'squirrel', 'deer', 'frog', 'butterfly', 'crab', 'seal', 'owl', 'alpaca', 'swan', 'goat', 'robin', 'stork', 'lamb', 'bat'];

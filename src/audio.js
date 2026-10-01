@@ -117,7 +117,12 @@ export class AudioEngine {
   style() {
     if (this.mode === 'festival') return REGION_STYLE.festival;
     if (this.mode === 'title') return REGION_STYLE.meadow;
-    return REGION_STYLE[this.region] || REGION_STYLE.farm;
+    const st = REGION_STYLE[this.region] || REGION_STYLE.farm;
+    // Jahreszeiten färben die Musik ein bisschen
+    if (this.season === 'winter') return { ...st, lead: 'bell', extra: st.extra === 'pad' ? 'pad' : st.extra, winter: true };
+    if (this.season === 'autumn') return { ...st, lead: st.lead === 'uke' ? 'harp' : st.lead, key: st.key - 2 };
+    if (this.season === 'spring') return { ...st, lead: st.lead === 'marimba' ? 'flute' : st.lead, key: st.key + 2 };
+    return st;
   }
 
   theme(styleKey) {
@@ -190,6 +195,7 @@ export class AudioEngine {
     if (st.extra === 'shaker' || fest) for (let i = 0; i < 8; i++) this.perc('shaker', t0 + (beat / 2) * i, i % 2 ? 0.03 : 0.05);
     if (fest) for (let i = 0; i < 4; i++) { this.perc('kick', t0 + beat * i, 0.35); if (i % 2) this.perc('snare', t0 + beat * i, 0.12); }
     if (this.mode === 'title' && this.bar % 2 === 0) this.note('bell', mtof(chord[2] + 12), t0 + beat * 3.5, beat, 0.04, dest);
+    if (st.winter && !night) for (let i = 0; i < 4; i++) this.perc('shaker', t0 + beat * i + beat * 0.5, 0.025);
   }
 
   note(type, f, t, dur, vel, dest = this.musicBus) {
@@ -355,6 +361,11 @@ export class AudioEngine {
       case 'buy': tone('sine', 880, 0, 0.1, 0.1); tone('sine', 1175, 0, 0.2, 0.1, 0.08); break;
       case 'kiss': noise(2600, 2, 0.05, 0.05); tone('sine', 1400, 900, 0.08, 0.06, 0.03); [784, 988, 1319].forEach((f, i) => tone('sine', f, 0, 0.35, 0.07, 0.15 + i * 0.09)); break;
       case 'error': tone('square', 220, 180, 0.15, 0.05); break;
+      case 'jingle': for (let i = 0; i < 5; i++) { tone('sine', 2637 + Math.random() * 300, 0, 0.18, 0.04, i * 0.05); tone('sine', 3520, 0, 0.12, 0.02, i * 0.05 + 0.02); } break;
+      case 'camera': noise(5000, 1, 0.05, 0.12); tone('square', 1800, 900, 0.04, 0.04, 0.06); noise(3000, 1, 0.08, 0.08, 0.1); break;
+      case 'hammer': noise(900, 2, 0.06, 0.2); tone('triangle', 420, 300, 0.07, 0.12); break;
+      case 'brush': noise(3500, 0.8, 0.12, 0.05); break;
+      case 'snow': noise(2200, 0.7, 0.08, 0.05); break;
       default: break;
     }
   }
@@ -365,6 +376,12 @@ export class AudioEngine {
     if (!ctx) return;
     const tunes = {
       birthday: [[67, 0.75], [67, 0.25], [69, 1], [67, 1], [72, 1], [71, 2], [67, 0.75], [67, 0.25], [69, 1], [67, 1], [74, 1], [72, 2], [67, 0.75], [67, 0.25], [79, 1], [76, 1], [72, 1], [71, 1], [69, 2], [77, 0.75], [77, 0.25], [76, 1], [72, 1], [74, 1], [72, 2]],
+      // O Tannenbaum (Volkslied)
+      tannenbaum: [[67, 1], [72, 0.75], [72, 0.25], [72, 1.5], [74, 0.5], [76, 0.75], [76, 0.25], [76, 1.5], [76, 0.5], [74, 0.5], [76, 0.5], [77, 1], [71, 1], [74, 1], [72, 2]],
+      // Opa Karls Spieluhr – eine kleine Wiegenmelodie
+      musicbox: [[76, 1], [79, 0.5], [77, 0.5], [76, 1], [72, 1], [74, 0.5], [76, 0.5], [77, 1], [74, 1], [76, 0.5], [79, 0.5], [84, 1], [83, 0.5], [81, 0.5], [79, 2], [77, 0.5], [76, 0.5], [74, 1], [72, 2]],
+      // Tanzmelodie fürs Erntedankfest
+      dance: [[72, 0.5], [76, 0.5], [79, 0.5], [76, 0.5], [77, 0.5], [81, 0.5], [79, 1], [74, 0.5], [77, 0.5], [81, 0.5], [77, 0.5], [76, 0.5], [79, 0.5], [72, 1], [72, 0.5], [76, 0.5], [79, 0.5], [84, 0.5], [83, 0.5], [79, 0.5], [77, 0.5], [74, 0.5], [72, 2]],
     };
     const notes = tunes[name];
     if (!notes) return;

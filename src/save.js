@@ -5,7 +5,7 @@ import { defaultFarm, FARM } from './world.js';
 
 export const SAVE_KEY = 'ponyhof.save';
 export const SETTINGS_KEY = 'ponyhof.settings';
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export function defaultState() {
   return {
@@ -26,7 +26,7 @@ export function defaultState() {
     tracked: null,
     farm: defaultFarm(),
     flags: {},
-    collected: { hs: [], pick: {}, trees: {}, hearts: [] },
+    collected: { hs: [], pick: {}, trees: {}, hearts: [], clovers: [], notes: [], recipes: [], stars: [] },
     hsRewards: [],
     garden: [],
     album: {},
@@ -39,6 +39,12 @@ export function defaultState() {
     tutorial: {},
     npcGift: {},
     ending: { done: false, foal: null },
+    // ---------- Teil 2 ----------
+    season: 'summer',
+    part2: { started: false, done: false, day: 0 },
+    cloverRewards: [],
+    photos: {},
+    album2Rewarded: false,
   };
 }
 
@@ -52,6 +58,10 @@ function migrate(data) {
     // v1 kannte noch kein Deko-Inventar und keine NPC-Geschenke
     data.decoInv = data.decoInv || {};
     data.npcGift = data.npcGift || {};
+  }
+  if (data.version < 3) {
+    // v2 → v3: Teil 2 (Jahreszeiten, neue Sammelsachen) – fehlende Felder ergänzt mergeDefaults
+    data.season = data.season || 'summer';
   }
   data.version = SAVE_VERSION;
   return data;

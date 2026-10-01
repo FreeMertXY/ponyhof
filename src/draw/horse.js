@@ -12,7 +12,7 @@ export function horseLook(rec) {
     body: coat.body, dark: coat.dark, light: coat.light, mane: rec.mane || coat.mane,
     dapple: !!coat.dapple, patches: coat.patches || null,
     marking: rec.marking || 'none', socks: !!rec.socks,
-    acc: rec.acc || {}, foal: !!rec.foal,
+    acc: rec.acc || {}, foal: !!rec.foal, grow: rec.grow || 0,
   };
 }
 
@@ -51,7 +51,7 @@ export function drawHorse(ctx, H, o = {}) {
   const t = o.t || 0;
   let pose = o.pose || 'stand';
   const face = o.face || 1;
-  const s = (H.foal ? 0.62 : 1) * (o.scale || 1);
+  const s = (H.foal ? 0.62 + 0.3 * (H.grow || 0) : 1) * (o.scale || 1);
   ctx.save();
   if (!o.noShadow) shadow(ctx, 0, 0, 22 * s, 6 * s, o.z ? 0.12 : 0.2);
   ctx.translate(0, -(o.z || 0));
@@ -134,6 +134,12 @@ export function drawHorse(ctx, H, o = {}) {
       for (const [x, y] of [[-9, -30], [0, -25], [6, -32], [-4, -35], [-10, -23]]) { star(ctx, x, y, 2.4); ctx.fill(); }
     } else if (b.pattern === 'hearts') {
       for (const [x, y] of [[-9, -29], [1, -24], [5, -32], [-5, -35]]) heart(ctx, x, y + 1, 5, 'rgba(255,255,255,0.8)');
+    } else if (b.pattern === 'snow') {
+      ctx.fillStyle = '#b9a8e0';
+      for (const [x, y] of [[-9, -30], [0, -25], [6, -32], [-4, -35], [-10, -23]]) { for (let i = 0; i < 3; i++) { ctx.save(); ctx.translate(x, y); ctx.rotate((i / 3) * Math.PI); ctx.fillRect(-2.6, -0.5, 5.2, 1); ctx.restore(); } }
+      ctx.fillStyle = '#fff'; for (let x = -14; x < 12; x += 4) { circ(ctx, x, -21.5, 1.8); ctx.fill(); }
+    } else if (b.pattern === 'rainbow') {
+      RAINBOW.forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(-15, -42 + i * 4.4, 27, 4.6); });
     }
     ctx.restore();
     ctx.strokeStyle = '#fff6'; ctx.lineWidth = 1.5;
@@ -178,7 +184,7 @@ export function drawHorse(ctx, H, o = {}) {
   // Blumenkranz um den Hals
   if (A.wreath && ACCESSORIES[A.wreath]) {
     const w = ACCESSORIES[A.wreath];
-    const cols = w.gold ? ['#ffd24a', '#fff1a8', '#ffc83d'] : ['#ff9ecb', '#fff', '#b79cf0', '#ffd166'];
+    const cols = w.gold ? ['#ffd24a', '#fff1a8', '#ffc83d'] : w.autumn ? ['#e8874a', '#d9603c', '#f2b84a', '#c9783a'] : ['#ff9ecb', '#fff', '#b79cf0', '#ffd166'];
     for (let i = 0; i < 7; i++) {
       const a = -1.2 + (i / 6) * 2.4;
       flower(ctx, 14 + Math.cos(a) * 4.5, -33 + Math.sin(a) * 9, 2.3, cols[i % cols.length], w.gold ? '#fff' : '#ffc83d');

@@ -10,6 +10,16 @@ Das Sommerfest) mit 28 Haupt- und 10 Nebenaufgaben – ein Date am Steg, ein Aus
 Geburtstagsparty, eine Rosenlaube, Kätzchen von Maumau, Miras Hundeshow, Herzsteine, eine Sternschnuppennacht
 und ein großes Finale. Spielzeit beim ersten Mal: etwa **2–3 Stunden**.
 
+### Teil 2 · Vier Jahreszeiten
+
+Die Fortsetzung schließt direkt an: Nach dem Abspann von Teil 1 (oder beim nächsten „Fortsetzen“) beginnt ein
+ganzes Jahr auf dem Hof – **Herbst, Winter, Frühling und Sommer**, jeweils mit eigener Optik, eigenem Wetter
+und eigenen Sammelsachen. 7 neue Kapitel (Herbstzauber · Die kleine Reitschule · Opas Schatzkarte ·
+Winterwunderland · Frühlingserwachen · Unser kleines Zuhause · Das große Jahresfest) mit 41 Haupt- und 10
+Nebenaufgaben: Wölkchen wird groß und reitbar, eine kleine Reitschule mit Lotte, Opa Karls Schatz,
+Eislaufen mit Mert, ein eigenes Häuschen, ein Fotoalbum mit echten Fotos, Laternenfest und neue Kussszenen.
+Spielzeit: etwa **3–4 Stunden**. Auf einem neuen Gerät führt „Direkt zu Teil 2“ im Titelmenü sofort hinein.
+
 **Nicht weiter?** Im Aufgabenbuch (`Q`) steht bei jeder Aufgabe ein **Tipp**, wo es hingeht, und der Pfeil am
 Bildschirmrand bzw. auf der Minikarte zeigt immer zum Ziel.
 
@@ -32,7 +42,7 @@ Das Spiel speichert automatisch (alle 30 Sekunden und bei jedem Fortschritt); im
 | `Leertaste` | zu Pferd springen (klappt an niedrigen Zäunen auch automatisch) |
 | `F` | Pferde-Trick (ab Freundschaftslevel 2) |
 | `I` / `Q` / `M` / `T` / `P` | Tasche, Aufgaben (mit Tipps), Karte, Tieralbum, Pferde |
-| `Esc` | Menü (Einstellungen, Speichern, „Zurück zum Hof“) |
+| `Esc` | Menü (Einstellungen, Speichern, „Zurück zum Hof“, in Teil 2 auch Fotoalbum und Schneekugel) |
 
 Alles ist auch mit der Maus über die Knöpfe unten rechts, die Minikarte und das Aufgabenfeld bedienbar.
 
@@ -55,8 +65,8 @@ Dann <http://localhost:8080> im Browser öffnen.
 npm test             # node --test: Welt & Kollision, Aufgaben, Speichern/Laden, Inventar, Laden, Zähmen
 ```
 
-Die Tests prüfen u. a., dass alle Personen, Wildpferde, Sammelsachen und Rennstrecken erreichbar sind und dass
-man die komplette Geschichte bis zum Sommerfest durchspielen kann.
+Die Tests prüfen u. a., dass alle Personen, Wildpferde, Sammelsachen und Rennstrecken (in allen Jahreszeiten)
+erreichbar sind und dass man beide Teile komplett bis zum Sommerfest bzw. Jahresfest durchspielen kann.
 
 ## 🗂️ Aufbau des Codes
 
@@ -80,6 +90,9 @@ src/
   race.js             Rennen & Hindernisparcours (Checkpoints, Gegner, Medaillen)
   ending.js           Sommerfest, Sonnenuntergang, Feuerwerk, Fohlen
   scenes.js           kleine Geschichten-Szenen: Date, Kussszenen, Ausritt mit Mert, Party, Kätzchen, Hundeshow
+  part2.js            Teil 2: Start, Jahreszeitenwechsel, Orts-Aktionen, Sammelsachen, Fotos
+  scenes2.js, scenes3.js  Szenen von Teil 2 (Herbst bis Sommer), scenekit.js gemeinsame Helfer
+  ending2.js          Jahresfest am Glitzersee mit Laternen und Abspann von Teil 2
   screens.js          Titel, Charakter-Editor, Intro, Namenseingabe, Bilderbuch-Abspann
   ui.js               HUD, Minikarte, Karte, Inventar, Aufgabenbuch, Album, Einstellungen
   audio.js            Musik & Geräusche – komplett mit der Web Audio API erzeugt
@@ -96,7 +109,7 @@ tools/                Hilfsskripte für Browser-Screenshots und den automatische
 ### Inhalte erweitern
 
 Neue Aufgaben, Dialoge, Tiere, Gegenstände oder Zubehör werden in `src/data/` als einfache Objekte ergänzt –
-z. B. eine neue Nebenaufgabe in `src/data/quests.js` (Schritttypen stehen oben in der Datei). `{name}` wird im
+z. B. eine neue Nebenaufgabe in `src/data/quests.js` bzw. `src/data/quests2.js` (Schritttypen stehen oben in der Datei). `{name}` wird im
 Text automatisch durch den Namen der Spielerin ersetzt, `{horse}` durch den Namen des Reitpferds.
 
 ## 🎨 Technik

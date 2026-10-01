@@ -35,6 +35,8 @@ export const WILD_HORSES = [
   { id: 'tupfen', name: 'Tupfen', coat: 'schecke', mane: '#3b2b27', marking: 'snip', socks: false, personality: 'neugierig', hint: 'Steht auf der Wiese östlich vom Dorf.' },
   { id: 'mondschein', name: 'Mondschein', coat: 'rappe', mane: '#1d1824', marking: 'star', socks: true, personality: 'vertraeumt', hint: 'Lebt auf einer versteckten Waldlichtung.' },
   { id: 'nebel', name: 'Nebel', coat: 'apfel', mane: '#ffffff', marking: 'snip', socks: false, personality: 'wild', hint: 'Das scheue Wildpferd der Wolkenberge.' },
+  // Teil 2: das weiße Winterpony (nur im Winter oder während der Aufgabe)
+  { id: 'flocke', name: 'Flocke', coat: 'schimmel', mane: '#f4f8ff', marking: 'star', socks: false, personality: 'schuechtern', hint: 'Zeigt sich nur im Winter in den Wolkenbergen.', part2: true },
 ];
 
 // Freundschaft: Punkte-Schwellen für Level 1–5

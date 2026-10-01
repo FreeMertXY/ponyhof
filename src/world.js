@@ -9,11 +9,15 @@ export const WH = 180;
 // Bodenarten
 export const G = {
   GRASS: 0, FOREST: 1, PATH: 2, SAND: 3, DEEP: 4, SHALLOW: 5, MEADOW: 6, SOIL: 7,
-  PLAZA: 8, ALPINE: 9, CLIFF: 10, BRIDGE: 11, DOCK: 12, SEA: 13, WETSAND: 14, FLOWERBED: 15,
+  PLAZA: 8, ALPINE: 9, CLIFF: 10, BRIDGE: 11, DOCK: 12, SEA: 13, WETSAND: 14, FLOWERBED: 15, ICE: 16, ARENA: 17,
 };
 
+// Jahreszeiten (Teil 2): Sommer ist der Normalzustand von Teil 1
+export const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
+export const SEASON_NAMES = { spring: 'Frühling', summer: 'Sommer', autumn: 'Herbst', winter: 'Winter' };
+
 // Kollisionsarten
-export const COL = { FREE: 0, SOLID: 1, WATER: 2, FORD: 3, LOW: 4 };
+export const COL = { FREE: 0, SOLID: 1, WATER: 2, FORD: 3, LOW: 4, ICE: 5 };
 
 // Gebiete
 export const REG = { FARM: 0, VILLAGE: 1, MEADOW: 2, FOREST: 3, LAKE: 4, BEACH: 5, MOUNTAIN: 6 };
@@ -36,6 +40,8 @@ export const FARM = {
   paddockBig: { x: 66, y: 93, w: 31, h: 14, gates: [[73, 93], [74, 93], [89, 93], [90, 93]] },
   flowerGarden: { x: 100, y: 93, w: 7, h: 12 },
   festival: { x: 70, y: 110, w: 31, h: 12 },
+  arena: { x: 65, y: 122, w: 15, h: 8, gate: [[79, 125], [79, 126]] },
+  cottage: { x: 101, y: 113, w: 5, h: 4, door: { x: 103.5, y: 117.4 } },
   hill: { x: 86, y: 128, r: 4.5 },
   gate: { x: 107, y: 87, h: 5 },
   spawn: { x: 88.5, y: 89.5 },
@@ -58,6 +64,8 @@ export const VILLAGE = {
 
 export const SPOTS = {
   npc: {
+    lotte: { x: 153.5, y: 110.4 },
+    ella: { x: 152.5, y: 90.4 },
     hilde: { x: 72.5, y: 88.6 },
     mert: { x: 85.5, y: 88.4 },
     theo: { x: 121.5, y: 90.2 },
@@ -84,6 +92,44 @@ export const SPOTS = {
   gazebo: { x: 100.5, y: 80.6 },
   petcorner: { x: 103.5, y: 108.8 },
   festivalCenter: { x: 85.5, y: 116 },
+  // ---- Teil 2 ----
+  lotteFarm: { x: 78.5, y: 91.9 },
+  arenaBoard: { x: 81.5, y: 124.6 },
+  arenaCenter: { x: 72, y: 126 },
+  leafpile: { x: 80.5, y: 80.4 },
+  leafbig: { x: 94.5, y: 79.4 },
+  igelhaus: { x: 94.5, y: 108.4 },
+  farmshop: { x: 95, y: 91.6 },
+  snowman: { x: 102.5, y: 92 },
+  farmTree: { x: 82.5, y: 92 },
+  cottage: { x: 103.5, y: 118.2 },
+  dig_leuchtturm: { x: 162.5, y: 164.6 },
+  dig_insel: { x: 38.5, y: 148.6 },
+  echo: { x: 68.5, y: 25.5 },
+  dig_schatz: { x: 87.5, y: 129.6 },
+  attic: { x: 81, y: 88.2 },
+  alpacas: { x: 79.5, y: 18.5 },
+  rack: { x: 46.5, y: 107.4 },
+  firtree: { x: 96.5, y: 15.2 },
+  plazaTree: { x: 127.5, y: 94.4 },
+  icecenter: { x: 40.5, y: 140.5 },
+  wildfoal: { x: 128.5, y: 24.5 },
+  herdHome: { x: 145.5, y: 16.5 },
+  storknest: { x: 147.6, y: 99.6 },
+  sandpit: { x: 140.5, y: 160.5 },
+  vetDoor: { x: 152.5, y: 88.6 },
+  lakeFest: { x: 60.5, y: 140.5 },
+  lanterns: [{ x: 50.5, y: 140.6 }, { x: 53.5, y: 140.6 }, { x: 56.5, y: 140.6 }, { x: 59.5, y: 138.5 }, { x: 61.5, y: 142.5 }, { x: 59.5, y: 145.5 }],
+  photos: {
+    lookout: { x: 103.5, y: 8.5, name: 'Am Aussichtspunkt' },
+    dock: { x: 55.5, y: 141.6, name: 'Auf dem Steg' },
+    lighthouse: { x: 160.5, y: 163.4, name: 'Am Leuchtturm' },
+    gazebo: { x: 100.5, y: 81.8, name: 'In der Rosenlaube' },
+    island: { x: 40.5, y: 145.6, name: 'Auf der Insel' },
+    sunflowers: { x: 125.5, y: 53.5, name: 'Im Sonnenblumenfeld' },
+    hill: { x: 86.5, y: 130, name: 'Unter dem Blütenbaum' },
+    alpacas: { x: 73.5, y: 14.5, name: 'Bei den Alpakas' },
+  },
   wildHorses: {
     kleeblatt: { x: 112.5, y: 64.5 },
     schoko: { x: 42.5, y: 66.5 },
@@ -92,7 +138,9 @@ export const SPOTS = {
     tupfen: { x: 155.5, y: 68.5 },
     mondschein: { x: 14.5, y: 100.5 },
     nebel: { x: 146.5, y: 14.5 },
+    flocke: { x: 158.5, y: 25.5 },
   },
+  birdspots: [{ x: 63.5, y: 85.6 }, { x: 129.5, y: 102.6 }, { x: 57.5, y: 99.5 }],
   herd: [{ x: 138.5, y: 12.5 }, { x: 152.5, y: 20.5 }, { x: 141.5, y: 21.5 }, { x: 156.5, y: 11.5 }],
 };
 
@@ -103,6 +151,14 @@ export const TRACKS = {
   race3: [[96, 76], [95, 58], [80, 56], [62, 55], [50, 55], [40, 53], [30, 50], [24, 58], [22, 66], [27, 78], [34, 88], [40, 92], [50, 94], [60, 92], [65, 89], [88, 89], [88, 80], [96, 76]],
   finale: [[80, 114], [96, 116], [98, 104], [98, 90], [88, 89], [88, 80], [90, 70], [95, 58], [114, 58], [126, 66], [120, 76], [114, 91], [107, 89], [98, 90], [98, 108], [84, 114]],
   parcours: [[84, 63], [75, 63], [69, 63], [69, 69], [75, 71], [81, 71], [85, 71]],
+  cup: [[80, 114], [96, 116], [98, 104], [98, 90], [107, 89], [114, 92], [126, 96], [124, 101], [130, 105], [131, 118], [128, 134], [124, 150], [110, 157], [98, 152], [92, 140], [87, 131], [86, 122], [82, 114]],
+};
+
+// Pylonen für die Reitstunden (Teil 2) – innerhalb des Reitplatzes
+export const LESSONS = {
+  l1: [[68, 124], [76, 124], [77, 128], [68.5, 128], [72, 126]],
+  l2: [[67.5, 124], [70.5, 127.5], [73.5, 124], [76.5, 127.5], [77.5, 124], [72, 126], [67.5, 128]],
+  b1: [[68, 126], [71, 123.5], [74, 128], [77, 123.5], [76, 127.5], [69, 128]],
 };
 
 export const PARCOURS = {
@@ -159,6 +215,24 @@ const SIGNS = [
 // Merts 5 Herzsteine (nur während der Nebenaufgabe sichtbar)
 export const HEARTSTONES = [[43, 149], [109, 8], [160, 162], [84, 127], [16, 103]];
 
+// Teil 2: 20 vierblättrige Kleeblätter
+export const CLOVERS = [
+  [61, 98], [97, 120], [106, 100], [76, 133], // Hof
+  [117, 111], [158, 100], [146, 82], // Dorf
+  [92, 66], [150, 46], [110, 74], [70, 58], // Wiesen
+  [24, 64], [10, 118], [36, 112], // Wald
+  [30, 158], [62, 150], // See
+  [134, 162], [96, 163], // Strand
+  [84, 9], [150, 27], // Berge
+];
+// Teil 2: Merts Zettelchen, Bertas Rezeptseiten, Glitzersterne auf dem Eis
+export const LOVENOTES = [[82, 91], [101, 82], [128, 103], [56, 139], [87, 125]];
+export const RECIPES = [[118, 113], [146, 116], [111, 91], [135, 76], [125, 62]];
+export const ICESTARS = [[30, 141], [46, 139], [50, 151], [29, 152], [37, 156]];
+// Kastanienbäume (Herbst) und Steine (Berge)
+export const CHESTNUT_TREES = [[84, 47], [113, 49], [140, 66], [104, 75]];
+export const STONES = [[52, 29], [60, 31], [74, 30], [86, 30], [96, 31], [118, 30], [130, 31], [142, 29], [152, 30], [160, 29], [70, 8], [130, 8]];
+
 // 30 goldene Hufeisen – gut versteckt
 export const HORSESHOES = [
   [64, 80], [104, 81], [99, 125], [72, 120], // Hof
@@ -207,12 +281,18 @@ function stampLine(pts, r, fn) {
 function inB(x, y) { return x >= 0 && y >= 0 && x < WW && y < WH; }
 
 export function defaultFarm() {
-  return { stable: false, paddock: false, flowerGarden: false, gazebo: false, petcorner: false, festival: false };
+  return {
+    stable: false, paddock: false, flowerGarden: false, gazebo: false, petcorner: false, festival: false,
+    // Teil 2
+    part2: false, farmshop: false, igelhaus: false, arena: false, school: false, winterlights: false, tulips: false, cottage: false,
+    cottageStyle: null,
+  };
 }
 
 export class World {
-  constructor(farm = defaultFarm()) {
+  constructor(farm = defaultFarm(), season = 'summer') {
     this.farm = { ...defaultFarm(), ...farm };
+    this.season = SEASONS.includes(season) ? season : 'summer';
     this.ground = makeGrid();
     this.coll = makeGrid();
     this.region = makeGrid();
@@ -249,7 +329,17 @@ export class World {
     this.buildSpecials();
     this.buildVegetation();
     this.buildPickups();
+    this.buildSeason();
     this.buildCollision();
+  }
+
+  // Winter: Seen, Fluss und Bergteich frieren zu (zu Fuß begehbar, zu Pferd nicht)
+  buildSeason() {
+    if (this.season !== 'winter') return;
+    for (let i = 0; i < WW * WH; i++) {
+      const g = this.ground[i];
+      if (g === G.DEEP || g === G.SHALLOW) this.ground[i] = G.ICE;
+    }
   }
 
   buildRegions() {
@@ -434,6 +524,41 @@ export class World {
       this.addObj({ k: 'stage', x: FW.x + 14, y: FW.y + 5 }, false);
       for (let i = 0; i < 6; i++) this.lights.push({ x: FW.x + 5 + i * 4.5, y: FW.y + 3.2, r: 2.6, c: i % 2 ? '#ffb3c8' : '#ffe39a' });
     }
+    // ---------- Teil 2 ----------
+    const W2 = this.season === 'winter';
+    // Reitplatz (Kapitel 8) – Fläche immer reserviert
+    const AR = F.arena;
+    this.reserveRect(AR.x - 1, AR.y - 1, AR.w + 4, AR.h + 2);
+    if (f.arena) {
+      for (let y = AR.y + 1; y < AR.y + AR.h - 1; y++) for (let x = AR.x + 1; x < AR.x + AR.w - 1; x++) this.setG(x, y, G.ARENA);
+      this.fenceRect(AR.x, AR.y, AR.w, AR.h, AR.gate, 'white');
+      this.addObj({ k: 'board2', x: 81, y: 124 }, true);
+      if (f.school) {
+        this.addObj({ k: 'bench', x: 82, y: 127 }, true);
+        this.addObj({ k: 'schoolsign', x: 81, y: 128.4 }, true);
+      }
+    }
+    // Hofladen am Tor (Kapitel 7)
+    if (f.farmshop) this.addObj({ k: 'farmshop', x: 94, y: 91 }, true, 2, 1);
+    // Igelhaus (Kapitel 7)
+    if (f.igelhaus) this.addObj({ k: 'igelhaus', x: 94, y: 108 }, true);
+    // Lichterglanz (Kapitel 10): im Winter mit Weihnachtsbaum
+    if (f.winterlights) {
+      if (W2) this.addObj({ k: 'xmastree', x: 82, y: 91 }, true);
+      for (const [lx, ly] of [[68.5, 86.6], [72.5, 86.6], [79, 86.6], [83, 86.6]]) this.lights.push({ x: lx, y: ly, r: 2.2, c: ['#ffb3c8', '#ffe39a', '#b3e3ff', '#c9ffb3'][Math.floor(lx) % 4] });
+      if (W2) this.lights.push({ x: 82.5, y: 90, r: 4.5, c: '#fff1b0' });
+    }
+    // Eigenes Häuschen (Kapitel 12)
+    const CT = F.cottage;
+    this.reserveRect(CT.x - 1, CT.y - 3, CT.w + 2, CT.h + 6);
+    if (f.cottage) {
+      this.addBuilding({ type: 'cottage', ...CT, style: f.cottageStyle || { wall: '#ffd8e4', roof: '#e86f8f' } });
+      stampLine([[98, 112.5], [103.5, 118.5]], 0.7, (x, y) => { if (this.g(x, y) === G.GRASS) this.setG(x, y, G.PATH); });
+      this.addObj({ k: 'lamp', x: 106, y: 117 }, true);
+      this.lights.push({ x: 106.5, y: 117, r: 4, c: '#ffe1a8' });
+    }
+    // Tulpenbeete (Kapitel 11)
+    if (f.tulips) for (const [tx, ty] of [[99, 117], [100, 119], [106, 119], [107, 115]]) this.addObj({ k: 'tulipbed', x: tx, y: ty }, false);
     // Hoftor mit Namensschild
     this.addObj({ k: 'gatepost', x: F.gate.x, y: 86 }, true);
     this.addObj({ k: 'gatepost', x: F.gate.x, y: 92 }, true);
@@ -456,7 +581,7 @@ export class World {
       if (Math.hypot(x + 0.5 - V.plaza.x, y + 0.5 - V.plaza.y) < V.plaza.r) this.setG(x, y, G.PLAZA);
     }
     for (const b of V.buildings) {
-      this.addBuilding({ ...b });
+      this.addBuilding({ ...b, type: b.type === 'house_a' && this.farm.part2 ? 'vet' : b.type });
       // Weg zur Tür
       stampLine([[b.door.x, b.door.y + 0.5], [V.plaza.x + 0.5, V.plaza.y + 0.5]], 0.75, (x, y) => {
         const g = this.g(x, y);
@@ -476,6 +601,14 @@ export class World {
     this.addObj({ k: 'bench', x: 128, y: 102 }, true);
     this.addObj({ k: 'bench', x: 135, y: 90 }, true);
     for (const [ax, ay] of [[112, 108], [148, 80], [156, 96]]) this.addAppleTree(ax, ay);
+    // Teil 2: Tierarztpraxis, Weihnachtsmarkt, Storchennest
+    if (this.farm.part2) {
+      if (this.season === 'winter') {
+        for (const [sx, sy, c] of [[122, 92, '#e86f7d'], [139, 92, '#6fbf8f'], [121, 99, '#ffd166']]) this.addObj({ k: 'xstall', x: sx, y: sy, c }, true, 2, 1);
+        if (this.farm.plazaTree) { this.addObj({ k: 'bigxmastree', x: 127, y: 94 }, true); this.lights.push({ x: 127.5, y: 92, r: 5, c: '#fff1b0' }); }
+      }
+      if (this.farm.storks) this.addObj({ k: 'storknest', x: 147, y: 98 }, false);
+    }
     // Zäunchen um die Gärten
     this.fenceRect(116, 103, 9, 7, [[120, 109], [121, 109]], 'picket');
     this.fenceRect(136, 103, 9, 7, [[140, 109], [141, 109]], 'picket');
@@ -507,6 +640,20 @@ export class World {
     this.addObj({ k: 'log', x: 20, y: 73 }, true, 2, 1);
     // Alpaka-Weide: Hütte
     this.addObj({ k: 'shelter', x: 74, y: 12 }, true, 3, 2);
+    // Teil 2: Futterkrippe im Wald, besondere Tanne, Echo-Felsen, Kastanienbäume
+    if (this.farm.part2) {
+      this.addObj({ k: 'rack', x: 46, y: 106 }, true, 2, 1);
+      this.reserveRect(44, 104, 5, 5);
+      if (!this.farm.firFetched) this.addObj({ k: 'bigfir', x: 96, y: 14 }, true);
+      this.reserveRect(94, 12, 5, 5);
+      this.addObj({ k: 'echorock', x: 67, y: 24 }, true);
+      this.reserveRect(66, 23, 4, 4);
+    }
+    for (const [cx, cy] of CHESTNUT_TREES) {
+      const o = { k: 'tree', v: 'chestnut', x: cx, y: cy, s: 1.1 };
+      this.addObj(o, true);
+      this.reserveRect(cx - 2, cy - 1, 5, 4);
+    }
     // Wegweiser
     for (const s of SIGNS) {
       this.addObj({ k: 'sign', x: s.x, y: s.y, lines: s.lines }, true);
@@ -665,6 +812,16 @@ export class World {
       }
       this.pickups.push({ id: 'hs_' + i, k: 'horseshoe', x: x + 0.5, y: y + 0.5 });
     });
+    const nearFree = (hx, hy) => {
+      let x = Math.floor(hx), y = Math.floor(hy);
+      if (!free(x, y)) {
+        outer: for (let rad = 1; rad < 5; rad++) for (let dy = -rad; dy <= rad; dy++) for (let dx = -rad; dx <= rad; dx++) {
+          if (free(x + dx, y + dy)) { x += dx; y += dy; break outer; }
+        }
+      }
+      return [x, y];
+    };
+    this._nearFree = nearFree;
     HEARTSTONES.forEach(([hx, hy], i) => {
       let x = hx, y = hy;
       if (!free(x, y)) {
@@ -674,6 +831,25 @@ export class World {
       }
       this.pickups.push({ id: 'heart_' + i, k: 'heartstone', x: x + 0.5, y: y + 0.5 });
     });
+    // ---------- Teil 2 ----------
+    CLOVERS.forEach(([hx, hy], i) => { const [x, y] = nearFree(hx, hy); this.pickups.push({ id: 'clover_' + i, k: 'clover', x: x + 0.5, y: y + 0.5 }); });
+    LOVENOTES.forEach(([hx, hy], i) => { const [x, y] = nearFree(hx, hy); this.pickups.push({ id: 'note_' + i, k: 'lovenote', x: x + 0.5, y: y + 0.5 }); });
+    RECIPES.forEach(([hx, hy], i) => { const [x, y] = nearFree(hx, hy); this.pickups.push({ id: 'recipe_' + i, k: 'recipe', x: x + 0.5, y: y + 0.5 }); });
+    ICESTARS.forEach(([hx, hy], i) => this.pickups.push({ id: 'icestar_' + i, k: 'icestar', x: hx + 0.5, y: hy + 0.5 }));
+    // Kastanien unter den Kastanienbäumen (Herbst)
+    CHESTNUT_TREES.forEach(([cx, cy]) => {
+      for (const [dx, dy] of [[-2, 1], [2, 1], [0, 2], [-1, 2], [1, 3]]) tryAdd('chestnut', cx + dx, cy + dy);
+    });
+    // Schneeglöckchen am Waldrand und auf dem Hof (Frühling)
+    n = 0; guard = 0;
+    const r2 = rngFor('snowdrops');
+    while (n < 16 && guard++ < 4000) {
+      const x = 52 + Math.floor(r2() * 60), y = 76 + Math.floor(r2() * 50);
+      const g = this.g(x, y), reg = this.region[y * WW + x];
+      if ((g === G.GRASS || g === G.FOREST) && (reg === REG.FOREST || reg === REG.FARM) && !this.keep[y * WW + x] && tryAdd('snowdrop', x, y)) n++;
+    }
+    // Steine am Fuß der Wolkenberge
+    STONES.forEach(([sx, sy]) => { const [x, y] = nearFree(sx, sy); tryAdd('stone', x, y); });
   }
 
   nearPath(x, y, r) {
@@ -688,6 +864,7 @@ export class World {
       if (g === G.CLIFF) c = COL.SOLID;
       else if (g === G.DEEP || g === G.SEA) c = COL.WATER;
       else if (g === G.SHALLOW) c = COL.FORD;
+      else if (g === G.ICE) c = COL.ICE;
       this.coll[i] = c;
     }
     for (const [x, y, c] of this.blockList) {
@@ -712,6 +889,7 @@ export class World {
     if (c === COL.FREE) return true;
     if (c === COL.FORD) return !!mode.riding;
     if (c === COL.LOW) return !!mode.riding && !!mode.jumping;
+    if (c === COL.ICE) return !mode.riding;
     return false;
   }
 

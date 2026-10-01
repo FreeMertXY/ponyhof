@@ -265,6 +265,94 @@ const D = {
   },
 };
 
+// ---------- Teil 2: neue Tierarten ----------
+D.swan = (ctx, t) => {
+  const bob = Math.sin(t * 1.5) * 0.8;
+  ctx.save(); ctx.translate(0, bob);
+  ctx.fillStyle = 'rgba(255,255,255,0.35)'; ell(ctx, 0, 0, 14, 3.5); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-13, -4); ctx.quadraticCurveTo(-10, -14, 2, -11); ctx.quadraticCurveTo(10, -9, 9, -3); ctx.quadraticCurveTo(0, 1, -13, -4); ctx.closePath(); fs(ctx, '#ffffff', 1.2, '#cfd6e0');
+  ctx.beginPath(); ctx.moveTo(-11, -6); ctx.quadraticCurveTo(-4, -14, 3, -10); ctx.stroke();
+  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3.6; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(5, -9); ctx.quadraticCurveTo(12, -14, 7, -22); ctx.quadraticCurveTo(5, -27, 9, -28); ctx.stroke();
+  ctx.strokeStyle = '#cfd6e0'; ctx.lineWidth = 0.8; ctx.stroke();
+  circ(ctx, 9.5, -27.5, 3); fs(ctx, '#ffffff', 0.8, '#cfd6e0');
+  ctx.fillStyle = '#ff8a3c'; ctx.beginPath(); ctx.moveTo(11.5, -28.5); ctx.lineTo(16, -27); ctx.lineTo(11.5, -26); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#2c2130'; ctx.beginPath(); ctx.moveTo(11, -29); ctx.lineTo(12.5, -27.5); ctx.lineTo(11, -26); ctx.closePath(); ctx.fill();
+  eye(ctx, 9.8, -28.4, 0.9);
+  blush(ctx, 9, -26.5, 1.2);
+  ctx.restore();
+};
+D.goat = (ctx, t, m, st) => {
+  shadow(ctx, 0, 0, 11, 3);
+  const c = '#f2ede6', d = '#d9cfc4';
+  const la = m ? Math.sin(t * 10) * 0.4 : 0;
+  for (const [x, a] of [[-7, la], [-3, -la], [4, -la], [8, la]]) { ctx.save(); ctx.translate(x, -8); ctx.rotate(a); rr(ctx, -1.6, 0, 3.2, 8, 1.4); fs(ctx, d, 1); rr(ctx, -1.7, 6.5, 3.4, 2, 1); fs(ctx, '#6a5a5a', 0.8); ctx.restore(); }
+  ell(ctx, 0, -11, 10, 6); fs(ctx, c);
+  ctx.save(); ctx.translate(-9, -14); ctx.rotate(-0.6 + Math.sin(t * 6) * 0.2); ell(ctx, 0, -2, 1.6, 3); fs(ctx, c, 1); ctx.restore();
+  rr(ctx, 6, -22, 6, 10, 3); fs(ctx, c, 1);
+  ell(ctx, 11, -22, 5, 4.4); fs(ctx, c);
+  // Hörner, Ohren, Bart
+  ctx.strokeStyle = '#b9a890'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(9, -25.5); ctx.quadraticCurveTo(7, -31, 4, -30); ctx.moveTo(11.5, -25.5); ctx.quadraticCurveTo(10, -31, 7.5, -31.5); ctx.stroke();
+  ctx.save(); ctx.translate(7, -23); ctx.rotate(-0.9); ell(ctx, 0, 0, 1.6, 3.6); fs(ctx, d, 0.8); ctx.restore();
+  ctx.fillStyle = d; ctx.beginPath(); ctx.moveTo(13, -19); ctx.lineTo(15, -14.5); ctx.lineTo(12, -18); ctx.closePath(); ctx.fill();
+  eye(ctx, 12.5, -23, 1.3);
+  blush(ctx, 12, -20.5, 1.4);
+  ctx.fillStyle = '#ff9ecb'; circ(ctx, 15.4, -21.6, 0.8); ctx.fill();
+  if (st === 'happy') heart(ctx, 2, -30, 6, '#ff7eb6');
+};
+D.robin = (ctx, t, m) => {
+  const hop = m ? Math.abs(Math.sin(t * 12)) * 3 : 0;
+  ctx.save(); ctx.translate(0, -hop);
+  shadow(ctx, 0, hop, 6, 2);
+  ctx.strokeStyle = '#8a6a50'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-1, -3); ctx.lineTo(-1, 0); ctx.moveTo(1.5, -3); ctx.lineTo(1.5, 0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-6, -7); ctx.lineTo(-11, -9 - Math.sin(t * 5)); ctx.lineTo(-6, -5); ctx.closePath(); fs(ctx, '#8a6a50', 0.8);
+  ell(ctx, 0, -7, 6.5, 5); fs(ctx, '#a0805e', 1);
+  ell(ctx, 2.5, -6, 4, 3.6); fs(ctx, '#ef7a4a', 0.8);
+  circ(ctx, 4, -11, 3.8); fs(ctx, '#a0805e', 1);
+  ell(ctx, 5, -9.6, 2.6, 2); ctx.fillStyle = '#ef7a4a'; ctx.fill();
+  ctx.fillStyle = '#3b2a2a'; ctx.beginPath(); ctx.moveTo(7.4, -11.5); ctx.lineTo(10, -11); ctx.lineTo(7.4, -10.2); ctx.closePath(); ctx.fill();
+  eye(ctx, 5.4, -12, 0.9);
+  ctx.restore();
+};
+D.stork = (ctx, t, m) => {
+  shadow(ctx, 0, 0, 9, 2.6);
+  const step = m ? Math.sin(t * 6) * 3 : 0;
+  ctx.strokeStyle = '#ef5f3f'; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-1.5, -14); ctx.lineTo(-1.5 - step * 0.5, 0); ctx.moveTo(2, -14); ctx.lineTo(2 + step * 0.5, 0); ctx.stroke();
+  ell(ctx, 0, -18, 9, 6); fs(ctx, '#ffffff', 1, '#d0d4dc');
+  ctx.fillStyle = '#2c2130'; ctx.beginPath(); ctx.moveTo(-9, -18); ctx.quadraticCurveTo(-2, -26, 6, -20); ctx.quadraticCurveTo(-1, -15, -9, -18); ctx.closePath(); ctx.fill();
+  rr(ctx, 5, -32, 3.4, 14, 1.7); fs(ctx, '#ffffff', 0.8, '#d0d4dc');
+  circ(ctx, 7, -33, 3.6); fs(ctx, '#ffffff', 0.8, '#d0d4dc');
+  ctx.fillStyle = '#ef5f3f'; ctx.beginPath(); ctx.moveTo(9.5, -34); ctx.lineTo(19, -31.5); ctx.lineTo(9.5, -31.5); ctx.closePath(); ctx.fill();
+  eye(ctx, 8, -34, 0.9);
+};
+D.lamb = (ctx, t, m, st) => {
+  const hop = m ? Math.abs(Math.sin(t * 10)) * 3 : st === 'happy' ? Math.abs(Math.sin(t * 8)) * 4 : 0;
+  shadow(ctx, 0, 0, 9, 2.6);
+  ctx.save(); ctx.translate(0, -hop);
+  for (const x of [-5, -2, 3, 6]) { rr(ctx, x - 1.2, -6, 2.4, 6, 1); fs(ctx, '#3b3440', 0.8); }
+  for (const [x, y, r] of [[-6, -10, 4.4], [-2, -12, 4.8], [2.5, -11.5, 4.6], [-3, -7.5, 4], [2, -7.5, 4], [5.5, -9.5, 3.8]]) { circ(ctx, x, y, r); fs(ctx, '#fffaf2', 1, '#e6ddd0'); }
+  ell(ctx, 8.5, -14, 3.8, 3.4); fs(ctx, '#f6e6da', 1);
+  for (const [x, y, r] of [[7, -17.5, 2.2], [9.5, -18, 2]]) { circ(ctx, x, y, r); fs(ctx, '#fffaf2', 0.8); }
+  ctx.save(); ctx.translate(6, -14.5); ctx.rotate(-1.1 + Math.sin(t * 3) * 0.1); ell(ctx, 0, 0, 1.4, 3.2); fs(ctx, '#f6e6da', 0.8); ctx.restore();
+  eye(ctx, 9.8, -14.6, 1);
+  blush(ctx, 9.6, -12.8, 1.2);
+  ctx.restore();
+};
+D.bat = (ctx, t) => {
+  const f = Math.sin(t * 16);
+  ctx.save(); ctx.translate(0, -18);
+  ctx.fillStyle = '#5a4a6a';
+  for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(s * 7, -6 - f * 4, s * 13, -2 - f * 5); ctx.quadraticCurveTo(s * 10, 1, s * 8, 0); ctx.quadraticCurveTo(s * 5, 3, 0, 2); ctx.closePath(); ctx.fill(); }
+  ell(ctx, 0, 0, 4, 4.4); fs(ctx, '#6a5a7a', 0.8);
+  for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(s * 1.5, -3); ctx.lineTo(s * 3.5, -7); ctx.lineTo(s * 3.5, -2.5); ctx.closePath(); ctx.fill(); }
+  ctx.fillStyle = '#fff'; circ(ctx, -1.4, -0.6, 1.1); ctx.fill(); circ(ctx, 1.4, -0.6, 1.1); ctx.fill();
+  ctx.fillStyle = '#2c2130'; circ(ctx, -1.3, -0.5, 0.55); ctx.fill(); circ(ctx, 1.5, -0.5, 0.55); ctx.fill();
+  blush(ctx, -2.4, 1.4, 1); blush(ctx, 2.4, 1.4, 1);
+  ctx.restore();
+};
+
 // Langhaarkatze (Maumau, Manni)
 function fluffyCat(ctx, t, m, st, P) {
   shadow(ctx, 0, 0, 12, 3.2);
@@ -312,7 +400,7 @@ D.manni = (ctx, t, m, st) => fluffyCat(ctx, t, m, st, {
   patches: [[-4, -15, 8, 4, '#737582']],
   headPatches: [[7, -27, 6, 3, '#6d6f7c']],
 });
-D.mira = (ctx, t, m, st) => {
+D.mira = (ctx, t, m, st, v, o = {}) => {
   shadow(ctx, 0, 0, 9, 2.6);
   const tan = '#c9965e', blk = '#34303a', silver = '#8d8a96';
   const wag = Math.sin(t * (st === 'happy' || m ? 18 : 5)) * 0.45;
@@ -324,6 +412,13 @@ D.mira = (ctx, t, m, st) => {
   ctx.beginPath(); ctx.ellipse(-1.5, -10, 7.4, 3.8, 0, Math.PI * 1.05, Math.PI * 1.95 + 0.3); ctx.quadraticCurveTo(-1, -7.5, -8.6, -9.2); ctx.closePath(); fs(ctx, blk, 0.8, '#1f1c22');
   ctx.strokeStyle = 'rgba(170,170,185,0.55)'; ctx.lineWidth = 0.7;
   for (const x of [-6, -3, 0, 3]) { ctx.beginPath(); ctx.moveTo(x, -12.5); ctx.quadraticCurveTo(x + 1, -11, x, -9.5); ctx.stroke(); }
+  if (o.sweater) {
+    // rosa Strickpullover mit Herz
+    ell(ctx, -0.6, -8.8, 7.6, 4.6); fs(ctx, '#ff9ecb', 0.8, '#e06a9a');
+    ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 0.8; for (const x of [-5, -2, 1, 4]) { ctx.beginPath(); ctx.moveTo(x, -12.6); ctx.lineTo(x + 0.6, -5); ctx.stroke(); }
+    heart(ctx, -2, -9.6, 4.6, '#fff');
+    rr(ctx, 2.5, -13, 3, 7, 1.5); fs(ctx, '#ff7eb6', 0.6);
+  }
   // Kopf
   const hy = -15.5;
   for (const [x, r] of [[4, -0.3], [8.6, 0.3]]) { ctx.save(); ctx.translate(x, hy - 3.6); ctx.rotate(r + (st === 'happy' ? Math.sin(t * 8) * 0.12 : 0)); ctx.beginPath(); ctx.moveTo(-1.8, 1); ctx.lineTo(0, -4.6); ctx.lineTo(1.8, 1); ctx.closePath(); fs(ctx, tan, 0.9, '#8a5a30'); ctx.restore(); }
@@ -365,7 +460,7 @@ export function drawAnimal(ctx, species, o = {}) {
   ctx.save();
   if ((o.face || 1) < 0) ctx.scale(-1, 1);
   const extra = species === 'butterfly' ? BUTTERFLY_COLS[(o.variant || 0) % BUTTERFLY_COLS.length] : o.variant;
-  f(ctx, o.t || 0, !!o.moving, o.state || 'idle', extra);
+  f(ctx, o.t || 0, !!o.moving, o.state || 'idle', extra, o);
   ctx.restore();
 }
 
@@ -373,7 +468,7 @@ export function drawAnimalPortrait(ctx, species, size, t = 0, silhouette = false
   ctx.save();
   ctx.clearRect(0, 0, size, size);
   ctx.translate(size / 2, size * 0.8);
-  const k = species === 'alpaca' || species === 'deer' ? size / 52 : species === 'owl' ? size / 40 : size / 36;
+  const k = species === 'alpaca' || species === 'deer' || species === 'stork' ? size / 52 : species === 'owl' || species === 'swan' || species === 'goat' ? size / 42 : species === 'bat' ? size / 30 : size / 36;
   ctx.scale(k, k);
   if (silhouette) {
     ctx.filter = 'brightness(0) opacity(0.25)';

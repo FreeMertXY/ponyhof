@@ -27,6 +27,8 @@ export class QuestEngine {
     for (const q of QUESTS) {
       if (this.st(q.id)) continue;
       if (!this.allDone(q.requires)) continue;
+      if (q.part2 && !this.S.part2?.started) continue;
+      if (q.offerSeason && (this.S.season || 'summer') !== q.offerSeason) continue;
       if (q.main) this.start(q, true);
       else { this.S.quests[q.id] = { state: 'available' }; changed = true; }
       changed = true;
@@ -143,16 +145,20 @@ export class QuestEngine {
 
   // Gespräch mit einer Person. Gibt eine Aktion zurück oder null.
   // { kind:'quest'|'offer'|'missing'|'race'|'ending'|'wait', quest, lines, speaker, run() }
+  // Erledigbare Schritte haben Vorrang vor „Dir fehlt noch …“ einer anderen Aufgabe,
+  // damit zwei Aufgaben bei derselben Person sich nie gegenseitig blockieren.
   talk(npc) {
+    let fallback = null;
     for (const q of this.active()) {
       const step = this.step(q);
       if (!step) continue;
       if (step.type === 'talk' && step.npc === npc) {
         if (step.needKitten && !this.ctx.flag?.('kittenFollowing')) {
-          return { kind: 'wait', quest: q, speaker: npc, lines: ['Hast du Krümel schon gefunden? Sie muss irgendwo im Flüsterwald sein … bei einem hohlen Baumstamm auf einer Lichtung.'] };
+          fallback = fallback || { kind: 'wait', quest: q, speaker: npc, lines: ['Hast du Krümel schon gefunden? Sie muss irgendwo im Flüsterwald sein … bei einem hohlen Baumstamm auf einer Lichtung.'] };
+          continue;
         }
         return {
-          kind: step.ending ? 'ending' : 'quest', quest: q, speaker: npc, lines: step.lines || [], after: step.after,
+          kind: step.ending ? 'ending' : step.ending2 ? 'ending2' : 'quest', quest: q, speaker: npc, lines: step.lines || [], after: step.after,
           run: () => {
             if (step.onTalk) this.ctx.onTalk?.(step.onTalk);
             if (step.give) for (const [id, n] of Object.entries(step.give)) this.ctx.inv.add(id, n);
@@ -173,7 +179,8 @@ export class QuestEngine {
           };
         }
         const tips = this.sourceTips(step.items);
-        return { kind: 'missing', quest: q, speaker: npc, lines: [...(step.missing || ['Du hast noch nicht alles beisammen: ' + this.itemsNeed(step.items)]), ...(tips.length ? [{ who: 'narr', t: 'Tipp – ' + tips.join(' ') }] : [])] };
+        fallback = fallback || { kind: 'missing', quest: q, speaker: npc, lines: [...(step.missing || ['Du hast noch nicht alles beisammen: ' + this.itemsNeed(step.items)]), ...(tips.length ? [{ who: 'narr', t: 'Tipp – ' + tips.join(' ') }] : [])] };
+        continue;
       }
       if (step.type === 'talkAll' && step.npcs.includes(npc)) {
         const s = this.st(q.id);
@@ -193,6 +200,7 @@ export class QuestEngine {
         return { kind: 'race', quest: q, speaker: npc, race: step.filter, lines: [] };
       }
     }
+    if (fallback) return fallback;
     // Nebenaufgabe anbieten
     for (const q of this.available()) {
       if (q.giver !== npc) continue;
@@ -268,6 +276,7 @@ export class QuestEngine {
   chapter() {
     let ch = 1;
     for (const c of CHAPTERS.map((x) => x.n)) {
+      if (c > 6 && !this.S.part2?.started) break;
       const main = QUESTS.filter((q) => q.main && q.chapter === c);
       if (main.every((q) => this.isDone(q.id))) ch = c + 1; else break;
     }
@@ -275,7 +284,8 @@ export class QuestEngine {
   }
 
   mainProgress() {
-    const main = QUESTS.filter((q) => q.main);
+    const p2 = !!this.S.part2?.started;
+    const main = QUESTS.filter((q) => q.main && !!q.part2 === p2);
     return { done: main.filter((q) => this.isDone(q.id)).length, total: main.length };
   }
 }

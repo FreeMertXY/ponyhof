@@ -260,8 +260,8 @@ export class HorseEntity {
     const X = this.x * TILE, Y = this.y * TILE;
     ctx.save();
     ctx.translate(X, Y);
-    const look = this._look && this._lookKey === JSON.stringify(this.rec.acc) + this.rec.coat ? this._look : null;
-    if (!look) { this._look = horseLook(this.rec); this._lookKey = JSON.stringify(this.rec.acc) + this.rec.coat; }
+    const lk = JSON.stringify(this.rec.acc) + this.rec.coat + (this.rec.grow || 0) + !!this.rec.foal;
+    if (!(this._look && this._lookKey === lk)) { this._look = horseLook(this.rec); this._lookKey = lk; }
     drawHorse(ctx, this._look, { t: this.t, pose: this.pose, face: this.face, trick: this.trick, trickT: this.trickT, scale: 1.22 });
     const P = game.player;
     const d = dist(this.x, this.y, P.x, P.y);

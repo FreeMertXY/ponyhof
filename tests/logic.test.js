@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Inventory } from '../src/inventory.js';
-import { defaultState, SaveManager, memoryStorage, serialize, deserialize, SAVE_KEY } from '../src/save.js';
+import { defaultState, SaveManager, memoryStorage, serialize, deserialize, SAVE_KEY, SAVE_VERSION } from '../src/save.js';
 import { QuestEngine } from '../src/quests.js';
 import { QUESTS } from '../src/data/quests.js';
 import { newTameState, tameTick, tameOffer, friendLevel, speedBonus, tricksFor, SPEED } from '../src/horses.js';
@@ -82,11 +82,14 @@ test('Laden: alte Version wird migriert und ergänzt', () => {
   const old = defaultState();
   delete old.decoInv; delete old.npcGift; delete old.stats; old.version = 1;
   const L = deserialize(JSON.stringify({ v: 1, data: old }));
-  assert.equal(L.version, 2);
+  assert.equal(L.version, SAVE_VERSION);
   assert.deepEqual(L.decoInv, {});
   assert.equal(typeof L.stats.playSeconds, 'number');
+  assert.equal(L.season, 'summer');
+  assert.equal(L.part2.started, false);
+  assert.equal(typeof L.collected.clovers, 'object');
   const s = serialize(L);
-  assert.equal(JSON.parse(s).v, 2);
+  assert.equal(JSON.parse(s).v, SAVE_VERSION);
 });
 
 test('Einstellungen haben Standardwerte', () => {
@@ -167,7 +170,7 @@ test('Aufgaben: kompletter Durchlauf bis zum Sommerfest', () => {
     }
   }
   assert.ok(q.isActive('k4_fest'), 'Finale erreichbar');
-  assert.deepEqual(S.farm, { stable: true, paddock: true, flowerGarden: true, gazebo: true, petcorner: true, festival: true });
+  for (const k of ['stable', 'paddock', 'flowerGarden', 'gazebo', 'petcorner', 'festival']) assert.equal(S.farm[k], true, k);
   assert.equal(q.chapter(), 6);
   const a = q.talk('hilde');
   assert.equal(a.kind, 'ending');
@@ -271,4 +274,59 @@ test('Aufgaben: vorher erledigte Schritte zählen (Füttern vor Streicheln, Gie�
   assert.equal(S.quests.k1_garten.p, 1, 'ein Beet war schon gegossen');
   q.emit('water'); q.emit('water');
   assert.equal(S.quests.k1_garten.step, 3);
+});
+
+test('Teil 2: kompletter Durchlauf bis zum Jahresfest (alle Jahreszeiten)', () => {
+  const { q, S, inv, ctx } = setup();
+  const { QUESTS: ALL } = { QUESTS };
+  for (const x of ALL) if (!x.part2) S.quests[x.id] = { state: 'done' };
+  S.ending = { done: true };
+  assert.equal(q.chapter(), 7, 'ohne Teil 2 bleibt es bei Kapitel 7');
+  S.part2 = { started: true, done: false, day: 1 };
+  S.season = 'autumn';
+  ctx.onStart = (quest) => { if (quest.season) S.season = quest.season; };
+  q.refresh();
+  assert.ok(q.isActive('j7_abschied'), 'Teil 2 beginnt mit Hildes Abschied');
+  let guard = 0;
+  const visited = new Set();
+  const solve = (quest) => {
+    const step = q.step(quest);
+    if (!step) return;
+    if (step.type === 'event') {
+      if (step.needs) for (const [id, n] of Object.entries(step.needs)) if (!inv.has(id, n)) inv.add(id, n - inv.count(id));
+      q.emit(step.ev, step.filter, step.count);
+      q.checkPassive();
+    } else if (step.type === 'talk') { const a = q.talk(step.npc); assert.ok(a.run, `${quest.id}: Gespräch mit ${step.npc} blockiert durch ${a.quest?.id} (${a.kind})`); a.run(); }
+    else if (step.type === 'deliver') { for (const [id, n] of Object.entries(step.items)) if (!inv.has(id, n)) inv.add(id, n - inv.count(id)); q.talk(step.npc).run(); }
+    else if (step.type === 'tame') { ctx._tamed = [...(ctx._tamed || []), step.horse]; q.checkPassive(); }
+    else if (step.type === 'talkAll') for (const n of step.npcs) { const a = q.talk(n); if (a && a.run) a.run(); }
+    else assert.fail('unbekannter Schritt ' + step.type + ' in ' + quest.id);
+  };
+  while (!q.isActive('j13_fest') && guard++ < 2000) {
+    // Nebenaufgaben annehmen, sobald sie angeboten werden
+    for (const av of q.available()) { const a = q.talk(av.giver); if (a?.kind === 'offer') a.run(); }
+    const act = q.active();
+    assert.ok(act.length > 0, 'es gibt immer eine aktive Aufgabe');
+    for (const quest of act) { visited.add(quest.id); solve(quest); }
+  }
+  assert.ok(q.isActive('j13_fest'), 'Finale von Teil 2 erreichbar');
+  for (const k of ['arena', 'school', 'cottage', 'farmshop', 'igelhaus', 'winterlights', 'tulips']) assert.equal(S.farm[k], true, k);
+  assert.equal(q.chapter(), 13);
+  // Jahreszeiten-Nebenaufgaben im Winter nachholen (Schneekugel)
+  S.season = 'winter';
+  q.refresh();
+  for (let i = 0; i < 50; i++) {
+    for (const av of q.available()) { const a = q.talk(av.giver); if (a?.kind === 'offer') a.run(); }
+    for (const quest of q.active().filter((x) => x.id !== 'j13_fest')) solve(quest);
+  }
+  const a = q.talk('hilde');
+  assert.equal(a.kind, 'ending2');
+  a.run();
+  assert.equal(q.chapter(), 14);
+  const mp = q.mainProgress();
+  assert.equal(mp.done, mp.total);
+  const p2 = ALL.filter((x) => x.part2);
+  const open = p2.filter((x) => !q.isDone(x.id)).map((x) => x.id);
+  assert.deepEqual(open, [], 'alle Aufgaben von Teil 2 sind lösbar');
+  assert.ok(p2.length > 45, 'Teil 2 ist länger als Teil 1');
 });

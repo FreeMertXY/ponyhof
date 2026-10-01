@@ -7,12 +7,26 @@ import { rr, ell, circ, flower } from './paint.js';
 export const CHUNK = 8;
 const T = TILE;
 
-export const COLORS = {
+const BASE = {
   sea: '#58b9e6', deep: '#62c3ea', shallow: '#93dff1', wetsand: '#efd7a2', sand: '#fbe9bd',
   grass: '#a8df80', forest: '#86c870', meadow: '#b6e68a', alpine: '#b4d98f', soil: '#b98457',
   path: '#efd6a5', pathEdge: '#dcbd87', plaza: '#ece0d0', plazaEdge: '#d6c4ae', cliff: '#bfae9d',
-  bridge: '#cf9d6c', dock: '#d6a776', flowerbed: '#a5704b',
+  bridge: '#cf9d6c', dock: '#d6a776', flowerbed: '#a5704b', ice: '#d4eef9', arena: '#f3e2bd', cliffTop: '#9fd47a', cliffTop2: '#8cc46a',
 };
+// Farbpaletten der Jahreszeiten (Teil 2)
+export const PALETTES = {
+  summer: BASE,
+  spring: { ...BASE, grass: '#b3e68a', forest: '#93d37a', meadow: '#c2ee98', alpine: '#bfe29b' },
+  autumn: { ...BASE, grass: '#c9d77f', forest: '#b9b86a', meadow: '#d6d98c', alpine: '#c9cf92', cliffTop: '#c9c27a', cliffTop2: '#b8ae66', path: '#ecd09c' },
+  winter: {
+    ...BASE, grass: '#eef4fa', forest: '#e3ecf5', meadow: '#f2f6fb', alpine: '#f4f7fb', sand: '#f4eedd', wetsand: '#e6dcc4',
+    path: '#e6e0db', pathEdge: '#cfc6be', plaza: '#efebe7', plazaEdge: '#d6cdc4', soil: '#b9a090', cliff: '#b8b4c0', cliffTop: '#ffffff', cliffTop2: '#e8eef6',
+    flowerbed: '#b9a090',
+  },
+};
+export let COLORS = BASE;
+let SEASON = 'summer';
+function useSeason(season) { SEASON = season || 'summer'; COLORS = PALETTES[SEASON] || BASE; }
 
 // Rang für die Schichtung (höher = liegt oben)
 function rank(g) {
@@ -22,7 +36,8 @@ function rank(g) {
     case G.WETSAND: return 2;
     case G.SAND: return 3;
     case G.GRASS: case G.FOREST: case G.MEADOW: case G.ALPINE: return 4;
-    case G.SOIL: case G.FLOWERBED: return 5;
+    case G.ICE: return 1;
+    case G.SOIL: case G.FLOWERBED: case G.ARENA: return 5;
     case G.PATH: return 6;
     case G.PLAZA: return 7;
     case G.CLIFF: return 8;
@@ -123,6 +138,7 @@ function msLayer(ctx, x0, y0, x1, y1, ox, oy, inSet, fill, th = 0.5, stroke = tr
 }
 
 export function paintChunk(ctx, world, cx, cy) {
+  useSeason(world.season);
   const x0 = cx * CHUNK, y0 = cy * CHUNK;
   const ox = x0 * T, oy = y0 * T;
   const ax = x0 - 1, ay = y0 - 1, bx = x0 + CHUNK, by = y0 + CHUNK;
@@ -132,7 +148,7 @@ export function paintChunk(ctx, world, cx, cy) {
   // 0) Wasser-Grund
   for (let y = ay; y <= by; y++) for (let x = ax; x <= bx; x++) {
     const t = g(x, y);
-    ctx.fillStyle = t === G.SEA ? mix(COLORS.sea, '#3f9fd6', Math.min(1, Math.max(0, (y - 168) / 10))) : COLORS.deep;
+    ctx.fillStyle = t === G.SEA ? mix(COLORS.sea, '#3f9fd6', Math.min(1, Math.max(0, (y - 168) / 10))) : t === G.ICE ? '#c6e6f5' : COLORS.deep;
     ctx.fillRect(x * T - ox, y * T - oy, T, T);
   }
   // Wasser-Glanz (statisch)
@@ -146,8 +162,19 @@ export function paintChunk(ctx, world, cx, cy) {
     }
   }
   const g0 = (x, y) => g(x, y);
-  // 1) Flachwasser
-  msLayer(ctx, ax, ay, bx, by, ox, oy, (x, y) => rk(x, y) >= 1, COLORS.shallow, 0.36, true, 0.3);
+  // 1) Flachwasser (im Winter: Eis)
+  msLayer(ctx, ax, ay, bx, by, ox, oy, (x, y) => rk(x, y) >= 1 && g(x, y) !== G.ICE, COLORS.shallow, 0.36, true, 0.3);
+  if (SEASON === 'winter') {
+    msLayer(ctx, ax, ay, bx, by, ox, oy, (x, y) => g(x, y) === G.ICE, COLORS.ice, 0.3, true, 0.3);
+    msLayer(ctx, ax, ay, bx, by, ox, oy, (x, y) => rk(x, y) >= 1 && g(x, y) !== G.ICE, COLORS.shallow, 0.36, true, 0.3);
+    // Eisglanz und feine Risse
+    for (let y = ay; y <= by; y++) for (let x = ax; x <= bx; x++) {
+      if (g(x, y) !== G.ICE) continue;
+      const h = hash2(x, y, 31), px = x * T - ox, py = y * T - oy;
+      if (h < 0.4) { ctx.fillStyle = 'rgba(255,255,255,0.55)'; ell(ctx, px + h * 60, py + hash2(x, y, 32) * T, 9 + h * 10, 3, -0.4); ctx.fill(); }
+      if (h > 0.85) { ctx.strokeStyle = 'rgba(140,180,210,0.45)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(px + 8, py + 30); ctx.lineTo(px + 22, py + 22); ctx.lineTo(px + 30, py + 28); ctx.lineTo(px + 42, py + 14); ctx.stroke(); }
+    }
+  }
   // Uferschaum
   msLayer(ctx, ax, ay, bx, by, ox, oy, (x, y) => rk(x, y) >= 2, 'rgba(255,255,255,0.75)', 0.3, true, 0.3);
   // 2) nasser Sand, 3) Sand
@@ -186,6 +213,9 @@ export function paintChunk(ctx, world, cx, cy) {
   }
   // 5) Beete (bewusst eckig-rund wie echte Beete)
   layer(ctx, ax, ay, bx, by, ox, oy, (x, y) => g(x, y) === G.SOIL || g(x, y) === G.FLOWERBED, (x, y) => (g(x, y) === G.SOIL ? COLORS.soil : COLORS.flowerbed), T * 0.2, -2, false);
+  // Reitplatz-Sand
+  msLayer(ctx, ax, ay, bx, by, ox, oy, (x, y) => g(x, y) === G.ARENA, shade(COLORS.arena, -0.1), 0.38);
+  msLayer(ctx, ax, ay, bx, by, ox, oy, (x, y) => g(x, y) === G.ARENA, SEASON === 'winter' ? '#f6f2ea' : COLORS.arena, 0.5);
   // 6) Wege (Rand, dann Füllung)
   msLayer(ctx, ax, ay, bx, by, ox, oy, (x, y) => rk(x, y) >= 6 && rk(x, y) < 8, COLORS.pathEdge, 0.36);
   msLayer(ctx, ax, ay, bx, by, ox, oy, (x, y) => rk(x, y) >= 6 && rk(x, y) < 8, COLORS.path, 0.48);
@@ -205,6 +235,13 @@ export function paintChunk(ctx, world, cx, cy) {
       switch (t) {
         case G.GRASS: case G.FOREST: case G.MEADOW: case G.ALPINE: {
           const base = grassColor(t);
+          if (SEASON === 'winter') {
+            // Schnee: weiche Wehen und Glitzer statt Grashalmen
+            if (h < 0.35) { ctx.fillStyle = 'rgba(200,214,232,0.55)'; ell(ctx, px + h2 * T, py + h3 * T, 10 + h * 12, 3.5, 0); ctx.fill(); }
+            if (h > 0.7) { ctx.fillStyle = 'rgba(255,255,255,0.95)'; circ(ctx, px + h3 * T, py + h2 * T, 1.4); ctx.fill(); }
+            if (t === G.FOREST && h > 0.9) { ctx.fillStyle = '#9fb8a0'; ell(ctx, px + h2 * T, py + h3 * T, 4, 2); ctx.fill(); }
+            break;
+          }
           // Grashalme
           ctx.strokeStyle = shade(base, -0.22); ctx.lineWidth = 1.6; ctx.lineCap = 'round';
           const n = t === G.FOREST ? 3 : 2;
@@ -214,14 +251,22 @@ export function paintChunk(ctx, world, cx, cy) {
               ctx.beginPath(); ctx.moveTo(gx - 3, gy - 4); ctx.lineTo(gx - 1, gy); ctx.lineTo(gx + 1, gy - 5); ctx.lineTo(gx + 2, gy); ctx.lineTo(gx + 4, gy - 3); ctx.stroke();
             }
           }
-          if (t === G.MEADOW) {
-            const cols = ['#fff', '#ffd6e7', '#ffe57a', '#c9b6ff', '#ff9aa8'];
+          if (SEASON === 'autumn' && h > 0.55) {
+            // Herbstlaub am Boden
+            const lc = ['#e8874a', '#d9603c', '#f2b84a', '#c9783a'][Math.floor(h2 * 4)];
+            ctx.fillStyle = lc; ell(ctx, px + h3 * T, py + h2 * T, 3.4, 2, h * 6); ctx.fill();
+            if (h > 0.8) { ctx.fillStyle = lc; ell(ctx, px + h2 * T, py + h3 * T * 0.8, 3, 1.8, h * 3); ctx.fill(); }
+          }
+          if (t === G.MEADOW && SEASON !== 'autumn') {
+            const cols = SEASON === 'spring' ? ['#fff', '#ffd6e7', '#ffe57a', '#fff', '#c9e6ff'] : ['#fff', '#ffd6e7', '#ffe57a', '#c9b6ff', '#ff9aa8'];
             const k = 2 + Math.floor(h * 3);
             for (let i = 0; i < k; i++) {
               const fx = px + hash2(x, y, 40 + i) * T, fy = py + hash2(x, y, 50 + i) * T;
               flower(ctx, fx, fy, 2.2, cols[Math.floor(hash2(x, y, 60 + i) * cols.length)], '#ffcf4a');
             }
-          } else if (t === G.GRASS && h < 0.22) {
+          } else if (t === G.MEADOW && SEASON === 'autumn' && h < 0.2) {
+            flower(ctx, px + h2 * T, py + h3 * T, 2, '#fff', '#ffcf4a');
+          } else if (t === G.GRASS && h < (SEASON === 'spring' ? 0.3 : SEASON === 'autumn' ? 0.06 : 0.22)) {
             flower(ctx, px + h2 * T, py + h3 * T, 2, h < 0.1 ? '#fff' : '#ffe57a', '#ffb94a');
           } else if (t === G.FOREST) {
             if (h < 0.12) { ctx.fillStyle = 'rgba(60,110,50,0.35)'; ell(ctx, px + h2 * T, py + h3 * T, 7, 4); ctx.fill(); }
@@ -262,12 +307,23 @@ export function paintChunk(ctx, world, cx, cy) {
           }
           break;
         }
+        case G.ARENA:
+          if (h < 0.4) { ctx.fillStyle = 'rgba(180,140,90,0.35)'; ell(ctx, px + h2 * T, py + h3 * T, 3, 2); ctx.fill(); ell(ctx, px + h2 * T + 6, py + h3 * T + 3, 3, 2); ctx.fill(); }
+          break;
         case G.SOIL:
           ctx.strokeStyle = 'rgba(90,50,30,0.35)'; ctx.lineWidth = 2;
           for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(px + 6, py + i * 12); ctx.lineTo(px + T - 6, py + i * 12); ctx.stroke(); }
           break;
         case G.FLOWERBED: {
-          const cols = ['#ff7eb6', '#ffd166', '#b79cf0', '#ff9f7a', '#fff'];
+          if (SEASON === 'winter') {
+            // Beete schlafen unter einer Schneedecke, nur ein paar Christrosen
+            ctx.fillStyle = '#f4f8fd';
+            for (let i = 0; i < 4; i++) { ell(ctx, px + T * (0.28 + 0.44 * (i % 2)) + hash2(x, y, 80 + i) * 4 - 2, py + T * (0.3 + 0.4 * (i >> 1)) + hash2(x, y, 84 + i) * 4 - 2, T * 0.3, T * 0.26); ctx.fill(); }
+            ctx.fillStyle = '#ffffff'; ell(ctx, px + T * 0.45, py + T * 0.4, T * 0.22, T * 0.12); ctx.fill();
+            if (hash2(x, y, 91) < 0.35) flower(ctx, px + 10 + hash2(x, y, 92) * (T - 20), py + 10 + hash2(x, y, 93) * (T - 20), 3, '#ffffff', '#ffd166');
+            break;
+          }
+          const cols = SEASON === 'autumn' ? ['#ff9f4a', '#e86a4a', '#ffd166', '#c9608a', '#fff1c0'] : ['#ff7eb6', '#ffd166', '#b79cf0', '#ff9f7a', '#fff'];
           for (let i = 0; i < 6; i++) {
             const fx = px + 6 + hash2(x, y, 90 + i) * (T - 12), fy = py + 6 + hash2(x, y, 95 + i) * (T - 12);
             ctx.fillStyle = '#5aa05a'; ell(ctx, fx, fy + 3, 3, 2); ctx.fill();
@@ -282,10 +338,10 @@ export function paintChunk(ctx, world, cx, cy) {
           ell(ctx, px + h * T, py + h2 * T * 0.6 + 8, 9 + h3 * 6, 5); ctx.fill();
           ctx.strokeStyle = shade(COLORS.cliff, -0.18); ctx.lineWidth = 2;
           ctx.beginPath(); ctx.moveTo(px + 4, py + 20 + h * 10); ctx.quadraticCurveTo(px + T / 2, py + 16 + h2 * 10, px + T - 4, py + 22 + h3 * 8); ctx.stroke();
-          if (up) { // Graskante oben
-            ctx.fillStyle = '#9fd47a';
+          if (up) { // Graskante oben (im Winter: Schneekante)
+            ctx.fillStyle = COLORS.cliffTop;
             rr(ctx, px - 2, py - 3, T + 4, 12, 6); ctx.fill();
-            ctx.fillStyle = '#8cc46a';
+            ctx.fillStyle = COLORS.cliffTop2;
             for (let i = 0; i < 4; i++) { circ(ctx, px + 6 + i * 12, py + 9, 4); ctx.fill(); }
           }
           if (down) {
@@ -346,18 +402,22 @@ function starfish(ctx, x, y) {
 
 // Kleine Weltkarte (1 Pixel pro Kachel), für Minikarte und große Karte
 export function paintMiniMap(ctx, world, scale = 2) {
+  const W = world.season === 'winter', A = world.season === 'autumn';
   const col = {
     [G.GRASS]: '#a8df80', [G.FOREST]: '#6fb563', [G.PATH]: '#ecd29c', [G.SAND]: '#f8e5b0', [G.DEEP]: '#5cbde6',
     [G.SHALLOW]: '#8fdcf0', [G.MEADOW]: '#bfe78e', [G.SOIL]: '#b98457', [G.PLAZA]: '#eee0cf', [G.ALPINE]: '#c6ddab',
     [G.CLIFF]: '#b3a393', [G.BRIDGE]: '#c9975f', [G.DOCK]: '#c9975f', [G.SEA]: '#4fb0e0', [G.WETSAND]: '#ebd39e', [G.FLOWERBED]: '#ff9ec4',
+    [G.ICE]: '#cde9f6', [G.ARENA]: '#f3e2bd',
   };
+  if (W) Object.assign(col, { [G.GRASS]: '#eef3f9', [G.FOREST]: '#d9e4ee', [G.MEADOW]: '#f2f6fb', [G.ALPINE]: '#f4f7fb', [G.PATH]: '#ddd6cf', [G.PLAZA]: '#e9e4df' });
+  if (A) Object.assign(col, { [G.GRASS]: '#c9d77f', [G.FOREST]: '#b0a860', [G.MEADOW]: '#d6d98c', [G.ALPINE]: '#c9cf92' });
   for (let y = 0; y < WH; y++) for (let x = 0; x < WW; x++) {
     ctx.fillStyle = col[world.g(x, y)] || '#a8df80';
     ctx.fillRect(x * scale, y * scale, scale, scale);
   }
   // Bäume & Gebäude
   for (const o of world.objects) {
-    if (o.k === 'tree') { ctx.fillStyle = o.v === 'pine' ? '#4f8f55' : o.v === 'blossom' || o.v === 'bigblossom' ? '#f3a6c4' : '#5fa55a'; ctx.fillRect(o.x * scale, o.y * scale, scale, scale); }
+    if (o.k === 'tree') { ctx.fillStyle = o.v === 'pine' ? (W ? '#7f9f88' : '#4f8f55') : W ? '#a89a90' : o.v === 'blossom' || o.v === 'bigblossom' ? '#f3a6c4' : A ? '#d98a4a' : '#5fa55a'; ctx.fillRect(o.x * scale, o.y * scale, scale, scale); }
     else if (o.k === 'bld') { ctx.fillStyle = o.type === 'lighthouse' ? '#ef6f6f' : '#e58f7a'; ctx.fillRect(o.x * scale, o.y * scale, o.w * scale, o.h * scale); }
     else if (o.k === 'fence') { ctx.fillStyle = '#a57a52'; ctx.fillRect(o.x * scale, o.y * scale, scale, scale); }
   }

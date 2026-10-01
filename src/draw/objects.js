@@ -47,13 +47,29 @@ function trunk(ctx, h, w = 11, col = '#a0704c') {
   ctx.beginPath(); ctx.moveTo(-1, -4); ctx.lineTo(-1.5, -h * 0.6); ctx.stroke();
 }
 
-export function treeSprite(v, s = 1, extra = '') {
-  const key = `tree:${v}:${s.toFixed(2)}:${extra}`;
+// Kahle Winteräste mit Schnee
+function winterTree(ctx, v, s) {
+  const birch = v === 'birch';
+  const col = birch ? '#f4f0ea' : '#9a6a4c';
+  trunk(ctx, 34, birch ? 9 : 12, col);
+  ctx.strokeStyle = birch ? '#d9d2c8' : '#8a5d40'; ctx.lineCap = 'round';
+  const br = [[0, -34, -18, -64, 5], [0, -34, 16, -66, 5], [0, -40, 2, -78, 4.5], [-9, -50, -26, -56, 3], [9, -52, 26, -58, 3], [-14, -58, -10, -76, 2.6], [12, -60, 18, -76, 2.6]];
+  for (const [x0, y0, x1, y1, w] of br) { ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo((x0 + x1) / 2 + 3, (y0 + y1) / 2, x1, y1); ctx.stroke(); }
+  ctx.fillStyle = '#ffffff';
+  for (const [, , x1, y1, w] of br) { ell(ctx, x1, y1 - 1, w + 2.5, 2.4, 0); ctx.fill(); }
+  ell(ctx, -6, -46, 6, 2, -0.3); ctx.fill(); ell(ctx, 8, -48, 6, 2, 0.3); ctx.fill();
+  if (v === 'bigblossom') { ctx.fillStyle = '#ffd6e7'; for (let i = 0; i < 5; i++) circ(ctx, -20 + i * 10, -66 + (i % 2) * 6, 2), ctx.fill(); }
+  void s;
+}
+
+export function treeSprite(v, s = 1, extra = '', season = 'summer') {
+  const key = `tree:${v}:${s.toFixed(2)}:${extra}:${season}`;
   const big = v === 'bigblossom' ? 1.8 : 1;
   const W = 110 * s * big, H = 140 * s * big;
   return sprite(key, W, H, W / 2, H - 10 * s, (ctx) => {
     ctx.scale(s * big, s * big);
     shadow(ctx, 0, 0, 26, 8, 0.2);
+    if (season === 'winter' && v !== 'pine' && v !== 'palm') { winterTree(ctx, v, s); return; }
     if (v === 'pine') {
       trunk(ctx, 16, 9, '#8a5d40');
       const layers = [[-16, 30, '#4f9a62'], [-36, 25, '#5aa86b'], [-54, 19, '#66b676'], [-70, 12, '#72c282']];
@@ -62,7 +78,11 @@ export function treeSprite(v, s = 1, extra = '') {
         fs(ctx, c, 1.6, shade(c, -0.3));
         ctx.fillStyle = 'rgba(255,255,255,0.18)'; ell(ctx, -r * 0.35, y - 2, r * 0.35, 4, -0.3); ctx.fill();
       }
-      if (extra === 'snow') { ctx.fillStyle = '#fff'; ell(ctx, 0, -76, 7, 4); ctx.fill(); }
+      if (extra === 'snow' || season === 'winter') {
+        ctx.fillStyle = '#fff';
+        for (const [y, r] of layers) { ctx.beginPath(); ctx.moveTo(-r - 2, y + 4); ctx.quadraticCurveTo(0, y - r * 1.25, r + 2, y + 4); ctx.quadraticCurveTo(0, y - r * 0.6, -r - 2, y + 4); ctx.closePath(); ctx.fill(); }
+        ell(ctx, 0, -76, 7, 4); ctx.fill();
+      }
     } else if (v === 'palm') {
       ctx.strokeStyle = '#b98a5a'; ctx.lineWidth = 9; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(10, -30, 4, -62); ctx.stroke();
@@ -86,13 +106,38 @@ export function treeSprite(v, s = 1, extra = '') {
       if (v === 'blossom' || v === 'bigblossom') { base = '#ffb0cc'; light = '#ffe3ee'; dark = '#e98aad'; }
       if (birch) { base = '#9ad66a'; light = '#dcf7a8'; dark = '#72b456'; }
       if (v === 'apple') { base = '#6cc063'; light = '#bff29f'; dark = '#4f9d55'; }
+      if (v === 'chestnut') { base = '#5aae58'; light = '#a8e690'; dark = '#3f8a48'; }
+      if (season === 'autumn') {
+        const k = Math.floor(hash2(Math.round(s * 100), 7, 3) * 3);
+        if (v === 'oak') [base, light, dark] = [['#f0a04b', '#ffd28a', '#c9763a'], ['#e8704a', '#ffb08a', '#b9503a'], ['#f2c14e', '#ffe9a0', '#c99a3a']][k];
+        else if (birch) { base = '#f2d35a'; light = '#fff0a8'; dark = '#c9a83a'; }
+        else if (v === 'apple') { base = '#d9b04a'; light = '#f6dc8a'; dark = '#a8843a'; }
+        else if (v === 'chestnut') { base = '#e08a3a'; light = '#ffc27a'; dark = '#b0602a'; }
+        else if (v === 'blossom') { base = '#f2905a'; light = '#ffc79a'; dark = '#c96a40'; }
+        else if (v === 'bigblossom') { base = '#f4a08a'; light = '#ffd6c4'; dark = '#d9786a'; }
+      } else if (season === 'spring') {
+        if (v === 'oak' || v === 'chestnut') { base = '#8fd870'; light = '#d8f8b0'; dark = '#69b456'; }
+        else if (birch) { base = '#b2e682'; light = '#e8fcc0'; dark = '#88c464'; }
+        else if (v === 'apple') { base = '#f6e2ea'; light = '#ffffff'; dark = '#e2b8c8'; }
+      }
       const blobs = [[-16, -44, 18], [16, -44, 18], [0, -58, 22], [-10, -34, 15], [11, -33, 15], [0, -40, 18]];
       canopy(ctx, blobs, base, light, dark);
+      if (v === 'chestnut') {
+        if (season === 'summer' || season === 'spring') for (let i = 0; i < 6; i++) { const cx = hash2(i, 8, 3) * 44 - 22, cy = -34 - hash2(i, 9, 3) * 36; ctx.fillStyle = '#fff6e6'; ell(ctx, cx, cy, 2.2, 4.5); ctx.fill(); ctx.fillStyle = '#ffb3c8'; circ(ctx, cx, cy + 1, 1); ctx.fill(); }
+        else for (let i = 0; i < 7; i++) { const cx = hash2(i, 8, 3) * 44 - 22, cy = -32 - hash2(i, 9, 3) * 36; circ(ctx, cx, cy, 3.6); fs(ctx, '#9acd5a', 1, '#6a9a3a'); ctx.fillStyle = '#7a3e1e'; circ(ctx, cx + 1, cy + 1, 1.8); ctx.fill(); }
+      }
+      if (season === 'autumn' && v !== 'pine') {
+        // ein paar fallende Blätter am Boden
+        for (let i = 0; i < 6; i++) { ctx.fillStyle = ['#e8874a', '#d9603c', '#f2b84a'][i % 3]; ell(ctx, hash2(i, 2, s * 9) * 50 - 25, -2 + hash2(i, 3, s * 9) * 6, 3, 1.8, i); ctx.fill(); }
+      }
+      if (season === 'spring' && (v === 'oak' || v === 'apple')) {
+        for (let i = 0; i < 9; i++) flower(ctx, hash2(i, 5, 11) * 50 - 25, -30 - hash2(i, 6, 11) * 40, 2.2, v === 'apple' ? '#ffb3cf' : '#fff', '#ffe07a');
+      }
       if (v === 'blossom' || v === 'bigblossom') {
         ctx.fillStyle = '#fff';
         for (let i = 0; i < 14; i++) { const hx = hash2(i, 3, 7) * 56 - 28, hy = -30 - hash2(i, 4, 7) * 44; flower(ctx, hx, hy, 2.2, '#fff', '#ffcf4a'); }
       }
-      if (v === 'apple') {
+      if (v === 'apple' && season !== 'spring') {
         const n = extra === 'empty' ? 2 : 8;
         for (let i = 0; i < n; i++) {
           const ax = hash2(i, 1, 9) * 48 - 24, ay = -30 - hash2(i, 2, 9) * 36;
@@ -218,15 +263,18 @@ const BLD = {
   house_a: { wall: '#fdf0d8', roof: '#d98f5a', door: '#8fb8e8' },
   house_b: { wall: '#e2eeff', roof: '#8b8fd9', door: '#ff9eb8' },
   house_c: { wall: '#fff6e0', roof: '#c9a05a', door: '#8fd08a' },
+  vet: { wall: '#eef8f4', roof: '#5fb8a8', door: '#ff9eb8', awning: ['#7fd6c0', '#fff'], sign: 'Tierärztin' },
+  cottage: { wall: '#ffd8e4', roof: '#e86f8f', door: '#fff', timber: '#c98a8a' },
 };
 
-export function buildingSprite(b) {
+export function buildingSprite(b, season = 'summer') {
   if (b.type === 'lighthouse') return lighthouseSprite();
-  const key = `bld:${b.type}:${b.w}:${b.h}`;
+  const st = b.style ? `${b.style.wall}${b.style.roof}` : '';
+  const key = `bld:${b.type}:${b.w}:${b.h}:${season}:${st}`;
   const W = b.w * T, depth = b.h * T;
   const extra = 60;
   return sprite(key, W + 40, depth + extra + 20, 20, depth + extra, (ctx) => {
-    const P = BLD[b.type] || BLD.house_a;
+    const P = b.style ? { ...BLD[b.type], ...b.style } : BLD[b.type] || BLD.house_a;
     const wallH = Math.min(58, depth * 0.55 + 10);
     const old = b.type === 'stable_old';
     const barn = b.type === 'stable' || old;
@@ -238,8 +286,8 @@ export function buildingSprite(b) {
       ctx.strokeStyle = shade(P.wall, -0.15); ctx.lineWidth = 1.5;
       for (let i = 8; i < W; i += 10) { ctx.beginPath(); ctx.moveTo(i, -wallH + 4); ctx.lineTo(i, -2); ctx.stroke(); }
     }
-    if (b.type === 'house') {
-      ctx.strokeStyle = P.timber; ctx.lineWidth = 3;
+    if (b.type === 'house' || b.type === 'cottage') {
+      ctx.strokeStyle = P.timber || '#b98a6a'; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.moveTo(2, -wallH / 2); ctx.lineTo(W - 2, -wallH / 2); ctx.stroke();
       for (const x of [W * 0.33, W * 0.66]) { ctx.beginPath(); ctx.moveTo(x, -wallH + 2); ctx.lineTo(x, -2); ctx.stroke(); }
     }
@@ -254,8 +302,27 @@ export function buildingSprite(b) {
       ctx.beginPath(); ctx.moveTo(W * 0.62, -wallH + 10); ctx.lineTo(W * 0.8, -wallH + 22); ctx.stroke();
       ctx.fillStyle = '#6a5a4f'; rr(ctx, W * 0.12, -wallH + 12, 12, 8, 2); ctx.fill();
     }
-    // Schornstein (Wohnhaus, Bäckerei)
-    if (b.type === 'house' || b.type === 'bakery') {
+    // Schnee auf dem Dach: weiche Schneedecke mit welligem Rand und Eiszapfen
+    if (season === 'winter') {
+      const rh = depth + extra - wallH - 18;
+      const sh = Math.max(14, Math.min(rh * 0.55, rh - 10));
+      const by = roofTop + sh;
+      ctx.beginPath();
+      ctx.moveTo(-5, by - 6);
+      ctx.lineTo(-5, roofTop + 8); ctx.quadraticCurveTo(-5, roofTop - 3, 8, roofTop - 3);
+      ctx.lineTo(W - 8, roofTop - 3); ctx.quadraticCurveTo(W + 5, roofTop - 3, W + 5, roofTop + 8);
+      ctx.lineTo(W + 5, by - 6);
+      for (let x = W + 5; x > -5; x -= 12) ctx.quadraticCurveTo(x - 6, by + 4 + ((x * 7) % 5), x - 12, by - 5);
+      ctx.closePath();
+      const gr = ctx.createLinearGradient(0, roofTop, 0, by);
+      gr.addColorStop(0, '#ffffff'); gr.addColorStop(1, '#eaf2fb');
+      ctx.fillStyle = gr; ctx.fill();
+      ctx.strokeStyle = '#c3d3e6'; ctx.lineWidth = 1.6; ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,0.9)'; rr(ctx, 6, roofTop + 1, W - 12, 4, 2); ctx.fill();
+      ctx.fillStyle = '#dff1ff'; for (let i = 6; i < W; i += 11) { ctx.beginPath(); ctx.moveTo(i, -wallH - 2); ctx.lineTo(i + 2, -wallH + 6 + (i % 3) * 2); ctx.lineTo(i + 4, -wallH - 2); ctx.closePath(); ctx.fill(); }
+    }
+    // Schornstein (Wohnhaus, Bäckerei, Häuschen)
+    if (b.type === 'house' || b.type === 'bakery' || b.type === 'cottage') {
       rr(ctx, W * 0.72, roofTop - 14, 14, 24, 3); fs(ctx, '#d9826a', 1.6);
       rr(ctx, W * 0.72 - 2, roofTop - 16, 18, 6, 2); fs(ctx, '#c46a55', 1.2);
     }
@@ -306,6 +373,16 @@ export function buildingSprite(b) {
     if (b.type === 'post') {
       ctx.fillStyle = '#ffd23f'; rr(ctx, W - 22, -wallH / 2 - 6, 14, 18, 3); ctx.fill(); ctx.strokeStyle = '#c9a020'; ctx.lineWidth = 1.2; ctx.stroke();
       ctx.fillStyle = '#4f73c9'; rr(ctx, W - 19, -wallH / 2 - 3, 8, 2, 1); ctx.fill();
+    }
+    if (b.type === 'vet') { // Pfötchen-Schild
+      ctx.fillStyle = '#fff'; circ(ctx, W - 18, -wallH + 18, 9); ctx.fill(); ctx.strokeStyle = '#5fb8a8'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#ff7eb6'; circ(ctx, W - 18, -wallH + 20, 3.2); ctx.fill(); for (const [dx, dy] of [[-3.5, -3.5], [0, -5.5], [3.5, -3.5]]) { circ(ctx, W - 18 + dx, -wallH + 20 + dy, 1.5); ctx.fill(); }
+    }
+    if (b.type === 'cottage') { // Herzfenster, Veranda, Blumen
+      ctx.fillStyle = '#fff6e6'; heart(ctx, W / 2, -wallH - 10, 16, '#fff6e6'); heart(ctx, W / 2, -wallH - 10, 11, '#ffd99a');
+      rr(ctx, -4, -6, W + 8, 8, 3); fs(ctx, '#c98a5a', 1.4);
+      for (let i = 0; i < 8; i++) flower(ctx, 6 + i * (W - 12) / 7, -8, 3.2, ['#ff7eb6', '#fff', '#ffd166', '#b79cf0'][i % 4], '#ffb84a');
+      ctx.font = `700 9px ${FONT}`; ctx.textAlign = 'center'; ctx.fillStyle = shade(P.roof, -0.35); ctx.fillText('♥ Unser Zuhause ♥', W / 2, -wallH + 2);
     }
   });
 }
@@ -547,6 +624,112 @@ const SMALL = {
     ctx.fillStyle = '#fff8ee'; rr(ctx, 70, -6, 16, 4, 2); ctx.fill(); for (const x of [70, 86]) for (const y of [-7, -3]) { circ(ctx, x, y, 2.4); ctx.fill(); }
     ell(ctx, 20, -3, 8, 3.5); fs(ctx, '#7ec8ff', 1.2);
   },
+  // ---------- Teil 2 ----------
+  board2(ctx) {
+    shadow(ctx, 0, 0, 16, 4);
+    ctx.fillStyle = '#9a6a45'; ctx.fillRect(-14, -40, 4, 40); ctx.fillRect(10, -40, 4, 40);
+    rr(ctx, -22, -60, 44, 30, 5); fs(ctx, '#fff6e6', 1.8, '#9a6a45');
+    ctx.fillStyle = '#4f9a8a'; ctx.font = `700 8px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText('REITSTUNDE', 0, -48);
+    ctx.fillStyle = '#6b4a4e'; ctx.fillText('Start ➜', 0, -37);
+    heart(ctx, 17, -56, 7, '#ff7eb6');
+  },
+  schoolsign(ctx) {
+    shadow(ctx, 0, 0, 22, 4);
+    ctx.fillStyle = '#9a6a45'; ctx.fillRect(-20, -46, 4, 46); ctx.fillRect(16, -46, 4, 46);
+    rr(ctx, -30, -70, 60, 28, 6); fs(ctx, '#ffe9f3', 1.8, '#c9708f');
+    ctx.fillStyle = '#c9506f'; ctx.font = `700 9px ${FONT}`; ctx.textAlign = 'center'; ctx.fillText('Kleine', 0, -59); ctx.fillText('Reitschule', 0, -48);
+    flower(ctx, -24, -70, 4, '#ffd166', '#fff'); flower(ctx, 24, -70, 4, '#b79cf0', '#fff');
+  },
+  farmshop(ctx, o, season) {
+    shadow(ctx, 48, 0, 50, 7);
+    rr(ctx, 2, -30, 92, 30, 5); fs(ctx, '#d9a878');
+    ctx.strokeStyle = '#b88a5e'; ctx.lineWidth = 1.5; for (let i = 10; i < 92; i += 12) { ctx.beginPath(); ctx.moveTo(i, -28); ctx.lineTo(i, -2); ctx.stroke(); }
+    // Ware: Äpfel, Karotten, (Herbst) Kürbisse, Blumen
+    for (let i = 0; i < 4; i++) { circ(ctx, 12 + i * 8, -33, 4.5); fs(ctx, '#ef4f5f', 1, '#b8323f'); }
+    ctx.fillStyle = '#ff9a3c'; for (let i = 0; i < 4; i++) { ctx.save(); ctx.translate(52 + i * 6, -34); ctx.rotate(0.6); ell(ctx, 0, 0, 2.4, 7); ctx.fill(); ctx.restore(); }
+    if (season === 'autumn') for (const x of [-4, 98]) { ell(ctx, x, -6, 9, 7); fs(ctx, '#f28a2a', 1.4, '#c0601a'); ctx.fillStyle = '#5a8a3a'; ctx.fillRect(x - 1, -15, 2, 4); }
+    else for (let i = 0; i < 3; i++) flower(ctx, 80 + i * 5, -36, 3.4, ['#ff7eb6', '#ffd166', '#fff'][i], '#ffb84a');
+    ctx.fillStyle = '#7a6a70'; ctx.fillRect(4, -74, 3, 46); ctx.fillRect(89, -74, 3, 46);
+    awning(ctx, -2, -80, 100, '#7fd6a0', '#fff');
+    if (season === 'winter') { ctx.fillStyle = '#fff'; rr(ctx, -2, -84, 100, 7, 3); ctx.fill(); }
+    signBoard(ctx, 48, -82, 'Hofladen', '#fffaf0', '#5f8a4f', 11);
+  },
+  igelhaus(ctx) {
+    shadow(ctx, 0, 0, 18, 5);
+    ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(-18, -16); ctx.lineTo(0, -30); ctx.lineTo(18, -16); ctx.lineTo(18, 0); ctx.closePath(); fs(ctx, '#c98a5a', 1.6, '#8a5d40');
+    ctx.fillStyle = '#e8874a'; for (let i = 0; i < 7; i++) { ell(ctx, -16 + i * 5.5, -28 + Math.abs(i - 3) * 4 + 6, 4, 2.4, i); ctx.fill(); }
+    ctx.beginPath(); ctx.arc(0, -6, 6, Math.PI, 0); ctx.lineTo(6, 0); ctx.lineTo(-6, 0); ctx.closePath(); fs(ctx, '#3b2a2a');
+    ctx.font = `700 7px ${FONT}`; ctx.textAlign = 'center'; ctx.fillStyle = '#fff6e6'; ctx.fillText('IGEL', 0, -16);
+    ctx.fillStyle = '#f3cf6a'; ell(ctx, 10, -1, 6, 2.2); ctx.fill();
+  },
+  xmastree(ctx) {
+    shadow(ctx, 0, 0, 24, 6);
+    rr(ctx, -5, -14, 10, 14, 2); fs(ctx, '#8a5d40', 1.2);
+    rr(ctx, -12, -6, 24, 8, 3); fs(ctx, '#e8587a', 1.2);
+    const lay = [[-14, 30, '#3f8f5a'], [-36, 25, '#4a9a62'], [-56, 19, '#56a66c'], [-72, 12, '#62b276']];
+    for (const [y, r, c] of lay) { ctx.beginPath(); ctx.moveTo(-r - 4, y + 6); ctx.quadraticCurveTo(0, y - r * 1.5, r + 4, y + 6); ctx.quadraticCurveTo(0, y + 12, -r - 4, y + 6); ctx.closePath(); fs(ctx, c, 1.6, shade(c, -0.3)); ctx.fillStyle = '#fff'; ell(ctx, -r * 0.5, y + 2, r * 0.5, 2.5); ctx.fill(); }
+    const cols = ['#ff5f7f', '#ffd24a', '#7ec8ff', '#b79cf0', '#fff'];
+    for (let i = 0; i < 16; i++) { circ(ctx, hash2(i, 1, 4) * 44 - 22, -16 - hash2(i, 2, 4) * 52, 2.4); ctx.fillStyle = cols[i % 5]; ctx.fill(); }
+    ctx.fillStyle = '#ffd24a'; star(ctx, 0, -86, 9); ctx.fill(); ctx.strokeStyle = '#e0a020'; ctx.lineWidth = 1.2; ctx.stroke();
+    for (const [x, c] of [[-18, '#7ec8ff'], [16, '#ff9eb8']]) { rr(ctx, x - 6, -10, 12, 10, 2); fs(ctx, c, 1.2); ctx.fillStyle = '#fff'; ctx.fillRect(x - 1, -10, 2, 10); }
+  },
+  bigxmastree(ctx) {
+    ctx.save(); ctx.scale(1.6, 1.6); SMALL.xmastree(ctx); ctx.restore();
+  },
+  xstall(ctx, o) {
+    const c = o.c || '#e86f7d';
+    shadow(ctx, 24, 0, 30, 6);
+    rr(ctx, 0, -26, 48, 26, 4); fs(ctx, '#c98a5a');
+    ctx.fillStyle = '#e0a060'; for (let i = 0; i < 4; i++) { heart(ctx, 8 + i * 11, -28, 8, '#d9904a'); }
+    ctx.fillStyle = '#7a6a70'; ctx.fillRect(2, -64, 3, 40); ctx.fillRect(43, -64, 3, 40);
+    awning(ctx, -4, -70, 56, c, '#fff');
+    ctx.fillStyle = '#fff'; rr(ctx, -6, -76, 60, 8, 4); ctx.fill();
+    for (let i = 0; i < 6; i++) { circ(ctx, -2 + i * 10, -60, 2.2); ctx.fillStyle = ['#ffe39a', '#ffb3c8', '#b3e3ff'][i % 3]; ctx.fill(); }
+  },
+  storknest(ctx) {
+    ell(ctx, 0, -78, 20, 8); fs(ctx, '#a57a52', 1.5, '#7a5a3a');
+    ctx.strokeStyle = '#8a6040'; ctx.lineWidth = 1.5; for (let i = -16; i <= 16; i += 4) { ctx.beginPath(); ctx.moveTo(i, -84); ctx.lineTo(i + 3, -72); ctx.stroke(); }
+    ell(ctx, 0, -82, 13, 4); ctx.fillStyle = '#c9a070'; ctx.fill();
+  },
+  rack(ctx, o, season) {
+    shadow(ctx, 48, 0, 46, 8);
+    ctx.fillStyle = '#9a6a45'; for (const x of [8, 86]) { rr(ctx, x - 3, -62, 6, 62, 2); ctx.fill(); }
+    ctx.beginPath(); ctx.moveTo(-4, -56); ctx.lineTo(48, -84); ctx.lineTo(100, -56); ctx.closePath(); fs(ctx, '#b9845a', 1.6, '#7a5a3a');
+    if (season === 'winter') { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(-2, -58); ctx.lineTo(48, -86); ctx.lineTo(98, -58); ctx.lineTo(48, -78); ctx.closePath(); ctx.fill(); }
+    rr(ctx, 12, -40, 72, 26, 4); fs(ctx, '#c98a5a', 1.4, '#8a5d40');
+    ctx.strokeStyle = '#8a5d40'; ctx.lineWidth = 1.5; for (let x = 18; x < 82; x += 7) { ctx.beginPath(); ctx.moveTo(x, -40); ctx.lineTo(x, -14); ctx.stroke(); }
+    ctx.fillStyle = '#f3cf6a'; rr(ctx, 16, -46, 64, 10, 5); ctx.fill();
+  },
+  bigfir(ctx, o, season) {
+    ctx.save(); ctx.scale(1.25, 1.25);
+    shadow(ctx, 0, 0, 26, 7);
+    rr(ctx, -4.5, -16, 9, 16, 2); fs(ctx, '#8a5d40', 1.2);
+    const lay = [[-16, 32, '#3f8f5a'], [-38, 27, '#4a9a62'], [-58, 21, '#56a66c'], [-76, 13, '#62b276']];
+    for (const [y, r, c] of lay) { ctx.beginPath(); ctx.moveTo(-r - 4, y + 6); ctx.quadraticCurveTo(0, y - r * 1.5, r + 4, y + 6); ctx.quadraticCurveTo(0, y + 12, -r - 4, y + 6); ctx.closePath(); fs(ctx, c, 1.6, shade(c, -0.3)); if (season === 'winter') { ctx.fillStyle = '#fff'; ell(ctx, -r * 0.3, y, r * 0.7, 3); ctx.fill(); } }
+    // rote Schleife: reserviert!
+    ctx.fillStyle = '#ef4f5f'; rr(ctx, -8, -30, 16, 4, 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0, -28); ctx.lineTo(-7, -34); ctx.lineTo(-7, -22); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0, -28); ctx.lineTo(7, -34); ctx.lineTo(7, -22); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  },
+  echorock(ctx, o, season) {
+    shadow(ctx, 0, 0, 24, 7);
+    ctx.beginPath(); ctx.moveTo(-24, 0); ctx.quadraticCurveTo(-26, -30, -6, -38); ctx.quadraticCurveTo(20, -40, 24, 0); ctx.closePath();
+    fs(ctx, '#c9c1ba', 1.8, '#9a918a');
+    ctx.fillStyle = '#e6e0da'; ell(ctx, -8, -28, 9, 5, -0.3); ctx.fill();
+    if (season === 'winter') { ctx.fillStyle = '#fff'; ell(ctx, -4, -36, 14, 5, -0.1); ctx.fill(); }
+    heart(ctx, 4, -16, 12, 'rgba(170,150,150,0.8)');
+  },
+  tulipbed(ctx, o, season) {
+    if (season === 'winter') { ctx.fillStyle = '#e6e0db'; ell(ctx, 0, -4, 20, 7); ctx.fill(); return; }
+    ctx.fillStyle = '#a5704b'; ell(ctx, 0, -4, 20, 7); ctx.fill();
+    const cols = ['#ff5f7f', '#ffd24a', '#ff9ecb', '#b79cf0', '#ff8a5a'];
+    for (let i = 0; i < 7; i++) {
+      const x = -15 + i * 5, y = -6 + (i % 2) * 3;
+      ctx.strokeStyle = '#5aa05a'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - 10); ctx.stroke();
+      ctx.fillStyle = cols[i % 5]; ctx.beginPath(); ctx.moveTo(x - 3, y - 10); ctx.lineTo(x - 3, y - 15); ctx.lineTo(x - 1, y - 13); ctx.lineTo(x, y - 16); ctx.lineTo(x + 1, y - 13); ctx.lineTo(x + 3, y - 15); ctx.lineTo(x + 3, y - 10); ctx.quadraticCurveTo(x, y - 7, x - 3, y - 10); ctx.closePath(); ctx.fill();
+    }
+  },
   scratchtree(ctx) {
     shadow(ctx, 0, 0, 14, 4);
     rr(ctx, -16, -8, 32, 8, 3); fs(ctx, '#c9a0e8');
@@ -572,14 +755,26 @@ const DECO_DRAW = {
     heart(ctx, 0, -62, 14, '#ff6f9f');
   },
   sunflowerpot(ctx) { shadow(ctx, 0, 0, 10, 3); ctx.beginPath(); ctx.moveTo(-9, -14); ctx.lineTo(9, -14); ctx.lineTo(7, 0); ctx.lineTo(-7, 0); ctx.closePath(); fs(ctx, '#6fa8e8'); ctx.strokeStyle = '#4f9a4f'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, -14); ctx.lineTo(0, -40); ctx.stroke(); flower(ctx, 0, -44, 7, '#ffd23f', '#9a6a3a', 10); },
+  // Teil 2
+  chestnutman(ctx) { shadow(ctx, 0, 0, 10, 3); ctx.strokeStyle = '#c9a070'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-4, -6); ctx.lineTo(-6, 0); ctx.moveTo(4, -6); ctx.lineTo(6, 0); ctx.moveTo(-7, -14); ctx.lineTo(-14, -18); ctx.moveTo(7, -14); ctx.lineTo(14, -18); ctx.stroke(); ell(ctx, 0, -12, 9, 8); fs(ctx, '#8a4a22', 1.4, '#5a2a12'); circ(ctx, 0, -26, 7); fs(ctx, '#8a4a22', 1.4, '#5a2a12'); ctx.fillStyle = '#fff'; circ(ctx, -2.4, -27, 1.6); ctx.fill(); circ(ctx, 2.4, -27, 1.6); ctx.fill(); ell(ctx, 0, -32, 11, 3); fs(ctx, '#f3d58e', 1); ctx.beginPath(); ctx.ellipse(0, -33, 6, 4, 0, Math.PI, 0); fs(ctx, '#f3d58e', 1); },
+  pumpkinlamp(ctx) { shadow(ctx, 0, 0, 12, 4); ell(ctx, 0, -10, 13, 10); fs(ctx, '#f28a2a', 1.6, '#c0601a'); ctx.fillStyle = '#ffd86a'; ctx.beginPath(); ctx.moveTo(-6, -13); ctx.lineTo(-2, -9); ctx.lineTo(-7, -9); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(6, -13); ctx.lineTo(2, -9); ctx.lineTo(7, -9); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(-6, -6); ctx.quadraticCurveTo(0, -1, 6, -6); ctx.quadraticCurveTo(0, -3, -6, -6); ctx.fill(); ctx.fillStyle = '#5a8a3a'; ctx.fillRect(-1.5, -22, 3, 5); },
+  musicbox(ctx) { shadow(ctx, 0, 0, 14, 4); rr(ctx, -14, -16, 28, 16, 3); fs(ctx, '#c98a5a', 1.6, '#8a5d40'); ctx.fillStyle = '#ffd24a'; ctx.fillRect(-14, -10, 28, 2); ell(ctx, 0, -17, 12, 3.5); fs(ctx, '#ffe9f3', 1.2); for (const [x, c] of [[-5, '#fff'], [5, '#d98a52']]) { ctx.save(); ctx.translate(x, -19); ctx.scale(0.22, 0.22); ctx.fillStyle = c; ell(ctx, 0, -20, 22, 14); ctx.fill(); ell(ctx, 18, -36, 9, 12); ctx.fill(); ctx.restore(); ctx.strokeStyle = '#ffd24a'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, -19); ctx.lineTo(x, -30); ctx.stroke(); } heart(ctx, 0, -6, 6, '#ff7eb6'); },
+  snowglobe(ctx) { shadow(ctx, 0, 0, 12, 4); rr(ctx, -12, -8, 24, 8, 3); fs(ctx, '#c98a5a', 1.4, '#8a5d40'); circ(ctx, 0, -20, 14); ctx.fillStyle = 'rgba(200,232,255,0.55)'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#ef7f6f'; ctx.beginPath(); ctx.moveTo(-5, -16); ctx.lineTo(0, -21); ctx.lineTo(5, -16); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fff1dc'; ctx.fillRect(-4, -16, 8, 6); ctx.fillStyle = '#fff'; for (const [x, y] of [[-7, -26], [5, -28], [8, -18], [-8, -15], [0, -30]]) { circ(ctx, x, y, 1.2); ctx.fill(); } },
+  photoframe(ctx) { shadow(ctx, 0, 0, 12, 3); ctx.fillStyle = '#9a6a45'; ctx.fillRect(-2, -10, 4, 10); rr(ctx, -16, -40, 32, 30, 4); fs(ctx, '#ffb3c8', 2, '#d9708f'); rr(ctx, -12, -36, 24, 22, 2); ctx.fillStyle = '#bfe6f7'; ctx.fill(); heart(ctx, -3, -24, 9, '#ff6f9f'); heart(ctx, 4, -24, 9, '#ff9ecb'); },
+  sled(ctx) { shadow(ctx, 0, 0, 18, 4); ctx.strokeStyle = '#8a5d40'; ctx.lineWidth = 2.6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-18, -2); ctx.lineTo(14, -2); ctx.quadraticCurveTo(20, -2, 19, -9); ctx.stroke(); rr(ctx, -16, -12, 30, 6, 2); fs(ctx, '#e8587a', 1.4, '#a83a5a'); },
+  starlamp(ctx) { shadow(ctx, 0, 0, 8, 3); rr(ctx, -2, -40, 4, 40, 2); fs(ctx, '#6a6070', 1); star(ctx, 0, -48, 10); fs(ctx, '#fff1a8', 1.4, '#e0b020'); },
 };
 
-export function smallSprite(k, o = {}) {
-  const key = 'o:' + k + (o.c || '');
-  const sizes = { gazebo: [170, 200, 13, 188], cathouse: [110, 110, 8, 100], doghouse: [110, 100, 8, 90], scratchtree: [50, 90, 25, 80], fountain: [140, 110, 70, 90], stall: [70, 90, 10, 80], hut: [160, 120, 10, 108], log: [110, 50, 10, 40], shelter: [160, 90, 10, 80], festarch: [100, 130, 50, 118], arch: [80, 100, 40, 92], stage: [100, 30, 50, 20], gatepost: [30, 90, 15, 82], table: [60, 50, 30, 42] };
+const SEASONAL = new Set(['farmshop', 'rack', 'bigfir', 'echorock', 'tulipbed']);
+export function smallSprite(k, o = {}, season = 'summer') {
+  const key = 'o:' + k + (o.c || '') + (SEASONAL.has(k) ? season : '');
+  const sizes = {
+    gazebo: [170, 200, 13, 188], cathouse: [110, 110, 8, 100], doghouse: [110, 100, 8, 90], scratchtree: [50, 90, 25, 80], fountain: [140, 110, 70, 90], stall: [70, 90, 10, 80], hut: [160, 120, 10, 108], log: [110, 50, 10, 40], shelter: [160, 90, 10, 80], festarch: [100, 130, 50, 118], arch: [80, 100, 40, 92], stage: [100, 30, 50, 20], gatepost: [30, 90, 15, 82], table: [60, 50, 30, 42],
+    farmshop: [120, 110, 14, 98], xstall: [70, 100, 10, 88], rack: [120, 110, 14, 98], xmastree: [80, 110, 40, 100], bigxmastree: [120, 166, 60, 156], bigfir: [110, 140, 55, 128], echorock: [70, 70, 35, 60], storknest: [60, 100, 30, 94], schoolsign: [80, 90, 40, 80], board2: [60, 80, 30, 70], igelhaus: [60, 50, 30, 42], tulipbed: [60, 40, 30, 30],
+  };
   const [w, h, ax, ay] = sizes[k] || [70, 80, 35, 70];
   const f = SMALL[k];
-  return sprite(key, w, h, ax, ay, (ctx) => f && f(ctx, o));
+  return sprite(key, w, h, ax, ay, (ctx) => f && f(ctx, o, season));
 }
 
 export function decoSprite(id) {
@@ -663,6 +858,56 @@ export function pickupSprite(k, picked = false) {
         heart(ctx, 0, -8, 20, '#e8a0b8');
         heart(ctx, 0, -9, 16, '#ffb3cf');
         sparkle(ctx, 7, -18, 3.5, '#fff');
+        break;
+      case 'clover':
+        shadow(ctx, 0, 0, 8, 3);
+        ctx.strokeStyle = '#3f8f45'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(2, -6, 0, -10); ctx.stroke();
+        for (let i = 0; i < 4; i++) { ctx.save(); ctx.translate(0, -13); ctx.rotate((i / 4) * Math.PI * 2 + 0.4); heart(ctx, 0, -5, 11, '#4fbf5a'); ctx.restore(); }
+        circ(ctx, 0, -13, 1.6); ctx.fillStyle = '#2f8f3a'; ctx.fill();
+        sparkle(ctx, 9, -22, 3.5, '#fff');
+        break;
+      case 'lovenote':
+        shadow(ctx, 0, 0, 9, 3);
+        ctx.save(); ctx.rotate(-0.15);
+        rr(ctx, -10, -20, 20, 15, 2); fs(ctx, '#fff0f6', 1.4, '#ff9ecb');
+        heart(ctx, 0, -11, 9, '#ff6f9f');
+        ctx.restore();
+        sparkle(ctx, 9, -24, 3, '#fff');
+        break;
+      case 'recipe':
+        shadow(ctx, 0, 0, 9, 3);
+        ctx.save(); ctx.rotate(0.2);
+        rr(ctx, -9, -22, 18, 20, 2); fs(ctx, '#fffaf0', 1.4, '#c9a070');
+        ctx.strokeStyle = '#d9b080'; ctx.lineWidth = 1; for (const y of [-17, -13, -9, -5]) { ctx.beginPath(); ctx.moveTo(-6, y); ctx.lineTo(6, y); ctx.stroke(); }
+        ctx.restore();
+        break;
+      case 'icestar':
+        ctx.fillStyle = 'rgba(180,220,255,0.5)'; ell(ctx, 0, 0, 12, 4); ctx.fill();
+        star(ctx, 0, -14, 9); fs(ctx, '#e6f6ff', 1.6, '#7ec8ff');
+        sparkle(ctx, 8, -24, 4, '#fff');
+        break;
+      case 'chestnut':
+        shadow(ctx, 0, 0, 8, 3);
+        for (const [x, y] of [[-4, -4], [4, -5], [0, -9]]) { ell(ctx, x, y, 4.2, 3.6); fs(ctx, '#8a4a22', 1.2, '#5a2a12'); ctx.fillStyle = '#e8c49a'; ell(ctx, x, y + 2, 2.4, 1); ctx.fill(); ctx.fillStyle = '#fff6'; circ(ctx, x - 1.5, y - 1.5, 1); ctx.fill(); }
+        break;
+      case 'snowdrop':
+        ctx.strokeStyle = '#5aa05a'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(1, -10, 4, -14); ctx.stroke();
+        ctx.fillStyle = '#6cc063'; ell(ctx, -3, -5, 1.6, 5, -0.3); ctx.fill();
+        ctx.save(); ctx.translate(4, -13);
+        for (const a of [-0.5, 0, 0.5]) { ctx.save(); ctx.rotate(a); ell(ctx, 0, 4, 2.2, 4.4); fs(ctx, '#ffffff', 0.8, '#cfd8e0'); ctx.restore(); }
+        ctx.fillStyle = '#8fd46a'; circ(ctx, 0, 1, 1.4); ctx.fill();
+        ctx.restore();
+        break;
+      case 'stone':
+        shadow(ctx, 0, 0, 9, 3);
+        ctx.beginPath(); ctx.moveTo(-9, 0); ctx.quadraticCurveTo(-10, -10, 0, -11); ctx.quadraticCurveTo(10, -10, 9, 0); ctx.closePath(); fs(ctx, '#c9c1ba', 1.4, '#9a918a');
+        ctx.fillStyle = '#e6e0da'; ell(ctx, -3, -7, 3.6, 2, -0.3); ctx.fill();
+        break;
+      case 'pinecone':
+        shadow(ctx, 0, 0, 8, 3);
+        ell(ctx, 0, -8, 6, 9); fs(ctx, '#a0683e', 1.3, '#6a4020');
+        ctx.strokeStyle = '#6a4020'; ctx.lineWidth = 1; for (const y of [-13, -9, -5]) { ctx.beginPath(); ctx.moveTo(-5, y); ctx.lineTo(0, y + 2); ctx.lineTo(5, y); ctx.stroke(); }
+        ctx.fillStyle = '#fff'; ell(ctx, 0, -16, 4, 2); ctx.fill();
         break;
       case 'horseshoe':
         ctx.lineCap = 'round';

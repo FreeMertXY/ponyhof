@@ -4,6 +4,7 @@ import { Animal } from './animals.js';
 import { makeHorseRecord, HorseEntity } from './horses.js';
 import { SPECIES_ORDER } from './data/animals.js';
 import { VILLAGERS } from './data/npcs.js';
+import { maybeStartPart2 } from './part2.js';
 
 export async function runEnding(g) {
   const S = g.S;
@@ -197,5 +198,6 @@ export async function runEnding(g) {
   g.saveNow();
   await g.fade(false);
   g.ui.banner('Ein neuer Morgen', `${name} wohnt jetzt bei dir auf der Koppel ♥`);
-  g.ui.hint('Du kannst frei weiterspielen: Hufeisen suchen, das Tieralbum füllen, Rennen wiederholen und deinen Hof schmücken!', 9);
+  // … und dann geht es direkt mit Teil 2 weiter
+  g.later(2.5, () => maybeStartPart2(g));
 }

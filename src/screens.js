@@ -111,13 +111,17 @@ export class Screens {
     g.ui.showHUD(false);
     g.applyAudioMode();
     const has = g.saves.has();
+    const info = this.saveInfo();
+    const sub = info.part2 ? 'Teil 2 · Vier Jahreszeiten' : info.ending ? 'Neu: Teil 2 · Vier Jahreszeiten ♥' : '';
+    const contBtn = `<button class="btn${has ? ' primary' : ''}" id="t-cont" ${has ? '' : 'disabled'}>${info.ending && !info.part2 ? 'Weiter mit Teil 2 ♥' : 'Fortsetzen'}</button>`;
+    const newBtn = `<button class="btn${has ? '' : ' primary'}" id="t-new">Neues Spiel</button>`;
     this.show(`
       <div class="title-box">
-        <div class="logo"><small>${esc(genitive(this.lastName()))}</small>Ponyhof</div>
+        <div class="logo"><small>${esc(genitive(this.lastName()))}</small>Ponyhof${sub ? `<span class="logo-sub">${sub}</span>` : ''}</div>
         <div class="title-btns">
-          <button class="btn primary" id="t-new">Neues Spiel</button>
-          <button class="btn" id="t-cont" ${has ? '' : 'disabled'}>Fortsetzen</button>
+          ${has ? contBtn + newBtn : newBtn + contBtn}
           <button class="btn" id="t-set">Einstellungen</button>
+          ${!info.ending ? '<button class="btn small" id="t-p2" title="Startet direkt mit Teil 2 – z. B. auf einem neuen Gerät">Direkt zu Teil 2</button>' : ''}
         </div>
       </div>
       <div class="title-foot">Ein gemütliches Pferde-Abenteuer · Musik startet nach dem ersten Klick ♥</div>`);
@@ -128,7 +132,18 @@ export class Screens {
       } else this.editor();
     };
     $('t-cont').onclick = () => { g.audio.init(); g.audio.play('click'); this.hide(); if (!g.loadGame()) this.title(); };
+    if ($('t-p2')) $('t-p2').onclick = () => {
+      g.audio.init(); g.audio.play('click');
+      const go = () => { this.hide(); g.startPart2Direct(); };
+      if (has) this.confirm('Damit startest du direkt mit Teil 2 (Teil 1 gilt als geschafft). Dein bisheriger Spielstand wird überschrieben. Wirklich?', 'Ja, Teil 2 starten', go, () => this.title());
+      else go();
+    };
     $('t-set').onclick = () => { g.audio.init(); this.settings(); };
+  }
+
+  saveInfo() {
+    try { const raw = localStorage.getItem('ponyhof.save'); if (raw) { const d = JSON.parse(raw).data; return { part2: !!d.part2?.started, ending: !!d.ending?.done }; } } catch { /* egal */ }
+    return { part2: false, ending: false };
   }
 
   lastName() {
@@ -499,9 +514,178 @@ export class Screens {
         </div>
         <p style="font-size:26px;margin:18px 0 8px">Ende …</p>
         <p style="font-size:22px;margin:0 0 16px;color:var(--rose)">… oder doch nicht?</p>
+        <button class="btn primary" id="cr-go" style="font-size:20px">${S.part2?.started ? 'Weiterspielen ♥' : 'Weiter zu Teil 2 ♥'}</button></div>`);
+      $('cr-go').onclick = () => { this.hide(); this.mode = null; resolve(); };
+    });
+  }
+
+  // ---------- Teil 2: Intro ----------
+  async part2Intro() {
+    const g = this.game, S = g.S;
+    const name = S.player.name || 'Jolina';
+    const P = playerLook(S.player);
+    const foal = S.horses.find((h) => h.id === 'foal');
+    const cards = [
+      { text: `Ein Sommer ist vorbei. Das Sommerfest war wunderschön – und ${name}s Ponyhof hat wieder ein Herz.`, draw: (c, w, h, t) => { this.p2Frame(c, w, h, '#ffd6a0', '#ffe9f3'); drawMeadowScene(c, w, h, t, { sunset: true }); this.p2Title(c, w, 'Teil 2', 'Vier Jahreszeiten'); } },
+      { text: 'Doch die Tage werden kürzer, die Blätter färben sich bunt, und ein kühler Wind weht über die Koppel. Der Herbst kommt nach Kleeberg.', draw: (c, w, h, t) => { this.p2Season(c, w, h, t, 'autumn'); c.save(); c.translate(w * 0.4, h * 0.88); c.scale(5, 5); drawCharacter(c, P, { dir: 'right', t }); c.restore(); c.save(); c.translate(w * 0.56, h * 0.88); c.scale(5.2, 5.2); drawCharacter(c, npcLook(NPCS.mert.look), { dir: 'left', t: t + 1 }); c.restore(); } },
+      { text: `${foal ? foal.name : 'Das Fohlen'} wird jeden Tag ein bisschen größer. Und Oma Hilde hat eine Neuigkeit, die alles verändert …`, draw: (c, w, h, t) => { this.p2Season(c, w, h, t, 'autumn'); if (foal) { c.save(); c.translate(w * 0.5, h * 0.88); c.scale(5.2, 5.2); drawHorse(c, horseLook(foal), { t, pose: Math.sin(t) > 0.3 ? 'trot' : 'stand', face: 1 }); c.restore(); } c.save(); c.translate(w * 0.28, h * 0.9); c.scale(5, 5); drawCharacter(c, npcLook(NPCS.hilde.look), { dir: 'right', t }); c.restore(); } },
+      { text: 'Herbst, Winter, Frühling und Sommer: Ein ganzes Jahr voller Abenteuer wartet auf dich – mit Mert, Mira, Maumau, Manni und allen, die du liebst. ♥', draw: (c, w, h, t) => { this.p2Seasons4(c, w, h, t); } },
+    ];
+    for (let i = 0; i < cards.length; i++) {
+      const skip = await this.storyCard(cards[i], i, cards.length, i === cards.length - 1 ? 'Los geht’s! ♥' : 'Weiter ➜');
+      if (skip) break;
+    }
+    this.hide();
+    this.mode = null;
+  }
+
+  p2Frame(c, w, h, bg1, bg2) {
+    const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, bg1); gr.addColorStop(1, bg2); c.fillStyle = gr; c.fillRect(0, 0, w, h);
+  }
+
+  p2Title(c, w, a, b) {
+    c.font = `700 72px ${FONT}`; c.textAlign = 'center';
+    c.lineWidth = 14; c.strokeStyle = '#fff'; c.strokeText(a, w / 2, 160); c.fillStyle = '#e8587a'; c.fillText(a, w / 2, 160);
+    c.font = `700 46px ${FONT}`; c.lineWidth = 10; c.strokeText(b, w / 2, 230); c.fillStyle = '#b06a80'; c.fillText(b, w / 2, 230);
+  }
+
+  // Jahreszeiten-Landschaft für Bilderbuchseiten
+  p2Season(c, w, h, t, season) {
+    const sky = { autumn: ['#ffd9a8', '#ffeede'], winter: ['#cfe3ff', '#f4f8ff'], spring: ['#bfe9ff', '#fff0f6'], summer: ['#9fdcff', '#fff4d6'] }[season];
+    const ground = { autumn: ['#d9c27a', '#c9a85a'], winter: ['#f4f8fc', '#e2ecf6'], spring: ['#b8ea8a', '#9fd87a'], summer: ['#a8df80', '#92cd6e'] }[season];
+    this.p2Frame(c, w, h, sky[0], sky[1]);
+    c.fillStyle = ground[0]; c.beginPath(); c.moveTo(0, h * 0.62); for (let x = 0; x <= w; x += 40) c.lineTo(x, h * 0.62 + Math.sin(x * 0.006 + 1) * 24); c.lineTo(w, h); c.lineTo(0, h); c.fill();
+    c.fillStyle = ground[1]; c.fillRect(0, h * 0.78, w, h * 0.22);
+    // Bäume
+    for (let i = 0; i < 5; i++) {
+      const x = w * (0.08 + i * 0.22), y = h * 0.66;
+      c.fillStyle = '#9a6a4c'; c.fillRect(x - 6, y - 60, 12, 60);
+      if (season === 'winter') { c.strokeStyle = '#9a6a4c'; c.lineWidth = 5; c.beginPath(); c.moveTo(x, y - 50); c.lineTo(x - 30, y - 100); c.moveTo(x, y - 55); c.lineTo(x + 28, y - 105); c.stroke(); c.fillStyle = '#fff'; ell(c, x - 30, y - 102, 12, 5); c.fill(); ell(c, x + 28, y - 107, 12, 5); c.fill(); }
+      else { const col = season === 'autumn' ? ['#f0a04b', '#e8704a', '#f2c14e'][i % 3] : season === 'spring' ? ['#ffd6e7', '#c2ee98', '#ffe3ee'][i % 3] : '#6cbf5f'; c.fillStyle = col; circ(c, x, y - 90, 48); c.fill(); circ(c, x - 34, y - 70, 32); c.fill(); circ(c, x + 34, y - 70, 32); c.fill(); }
+    }
+    // Wetter
+    for (let i = 0; i < 30; i++) {
+      const x = (hash2(i, 1, 7) * w + t * 30 * (season === 'winter' ? 0.3 : 1)) % w, y = (hash2(i, 2, 7) * h + t * (season === 'winter' ? 40 : 25)) % (h * 0.8);
+      if (season === 'winter') { c.fillStyle = '#fff'; circ(c, x, y, 4 + hash2(i, 3, 7) * 3); c.fill(); }
+      else if (season === 'autumn') { c.fillStyle = ['#e8874a', '#d9603c', '#f2b84a'][i % 3]; ell(c, x, y, 8, 4, t + i); c.fill(); }
+      else if (season === 'spring') { flower(c, x, y, 5, '#ffd6e7', '#fff'); }
+    }
+  }
+
+  p2Seasons4(c, w, h, t) {
+    const seasons = ['autumn', 'winter', 'spring', 'summer'];
+    const names = ['Herbst', 'Winter', 'Frühling', 'Sommer'];
+    seasons.forEach((s, i) => {
+      c.save(); c.beginPath(); c.rect((i * w) / 4, 0, w / 4, h); c.clip();
+      this.p2Season(c, w, h, t + i, s);
+      c.restore();
+      c.font = `700 40px ${FONT}`; c.textAlign = 'center'; c.lineWidth = 10; c.strokeStyle = '#fff';
+      c.strokeText(names[i], (i + 0.5) * (w / 4), 110); c.fillStyle = '#e8587a'; c.fillText(names[i], (i + 0.5) * (w / 4), 110);
+    });
+    heart(c, w / 2, h * 0.45 + Math.sin(t * 3) * 10, 90, '#ff6f9f');
+  }
+
+  // ---------- Teil 2: Blick ins Häuschen ----------
+  interiorCard(style) {
+    const g = this.game, S = g.S;
+    const P = playerLook(S.player);
+    const card = {
+      text: 'Gardinen, Kissen, ein Sofa für vier Katzen, ein Körbchen für Mira, die Spieluhr auf dem Regal – und überall Bilder von euch. Euer Zuhause. ♥',
+      draw: (c, w, h, t) => {
+        // Wand und Boden
+        c.fillStyle = style.wall; c.fillRect(0, 0, w, h * 0.68);
+        c.fillStyle = '#d9a878'; c.fillRect(0, h * 0.68, w, h * 0.32);
+        c.strokeStyle = '#c98a5a'; c.lineWidth = 3; for (let x = 0; x < w; x += 90) { c.beginPath(); c.moveTo(x, h * 0.68); c.lineTo(x - 40, h); c.stroke(); }
+        // Fenster mit Gardinen
+        for (const fx of [w * 0.18, w * 0.72]) {
+          rr(c, fx, h * 0.12, 200, 180, 14); c.fillStyle = '#bfe6f7'; c.fill(); c.lineWidth = 10; c.strokeStyle = '#fff'; c.stroke();
+          c.fillStyle = '#b79cf0'; rr(c, fx - 20, h * 0.08, 60, 220, 20); c.fill(); rr(c, fx + 160, h * 0.08, 60, 220, 20); c.fill();
+          for (let i = 0; i < 4; i++) heart(c, fx + 10, h * 0.12 + 30 + i * 46, 14, '#ff9ecb');
+          circ(c, fx + 150, h * 0.12 + 40, 18); c.fillStyle = '#fff4b0'; c.fill();
+        }
+        // Bilder an der Wand
+        for (let i = 0; i < 3; i++) { const x = w * 0.42 + i * 80, y = h * 0.16 + (i % 2) * 20; rr(c, x, y, 64, 52, 4); c.fillStyle = '#fff'; c.fill(); c.strokeStyle = '#c98a5a'; c.lineWidth = 4; c.stroke(); heart(c, x + 32, y + 28, 22, ['#ff7eb6', '#7ec8ff', '#ffd166'][i]); }
+        // Sofa
+        rr(c, w * 0.3, h * 0.5, w * 0.4, 130, 30); c.fillStyle = '#ff9eb8'; c.fill();
+        rr(c, w * 0.28, h * 0.58, w * 0.44, 90, 26); c.fillStyle = '#ffb3c8'; c.fill();
+        for (let i = 0; i < 3; i++) { rr(c, w * 0.33 + i * 150, h * 0.52, 110, 70, 22); c.fillStyle = ['#ffe39a', '#c9ffb3', '#b3e3ff'][i]; c.fill(); }
+        // Katzen auf dem Sofa
+        c.save(); c.translate(w * 0.4, h * 0.62); c.scale(4, 4); drawAnimal(c, 'maumau', { t, face: 1, state: 'happy' }); c.restore();
+        c.save(); c.translate(w * 0.6, h * 0.62); c.scale(4, 4); drawAnimal(c, 'manni', { t: t + 1, face: -1 }); c.restore();
+        // Mira im Körbchen
+        ell(c, w * 0.16, h * 0.9, 90, 30); c.fillStyle = '#c98a5a'; c.fill();
+        c.save(); c.translate(w * 0.16, h * 0.92); c.scale(4, 4); drawAnimal(c, 'mira', { t, face: 1, state: 'happy' }); c.restore();
+        // Ihr zwei
+        c.save(); c.translate(w * 0.8, h * 0.97); c.scale(4.6, 4.6); drawCharacter(c, P, { dir: 'left', t }); c.restore();
+        c.save(); c.translate(w * 0.9, h * 0.97); c.scale(4.8, 4.8); drawCharacter(c, npcLook(NPCS.mert.look), { dir: 'left', t: t + 1 }); c.restore();
+        heart(c, w * 0.85, h * 0.4 + Math.sin(t * 3) * 8, 40, '#ff6f9f');
+        this.caption(c, w, 'Unser Zuhause');
+      },
+    };
+    const prev = g.state;
+    g.state = 'credits';
+    return this.storyCard(card, 0, 1, 'Wie schön! ♥', false).then(() => { this.hide(); this.mode = null; g.state = prev; });
+  }
+
+  // ---------- Teil 2: Bilderbuch-Abspann ----------
+  async credits2() {
+    const g = this.game, S = g.S;
+    const P = playerLook(S.player);
+    const M = npcLook(NPCS.mert.look);
+    const foal = S.horses.find((h) => h.id === 'foal');
+    const has = (t) => S.memories.some((m) => m.type === t);
+    const frame = (c, w, h, season) => { this.p2Season(c, w, h, 0, season); c.strokeStyle = '#fff'; c.lineWidth = 24; c.strokeRect(12, 12, w - 24, h - 24); c.strokeStyle = '#ffd6e7'; c.lineWidth = 6; c.strokeRect(30, 30, w - 60, h - 60); };
+    const two = (c, w, h, t, x = 0.42) => { c.save(); c.translate(w * x, h * 0.88); c.scale(5, 5); drawCharacter(c, P, { dir: 'right', t }); c.restore(); c.save(); c.translate(w * (x + 0.14), h * 0.88); c.scale(5.2, 5.2); drawCharacter(c, M, { dir: 'left', t: t + 1 }); c.restore(); };
+    const pages = [
+      { text: `Ein ganzes Jahr auf dem Ponyhof – ein Jahr voller Jahreszeiten, Abenteuer und Liebe.`, draw: (c, w, h, t) => { frame(c, w, h, 'summer'); two(c, w, h, t, 0.3); if (foal) { c.save(); c.translate(w * 0.72, h * 0.88); c.scale(4.6, 4.6); drawHorse(c, horseLook(foal), { t, pose: 'stand', face: -1 }); c.restore(); } heart(c, w * 0.5, h * 0.3 + Math.sin(t * 3) * 8, 56, '#ff6f9f'); this.caption(c, w, 'Vier Jahreszeiten'); } },
+      { text: `Im Herbst reiste Oma Hilde ans Meer. ${S.flags.hedgehog || 'Ein kleiner Igel'} fand ein Zuhause, es gab Kürbissuppe beim Erntedankfest – und einen Laubhaufen voller Küsse.`, draw: (c, w, h, t) => { frame(c, w, h, 'autumn'); two(c, w, h, t); c.save(); c.translate(w * 0.24, h * 0.9); c.scale(4.4, 4.4); drawAnimal(c, 'hedgehog', { t, face: 1 }); c.restore(); this.caption(c, w, 'Herbstzauber'); } },
+      { text: 'Lotte und Ben lernten reiten – und auf dem Hof entstand eine kleine Reitschule mit der besten Reitlehrerin der Welt.', draw: (c, w, h, t) => { frame(c, w, h, 'autumn'); c.save(); c.translate(w * 0.36, h * 0.88); c.scale(5, 5); drawCharacter(c, P, { dir: 'right', t }); c.restore(); c.save(); c.translate(w * 0.56, h * 0.88); c.scale(4.4, 4.4); drawCharacter(c, npcLook(NPCS.lotte.look), { dir: 'left', t: t + 1 }); c.restore(); c.save(); c.translate(w * 0.68, h * 0.88); c.scale(4.4, 4.4); drawCharacter(c, npcLook(NPCS.ben.look), { dir: 'left', t: t + 2 }); c.restore(); this.caption(c, w, 'Die kleine Reitschule'); } },
+      { text: 'Opa Karls Schatzkarte führte zum Leuchtturm, auf die Insel, in die Berge – und zu einer Spieluhr voller Liebe.', draw: (c, w, h, t) => { frame(c, w, h, 'autumn'); c.save(); c.translate(w * 0.5, h * 0.84); c.scale(5, 5); drawChestPage(c, t); c.restore(); two(c, w, h, t, 0.2); this.caption(c, w, 'Opas Schatz'); } },
+      { text: 'Im Winter bauten sie einen Schneemann, liefen Schlittschuh unter dem Mond – und an Weihnachten kam Oma Hilde mit dem Schlitten nach Hause.', draw: (c, w, h, t) => { frame(c, w, h, 'winter'); two(c, w, h, t); c.save(); c.translate(w * 0.75, h * 0.88); c.scale(3, 3); c.fillStyle = '#fff'; circ(c, 0, -14, 15); c.fill(); circ(c, 0, -38, 11); c.fill(); circ(c, 0, -56, 8); c.fill(); c.fillStyle = '#ff8a3c'; c.fillRect(0, -57, 10, 2); c.restore(); this.caption(c, w, 'Winterwunderland'); } },
+      { text: `Im Frühling blühten Opa Karls Tulpen, die Störche kamen zurück – und ${foal ? foal.name : 'das Fohlen'} trug ${S.player.name} zum ersten Mal.`, draw: (c, w, h, t) => { frame(c, w, h, 'spring'); if (foal) { c.save(); c.translate(w * 0.5, h * 0.88); c.scale(4.6, 4.6); drawHorse(c, horseLook({ ...foal, foal: false }), { t, pose: 'walk', face: 1, rider: (cc) => { cc.save(); cc.translate(-1, -24); drawCharacter(cc, P, { dir: 'right', t, seated: true, noShadow: true }); cc.restore(); } }); c.restore(); } this.caption(c, w, 'Frühlingserwachen'); } },
+      { text: 'Und im Sommer bauten sie ein kleines Häuschen. Mit Veranda, Herzfenster und ganz viel Platz für Katzen.', draw: (c, w, h, t) => { frame(c, w, h, 'summer'); drawCottagePage(c, w, h, S.farm.cottageStyle); two(c, w, h, t, 0.18); this.caption(c, w, 'Unser kleines Zuhause'); } },
+      { text: 'Beim Jahresfest schwebten hundert Laternen über den Glitzersee. Und jeder Wunsch war derselbe: noch ganz viele solche Jahre.', draw: (c, w, h, t) => { this.p2Frame(c, w, h, '#2b2a6a', '#6f6bc9'); c.fillStyle = '#4a5aa0'; c.fillRect(0, h * 0.6, w, h * 0.4); for (let i = 0; i < 24; i++) { const x = hash2(i, 1, 3) * w, y = ((hash2(i, 2, 3) * h * 0.6) - t * 20 * (0.5 + hash2(i, 3, 3))) % (h * 0.6); c.fillStyle = 'rgba(255,233,168,0.35)'; circ(c, x, (y + h * 0.6) % (h * 0.6), 18); c.fill(); c.fillStyle = ['#ffb3c8', '#ffe39a', '#b3e3ff'][i % 3]; rr(c, x - 7, (y + h * 0.6) % (h * 0.6) - 10, 14, 18, 4); c.fill(); } two(c, w, h, t); this.caption(c, w, 'Das Jahresfest'); } },
+    ];
+    const photos = g.loadPhotos?.() || {};
+    const ids = Object.keys(S.photos || {}).filter((id) => photos[id]);
+    if (ids.length) {
+      const imgs = ids.map((id) => { const im = new Image(); im.src = photos[id]; return [im, S.photos[id].name]; });
+      pages.push({ text: 'Und für immer festgehalten: eure Fotos aus einem ganzen Jahr.', draw: (c, w, h, t) => {
+        this.p2Frame(c, w, h, '#fff3d6', '#ffe0ec');
+        imgs.slice(0, 8).forEach(([im, name], i) => {
+          const col = i % 4, row = Math.floor(i / 4);
+          const x = 110 + col * 270, y = 150 + row * 270;
+          c.save(); c.translate(x + 110, y + 100); c.rotate(((i % 3) - 1) * 0.06 + Math.sin(t + i) * 0.01);
+          c.fillStyle = '#fff'; c.shadowColor = 'rgba(0,0,0,0.2)'; c.shadowBlur = 12; c.fillRect(-112, -100, 224, 210); c.shadowBlur = 0;
+          if (im.complete && im.naturalWidth) { const ar = im.naturalWidth / im.naturalHeight; const iw = 200, ih = Math.min(150, iw / ar); c.drawImage(im, -100, -90, iw, ih); }
+          c.font = `600 16px ${FONT}`; c.textAlign = 'center'; c.fillStyle = '#8a4a6a'; c.fillText(name, 0, 88);
+          c.restore();
+        });
+        this.caption(c, w, 'Unser Fotoalbum');
+      } });
+    }
+    for (let i = 0; i < pages.length; i++) await this.storyCard(pages[i], i, pages.length + 1, 'Umblättern ➜', false);
+    // Statistik
+    await new Promise((resolve) => {
+      this.mode = 'story';
+      this.storyDraw = null;
+      const medals = Object.values(S.stats.medals);
+      this.show(`<div class="story" style="max-width:660px">
+        <h2 style="color:var(--rose);margin:6px 0">${esc(genitive(S.player.name))} Ponyhof · Teil 2</h2>
+        <div class="stats">
+          <div><b>${formatDuration(S.stats.playSeconds)}</b>Spielzeit insgesamt</div>
+          <div><b>${S.horses.length}</b>Pferde</div>
+          <div><b>${S.collected.clovers.length}/20</b>Glücksklee</div>
+          <div><b>${Object.keys(S.photos || {}).length}/8</b>Fotos im Album</div>
+          <div><b>${medals.filter((m) => m === 'gold').length}</b>Goldmedaillen</div>
+          <div><b>${S.time.day}</b>Tage auf dem Hof</div>
+        </div>
+        <p style="font-size:26px;margin:18px 0 8px">Ende von Teil 2 …</p>
+        <p style="font-size:22px;margin:0 0 16px;color:var(--rose)">… und ganz viele neue Tage auf dem Ponyhof. ♥</p>
         <button class="btn primary" id="cr-go" style="font-size:20px">Weiterspielen ♥</button></div>`);
       $('cr-go').onclick = () => { this.hide(); this.mode = null; resolve(); };
     });
+    void has;
   }
 
   caption(c, w, text) {
@@ -517,4 +701,23 @@ export class Screens {
     c.fillStyle = '#fff8'; star(c, 0, 20, 28); c.fill();
     c.restore();
   }
+}
+
+// Truhe und Häuschen für Bilderbuchseiten
+function drawChestPage(c, t) {
+  rr(c, -24, -26, 48, 26, 5); c.fillStyle = '#a0683e'; c.fill();
+  c.fillStyle = '#ffd24a'; c.fillRect(-24, -17, 48, 4); c.fillRect(-3, -26, 6, 26);
+  c.save(); c.translate(0, -26); c.rotate(-0.9); rr(c, -24, -14, 48, 14, 6); c.fillStyle = '#b8784a'; c.fill(); c.restore();
+  for (let i = 0; i < 5; i++) sparkle(c, -18 + i * 9, -36 - Math.sin(t * 4 + i) * 5, 3, '#fff6b0');
+  heart(c, 0, -44 + Math.sin(t * 3) * 3, 14, '#ff6f9f');
+}
+function drawCottagePage(c, w, h, st) {
+  const s = st || { wall: '#ffd8e4', roof: '#e86f8f' };
+  const x = w * 0.5, y = h * 0.8;
+  rr(c, x - 150, y - 160, 300, 160, 10); c.fillStyle = s.wall; c.fill();
+  c.beginPath(); c.moveTo(x - 180, y - 150); c.lineTo(x, y - 290); c.lineTo(x + 180, y - 150); c.closePath(); c.fillStyle = s.roof; c.fill();
+  rr(c, x - 30, y - 100, 60, 100, 8); c.fillStyle = '#fff'; c.fill();
+  heart(c, x, y - 200, 50, '#fff6e6'); heart(c, x, y - 200, 36, '#ffd99a');
+  for (const fx of [x - 110, x + 60]) { rr(c, fx, y - 120, 50, 44, 6); c.fillStyle = '#bfe6f7'; c.fill(); }
+  for (let i = 0; i < 10; i++) flower(c, x - 140 + i * 31, y - 4, 9, ['#ff7eb6', '#fff', '#ffd166', '#b79cf0'][i % 4], '#ffb84a');
 }

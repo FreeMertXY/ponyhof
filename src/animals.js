@@ -57,7 +57,13 @@ export class Animal {
     if (this.hopT > 0) { this.hopT = Math.max(0, this.hopT - dt); this.z = Math.abs(Math.sin(this.hopT * Math.PI / 0.45)) * 9; } else this.z = 0;
     if (this.stateT > 0) { this.stateT -= dt; if (this.stateT <= 0 && (this.state === 'happy' || this.state === 'curl')) this.state = 'idle'; }
     const w = game.world, P = game.player, sp = this.sp;
-    if (sp.night) { this.visible = game.lightingNight || game.forceAnimals; }
+    if (sp.part2 || sp.seasons) {
+      const season = game.S.season || 'summer';
+      let vis = (!sp.part2 || !!game.S.part2?.started) && (!sp.seasons || !sp.seasons.includes || sp.seasons.includes(season));
+      if (sp.night) vis = vis && (game.lightingNight || game.forceAnimals);
+      if (this.mode === 'scene') vis = true;
+      this.visible = vis;
+    } else if (sp.night) { this.visible = game.lightingNight || game.forceAnimals; }
     if (!this.visible) return;
     const d = dist(this.x, this.y, P.x, P.y);
     this.moving = false;
@@ -157,10 +163,10 @@ export class Animal {
     if (!this.visible) return;
     ctx.save();
     ctx.translate(this.x * TILE, this.y * TILE);
-    const sc = PET_SCALE[this.species] || SCALE;
+    const sc = (this.scale || 1) * (PET_SCALE[this.species] || SCALE);
     ctx.translate(0, -this.z);
     ctx.scale(sc, sc);
-    drawAnimal(ctx, this.species, { face: this.face, t: this.t, moving: this.moving, state: this.state, variant: this.variant });
+    drawAnimal(ctx, this.species, { face: this.face, t: this.t, moving: this.moving, state: this.state, variant: this.variant, sweater: this.sweater });
     if (this.carry) { ctx.fillStyle = '#9a6a45'; ctx.save(); ctx.translate(this.face * 13, -12); ctx.rotate(0.2 * this.face); ctx.fillRect(-7, -1.2, 14, 2.4); ctx.restore(); }
     if (this.rosette) { ctx.save(); ctx.translate(this.face * 5, -11); flower(ctx, 0, 0, 3, '#ffd24a', '#ff6f8f', 8); ctx.fillStyle = '#ff6f8f'; ctx.fillRect(-1.5, 2, 1.4, 4); ctx.fillRect(0.3, 2, 1.4, 4); ctx.restore(); }
     ctx.restore();
