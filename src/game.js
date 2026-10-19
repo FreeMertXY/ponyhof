@@ -960,6 +960,8 @@ export class Game {
   questTargetPos(q) {
     const tg = this.quests.stepTarget(q);
     if (!tg) return null;
+    const src = P2.deliverSourcePos(this, q);
+    if (src) return src;
     if (tg.npc) { const n = this.npcById(tg.npc); return n ? { x: n.x, y: n.y } : null; }
     if (tg.npcAll) {
       const st = this.quests.st(q.id);

@@ -103,7 +103,7 @@ export const ITEM_SOURCES = {
   seed_tulip: 'Tulpenzwiebeln: bei Theo oder im Hofladen.',
   tulip: 'Tulpen: Tulpenzwiebeln im Garten setzen, gießen und ernten.',
   stone: 'Feldsteine: am Fuß der Wolkenberge, dort, wo die Felsen beginnen (graue Steine, E drücken).',
-  sand: 'Sand: am Sonnenstrand südlich vom Dorf – an der Sandkuhle E drücken.',
+  sand: 'Sand: an der Sandkuhle am Sonnenstrand ganz im Süden, ein Stück westlich vom Leuchtturm (Sandhaufen mit Schaufel und Schild „Sand“). Zu Fuß hingehen und E drücken – jedes Mal 1 Eimer. Der Pfeil zeigt hin.',
   candle: 'Teelichter: bei Theo im Laden.',
   paper: 'Seidenpapier: bei Paula auf der Post.',
   lampoil: 'Lampenöl: bei Theo im Laden.',

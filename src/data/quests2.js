@@ -221,13 +221,13 @@ export const QUESTS2 = [
         lines: [
           'Du willst Lotte Reitstunden geben? {name}, das ist die beste Idee seit … seit unserem Picknick!',
           'Wir brauchen einen richtigen Reitplatz. Mit weichem Sand, damit niemand sich wehtut, und einem weißen Zaun.',
-          'Ich brauche 6 Bretter von Theo und 3 Eimer Sand vom Sonnenstrand. An der Sandkuhle östlich vom Leuchtturmweg kannst du schaufeln.',
+          'Ich brauche 6 Bretter von Theo und 3 Eimer Sand vom Sonnenstrand. Ganz im Süden, ein Stück westlich vom Leuchtturm, ist eine Sandkuhle mit Schaufel – da kannst du schaufeln.',
         ],
       },
       {
         type: 'deliver', npc: 'mert', items: { boards: 6, sand: 3 }, text: 'Bring Mert 6 Bretter und 3 Eimer Sand', target: { npc: 'mert' },
         lines: ['Sechs Bretter, drei Eimer Sand und eine Freundin, die alles schafft. Los geht’s!'],
-        missing: ['6 Bretter (bei Theo) und 3 Eimer Sand (Sandkuhle am Sonnenstrand, dort E drücken).'],
+        missing: ['6 Bretter (bei Theo) und 3 Eimer Sand (Sandkuhle am Sonnenstrand, westlich vom Leuchtturm – dort zu Fuß E drücken).'],
       },
     ],
     reward: { coins: 40, farm: 'arena', memory: 'reitplatz' },

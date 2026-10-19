@@ -185,3 +185,36 @@ export function drawStorkInNest(ctx, t, i = 0) {
 }
 
 export { star, flower };
+
+// Sandkuhle am Sonnenstrand: Sandhaufen mit Schaufel, Eimer und Schild
+export function drawSandpit(ctx, t, glow = false) {
+  ctx.save(); ctx.scale(1.5, 1.5);
+  shadow(ctx, 0, 2, 30, 7, 0.14);
+  if (glow) { ctx.fillStyle = `rgba(255,236,150,${0.25 + Math.sin(t * 3) * 0.12})`; ell(ctx, 0, -2, 34, 12); ctx.fill(); }
+  // Haufen
+  ctx.beginPath(); ctx.moveTo(-28, 2); ctx.quadraticCurveTo(-18, -22, 0, -24); ctx.quadraticCurveTo(18, -22, 28, 2); ctx.closePath();
+  fs(ctx, '#f3d58e', 1.8, '#c9a45a');
+  ctx.fillStyle = '#fbe6ad'; ell(ctx, -6, -16, 10, 4, -0.2); ctx.fill();
+  ctx.fillStyle = 'rgba(180,140,70,0.45)'; for (let i = 0; i < 7; i++) { circ(ctx, -18 + i * 6, -4 - (i % 3) * 5, 1.2); ctx.fill(); }
+  // Schaufel im Sand
+  ctx.save(); ctx.translate(10, -14); ctx.rotate(0.35);
+  ctx.fillStyle = '#9a6a42'; rr(ctx, -1.6, -24, 3.2, 22, 1.5); ctx.fill();
+  rr(ctx, -5, -27, 10, 4, 2); fs(ctx, '#7a5232', 1);
+  ctx.beginPath(); ctx.moveTo(-6, -2); ctx.lineTo(6, -2); ctx.lineTo(4, 9); ctx.quadraticCurveTo(0, 13, -4, 9); ctx.closePath(); fs(ctx, '#9fb3c8', 1.4, '#6a7f96');
+  ctx.restore();
+  // Eimer
+  ctx.save(); ctx.translate(-22, 0);
+  ctx.beginPath(); ctx.moveTo(-7, -14); ctx.lineTo(7, -14); ctx.lineTo(5, 0); ctx.lineTo(-5, 0); ctx.closePath(); fs(ctx, '#ff7eb6', 1.4, '#c94a7a');
+  ctx.fillStyle = '#f3d58e'; ell(ctx, 0, -14, 7, 2.2); ctx.fill();
+  ctx.strokeStyle = '#c94a7a'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(0, -14, 7, Math.PI, 0); ctx.stroke();
+  ctx.restore();
+  // Schild
+  ctx.save(); ctx.translate(26, 0);
+  ctx.fillStyle = '#9a6a42'; ctx.fillRect(-1.5, -30, 3, 30);
+  rr(ctx, -16, -42, 32, 14, 4); fs(ctx, '#fff4dc', 1.5, '#9a6a42');
+  ctx.font = `700 9px ${FONT}`; ctx.textAlign = 'center'; ctx.fillStyle = '#b0703a'; ctx.fillText('Sand', 0, -32);
+  ctx.restore();
+  // solange Sand gebraucht wird: hüpfendes Glitzern über dem Haufen
+  if (glow) sparkle(ctx, 0, -34 - Math.abs(Math.sin(t * 3)) * 5, 4, '#fff6b0');
+  ctx.restore();
+}

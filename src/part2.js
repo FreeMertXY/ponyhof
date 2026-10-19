@@ -301,6 +301,15 @@ export async function useStep(g, q, step, sp) {
 }
 
 // Zielposition für das Aufgaben-Ziel (Pfeil, Karte)
+// Abgabe-Schritt, aber es fehlt noch etwas mit festem Fundort? Dann zeigt der Pfeil dorthin.
+const ITEM_SPOTS = { sand: 'sandpit' };
+export function deliverSourcePos(g, q) {
+  const step = g.quests.step(q);
+  if (step?.type !== 'deliver') return null;
+  for (const [id, n] of Object.entries(step.items)) if (ITEM_SPOTS[id] && !g.inv.has(id, n)) return SPOTS[ITEM_SPOTS[id]];
+  return null;
+}
+
 export function targetPos(g, tg) {
   const S = g.S, P = g.player;
   const nearest = (list) => { list.sort((a, b) => dist(a.x, a.y, P.x, P.y) - dist(b.x, b.y, P.x, P.y)); return list[0] ? { x: list[0].x, y: list[0].y } : null; };

@@ -246,7 +246,9 @@ Geschätzte Spielzeit: **3–4 Stunden** (Teil 1: 38 Aufgaben, 2–3 Stunden).
 - **Zwei Aufgaben bei derselben Person blockieren sich nie mehr:** Wer gerade etwas Erledigbares hat, geht vor
   einem „Dir fehlt noch …“ einer anderen Aufgabe (wurde durch den automatischen Test gefunden: Ben wartete auf
   Kastanien und blockierte dadurch das Vogelhäuschen).
-- Fehlende Sachen haben Bezugsquellen-Tipps (z. B. „Sand: am Sonnenstrand – an der Sandkuhle E drücken“).
+- Fehlende Sachen haben Bezugsquellen-Tipps. Die **Sandkuhle** (Sonnenstrand, westlich vom Leuchtturm) ist ein
+  sichtbarer Sandhaufen mit Schaufel, Eimer und Schild „Sand“; solange eine Abgabe noch Sand braucht, glitzert
+  sie und der Zielpfeil zeigt dorthin statt zur Person (nach Rückmeldung: vorher war dort nichts zu sehen).
 - Oma Hilde ist während ihrer Reise (Kapitel 7–10) unsichtbar; keine Aufgabe braucht sie in dieser Zeit.
 
 ## Neue Figuren, Tiere & Sachen

@@ -5,7 +5,7 @@ import { stage, endStage, kiss, forceDismount, love } from './scenes.js';
 import { drawHorse, horseLook } from './draw/horse.js';
 import { drawCharacter, npcLook } from './draw/characters.js';
 import { NPCS } from './data/npcs.js';
-import { drawLeafPile, drawSnowman, drawLantern, drawMarker, drawBirdhouse, drawCone, drawChest, drawPostVan, drawStorkInNest, drawPumpkinLamp } from './draw/props.js';
+import { drawLeafPile, drawSnowman, drawLantern, drawMarker, drawBirdhouse, drawCone, drawChest, drawPostVan, drawStorkInNest, drawPumpkinLamp, drawSandpit } from './draw/props.js';
 import { Animal } from './animals.js';
 import { outlinedText, FONT, heart } from './draw/paint.js';
 import { dist, pick } from './util.js';
@@ -41,9 +41,16 @@ export function buildProps(g) {
   for (const i of S.flags.birdhouses || []) { const p = SPOTS.birdspots[i]; if (p) out.push(new Prop(p.x, p.y, (c, t) => drawBirdhouse(c, t))); }
   // Störche im Nest
   if (S.farm.storks && season !== 'winter') for (const [i, dx] of [[0, -0.2], [1, 0.25]]) out.push(new Prop(147.5 + dx, 98.9, (c, t) => { c.translate(0, -78); drawStorkInNest(c, t, i); }, 0.2));
+  // Sandkuhle am Sonnenstrand (leuchtet, solange eine Aufgabe Sand braucht)
+  out.push(new Prop(SPOTS.sandpit.x, SPOTS.sandpit.y + 0.3, (c, t) => drawSandpit(c, t, needsSand(g))));
   // Marker für offene Aufgaben-Orte
   out.push(new MarkerProp(g));
   return out;
+}
+
+function needsSand(g) {
+  const Q = g.quests;
+  return Q.active().some((q) => { const st = Q.step(q); return st?.items?.sand && !g.inv.has('sand', st.items.sand); });
 }
 
 // zeichnet Bodenmarker an allen aktuell wichtigen Orten (Kamera, Laternenplätze, Grabstellen …)
