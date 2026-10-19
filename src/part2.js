@@ -302,12 +302,20 @@ export async function useStep(g, q, step, sp) {
 
 // Zielposition für das Aufgaben-Ziel (Pfeil, Karte)
 // Abgabe-Schritt, aber es fehlt noch etwas mit festem Fundort? Dann zeigt der Pfeil dorthin.
-const ITEM_SPOTS = { sand: 'sandpit' };
+// (bei mehreren fehlenden Sachen: zum nächstgelegenen Fundort)
+const ITEM_SPOTS = { sand: { spot: 'sandpit' }, boards: { npc: 'theo' } };
 export function deliverSourcePos(g, q) {
   const step = g.quests.step(q);
   if (step?.type !== 'deliver') return null;
-  for (const [id, n] of Object.entries(step.items)) if (ITEM_SPOTS[id] && !g.inv.has(id, n)) return SPOTS[ITEM_SPOTS[id]];
-  return null;
+  const P = g.player, list = [];
+  for (const [id, n] of Object.entries(step.items)) {
+    const src = ITEM_SPOTS[id];
+    if (!src || g.inv.has(id, n)) continue;
+    if (src.spot) list.push(SPOTS[src.spot]);
+    else if (src.npc) { const npc = g.npcById(src.npc); if (npc?.visible !== false && npc) list.push({ x: npc.x, y: npc.y }); }
+  }
+  list.sort((a, b) => dist(a.x, a.y, P.x, P.y) - dist(b.x, b.y, P.x, P.y));
+  return list[0] || null;
 }
 
 export function targetPos(g, tg) {

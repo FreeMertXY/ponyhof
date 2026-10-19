@@ -249,6 +249,7 @@ Geschätzte Spielzeit: **3–4 Stunden** (Teil 1: 38 Aufgaben, 2–3 Stunden).
 - Fehlende Sachen haben Bezugsquellen-Tipps. Die **Sandkuhle** (Sonnenstrand, westlich vom Leuchtturm) ist ein
   sichtbarer Sandhaufen mit Schaufel, Eimer und Schild „Sand“; solange eine Abgabe noch Sand braucht, glitzert
   sie und der Zielpfeil zeigt dorthin statt zur Person (nach Rückmeldung: vorher war dort nichts zu sehen).
+  Genauso zeigt der Pfeil bei fehlenden Brettern zu Theo – bei mehreren fehlenden Sachen zum nächsten Fundort.
 - Oma Hilde ist während ihrer Reise (Kapitel 7–10) unsichtbar; keine Aufgabe braucht sie in dieser Zeit.
 
 ## Neue Figuren, Tiere & Sachen
