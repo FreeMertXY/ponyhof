@@ -240,6 +240,8 @@ Geschätzte Spielzeit: **3–4 Stunden** (Teil 1: 38 Aufgaben, 2–3 Stunden).
   ersten Mal mit einem kurzen Hinweis.
 - Neue Orts-Aktionen (`use`-Schritte) erscheinen als ganz normales „E“-Feld am Ort. Hauptaufgaben haben dabei
   Vorrang vor Nebenaufgaben; Foto-Punkte liegen bewusst nicht auf anderen Aktionen.
+- Mert schenkt nach Umarmung/Küsschen (einmal pro Tag) weiterhin eine Blume – passend zur Jahreszeit
+  (Frühling: Schneeglöckchen/Tulpe, im Winter stattdessen ein Plätzchen, weil nichts blüht).
 - Für fast jede Szene steigt man automatisch ab (nur die Tanne braucht ein Pferd zum Ziehen).
 - **Zwei Aufgaben bei derselben Person blockieren sich nie mehr:** Wer gerade etwas Erledigbares hat, geht vor
   einem „Dir fehlt noch …“ einer anderen Aufgabe (wurde durch den automatischen Test gefunden: Ben wartete auf

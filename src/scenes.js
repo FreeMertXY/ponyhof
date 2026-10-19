@@ -475,8 +475,15 @@ export async function mertHug(g, kind) {
   const S = g.S;
   if (S.flags.mertFlower !== S.time.day) {
     S.flags.mertFlower = S.time.day;
-    const f = pick(['daisy', 'poppy', 'sunflower', 'lavender']);
-    g.inv.add(f, 1);
-    await g.say([{ who: 'mert', t: pick(['Ach, und die hab ich heute früh für dich gepflückt.', 'Warte, ich hab noch was für dich. Eine Blume! Na gut, sie ist ein bisschen zerdrückt.', 'Für die Schönste auf dem ganzen Hof.']) }]);
+    // je nach Jahreszeit ein anderes kleines Geschenk (im Winter blüht ja nichts)
+    const season = S.season || 'summer';
+    if (season === 'winter') {
+      g.inv.add('cookies', 1);
+      await g.say([{ who: 'mert', t: pick(['Im Winter blüht leider nichts … darum hab ich dir Plätzchen gebacken. Herzform! Na ja, fast.', 'Für dich – ein Plätzchen in Sternform. Blumen gibt es erst wieder im Frühling, versprochen.']) }]);
+    } else {
+      const f = pick({ spring: ['snowdrop', 'tulip', 'daisy'], autumn: ['sunflower', 'poppy', 'lavender'] }[season] || ['daisy', 'poppy', 'sunflower', 'lavender']);
+      g.inv.add(f, 1);
+      await g.say([{ who: 'mert', t: pick(['Ach, und die hab ich heute früh für dich gepflückt.', 'Warte, ich hab noch was für dich. Eine Blume! Na gut, sie ist ein bisschen zerdrückt.', 'Für die Schönste auf dem ganzen Hof.']) }]);
+    }
   }
 }
