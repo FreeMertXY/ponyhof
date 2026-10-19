@@ -273,12 +273,16 @@ export function addCandidates(g, add, near) {
     const spots = multi ? openSpots(g, u.at) : [spotPos(g, u.at)].filter(Boolean);
     for (const sp of spots) {
       // Hauptaufgaben haben Vorrang; Fotos & Co. treten zurück, wenn etwas anderes genauso nah ist
-      if ((d = near(sp.x, sp.y, r)) !== null) add(d + (q.main ? -0.6 : multi ? 0.15 : -0.3), label, () => useStep(g, q, step, sp), sp.x, sp.y - 1.4);
+      if ((d = near(sp.x, sp.y, r)) !== null) add(d + (q.main ? -1 : multi ? 0.15 : -0.3), label, () => useStep(g, q, step, sp), sp.x, sp.y - 1.4);
     }
   }
   // feste Orte in Teil 2
   if (S.farm.farmshop && (d = near(SPOTS.farmshop.x + 0.5, SPOTS.farmshop.y, 1.8)) !== null) add(d + 0.1, 'Hofladen', () => g.ui.open('shop', 'hofladen'), SPOTS.farmshop.x + 0.5, SPOTS.farmshop.y - 2);
-  if ((d = near(SPOTS.sandpit.x, SPOTS.sandpit.y, 1.8)) !== null && !P.riding) add(d, 'Sand einfüllen', () => S2.shovelSand(g), SPOTS.sandpit.x, SPOTS.sandpit.y - 1);
+  // Sandkuhle: großzügiger Radius, und wenn eine Aufgabe Sand braucht, hat sie Vorrang vor Tieren am Strand
+  if ((d = near(SPOTS.sandpit.x, SPOTS.sandpit.y, 2.6)) !== null) {
+    const wanted = Q.active().some((q) => { const st = Q.step(q); return st?.items?.sand && !g.inv.has('sand', st.items.sand); });
+    add(wanted ? d - 3 : d, 'Sand einfüllen', () => S2.shovelSand(g), SPOTS.sandpit.x, SPOTS.sandpit.y - 1.6);
+  }
   if (S.farm.igelhaus && (d = near(SPOTS.igelhaus.x, SPOTS.igelhaus.y, 1.4)) !== null) add(d + 0.2, seasonOf(S) === 'winter' ? 'Leise lauschen' : 'Ins Igelhaus schauen', () => S2.igelhausPeek(g), SPOTS.igelhaus.x, SPOTS.igelhaus.y - 1);
   if (S.flags.musicboxPlaced !== undefined) { /* Deko-Spieluhr wird über die Deko bedient */ }
 }

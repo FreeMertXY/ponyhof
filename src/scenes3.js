@@ -659,6 +659,7 @@ export async function outfitShow(g) {
 
 export async function shovelSand(g) {
   if (g.inv.count('sand') >= 6) { g.ui.hint('Mehr Sand kannst du nicht tragen.', 2); return; }
+  if (g.player.riding) forceDismount(g);
   g.audio.play('dig');
   g.particles.dust(SPOTS.sandpit.x, SPOTS.sandpit.y, 6);
   g.inv.add('sand', 1);
